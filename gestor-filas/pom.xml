@@ -23,6 +23,7 @@
     <module>terminal-registro</module>
     <module>panel-operador</module>
     <module>monitor-visualizacion</module>
+    <module>common</module>
  </modules>
 
   <dependencies>
