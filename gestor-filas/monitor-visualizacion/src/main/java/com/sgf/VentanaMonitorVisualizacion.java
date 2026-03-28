@@ -1,115 +1,147 @@
 package com.sgf;
 
-import java.awt.Font;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import java.awt.*;
+import java.util.List;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
+/**
+ * Ventana del Monitor de Sala.
+ * Diseño responsive
+ */
 public class VentanaMonitorVisualizacion extends JFrame {
 
-    private JPanel contentPane;
     private JLabel lblTurnoActual;
-    private DefaultListModel<String> proximosModel;
+    private JPanel panelHistorial;
+    
+    // Colores personalizados <--se podría usar la misma para la terminal de registro
+    private final Color COLOR_FONDO = new Color(15, 23, 42);
+    private final Color COLOR_TARJETA_PRIMARIA = Color.WHITE;
+    private final Color COLOR_TARJETA_SECUNDARIA = new Color(30, 41, 59);
+    private final Color COLOR_TEXTO_DNI = new Color(15, 23, 42);
+    private final Color COLOR_BORDE = new Color(51, 65, 85);
 
     public VentanaMonitorVisualizacion() {
         setTitle("Monitor de Sala");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 600, 450);
         
-        contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        setContentPane(contentPane);
-        contentPane.setLayout(null);
-
-        JLabel lblTitulo = new JLabel("LLAMANDO A:");
-        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 24));
-        lblTitulo.setBounds(10, 20, 564, 30);
-        contentPane.add(lblTitulo);
-
-        lblTurnoActual = new JLabel("---");
-        lblTurnoActual.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTurnoActual.setFont(new Font("Tahoma", Font.BOLD, 60));
-        lblTurnoActual.setBounds(10, 60, 564, 80);
-        contentPane.add(lblTurnoActual);
-
-        // Cambiamos el texto para que diga Próximos
-        JLabel lblUltimos = new JLabel("Próximos a ser atendidos:");
-        lblUltimos.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        lblUltimos.setBounds(20, 180, 250, 25);
-        contentPane.add(lblUltimos);
-
-        proximosModel = new DefaultListModel<>();
-        JList<String> listProximos = new JList<>(proximosModel);
-        listProximos.setFont(new Font("Tahoma", Font.PLAIN, 24));
-        listProximos.setBounds(20, 210, 540, 150);
-        listProximos.setEnabled(false);
-        contentPane.add(listProximos);
-
-        iniciarServidorMonitor();
+        setMinimumSize(new Dimension(800, 600));
+        getContentPane().setBackground(COLOR_FONDO);
+        
+        initComponents();
+        
+        // Inicia el servidor en el puerto 5001
+        new Thread(new ServidorMonitor(5001, this)).start();
     }
 
-    private void iniciarServidorMonitor() {
-        new Thread(new Runnable() {
-            public void run() {
-                try (ServerSocket serverSocket = new ServerSocket(5001)) {
-                    while (true) {
-                        Socket socket = serverSocket.accept();
-                        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        
-                        // Recibe el texto con comas, ej: "1234,111,222,333"
-                        String datosRecibidos = in.readLine(); 
-                        
-                        if (datosRecibidos != null) {
-                            actualizarPantalla(datosRecibidos);
-                        }
-                        socket.close();
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error en el monitor: " + e.getMessage());
-                }
-            }
-        }).start();
+    private void initComponents() {
+        setLayout(new BorderLayout());
+        ((JPanel)getContentPane()).setBorder(new EmptyBorder(20, 40, 20, 40));
+
+        // --- ENCABEZADO SUPERIOR ---
+        JLabel lblHeader = new JLabel("SISTEMA DE GESTIÓN DE FILAS", SwingConstants.CENTER);
+        lblHeader.setForeground(new Color(148, 163, 184));
+        lblHeader.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblHeader.setBorder(new EmptyBorder(10, 0, 20, 0));
+        add(lblHeader, BorderLayout.NORTH);
+
+        // --- CONTENIDO CENTRAL: TARJETA DE LLAMADO ---
+        JPanel contenedorCentral = new JPanel(new BorderLayout());
+        contenedorCentral.setOpaque(false);
+        
+        // Tarjeta Blanca con BorderLayout para que nada desaparezca
+        JPanel cardPrincipal = new JPanel(new BorderLayout());
+        cardPrincipal.setBackground(COLOR_TARJETA_PRIMARIA);
+        cardPrincipal.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_BORDE, 1),
+                new EmptyBorder(20, 20, 20, 20)
+        ));
+
+        // Título Fijo Arriba
+        JLabel lblLlamando = new JLabel("LLAMANDO AHORA", SwingConstants.CENTER);
+        lblLlamando.setForeground(new Color(51, 65, 85));
+        lblLlamando.setFont(new Font("SansSerif", Font.BOLD, 28));
+        cardPrincipal.add(lblLlamando, BorderLayout.NORTH);
+
+        // DNI Central (se ajusta al espacio restante)
+        lblTurnoActual = new JLabel("---", SwingConstants.CENTER);
+        lblTurnoActual.setForeground(COLOR_TEXTO_DNI);
+        lblTurnoActual.setFont(new Font("SansSerif", Font.BOLD, 100)); 
+        cardPrincipal.add(lblTurnoActual, BorderLayout.CENTER);
+
+        contenedorCentral.add(cardPrincipal, BorderLayout.CENTER);
+        add(contenedorCentral, BorderLayout.CENTER);
+
+        // --- SECCIÓN INFERIOR: HISTORIAL ---
+        JPanel sectionHistorial = new JPanel(new BorderLayout());
+        sectionHistorial.setOpaque(false);
+        sectionHistorial.setPreferredSize(new Dimension(0, 180));
+
+        JLabel lblTituloHistorial = new JLabel("Últimos llamados: ", SwingConstants.LEFT);
+        lblTituloHistorial.setForeground(Color.WHITE);
+        lblTituloHistorial.setFont(new Font("SansSerif", Font.BOLD, 18));
+        lblTituloHistorial.setBorder(new EmptyBorder(20, 0, 15, 0));
+        sectionHistorial.add(lblTituloHistorial, BorderLayout.NORTH);
+
+        panelHistorial = new JPanel(new GridLayout(2, 2, 15, 15));
+        panelHistorial.setOpaque(false);
+        
+        // Inicializamos con 4 vacíos
+        for (int i = 0; i < 4; i++) {
+            panelHistorial.add(crearTarjetaTurno(i + 1, "---"));
+        }
+        
+        sectionHistorial.add(panelHistorial, BorderLayout.CENTER);
+        add(sectionHistorial, BorderLayout.SOUTH);
     }
 
-    private void actualizarPantalla(String datosRecibidos) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // Separamos el texto por las comas
-                String[] DNIs = datosRecibidos.split(",");
-                
-                // El primer DNI del array es el que se está llamando ahora
-                lblTurnoActual.setText(DNIs[0]);
-                
-                // Limpiamos la lista y agregamos los que siguen (si es que hay)
-                proximosModel.clear();
-                for (int i = 1; i < DNIs.length; i++) {
-                    proximosModel.addElement("En espera: " + DNIs[i]);
-                }
+
+    private JPanel crearTarjetaTurno(int orden, String dni) {
+        JPanel p = new JPanel(new BorderLayout(25, 0));
+        p.setBackground(COLOR_TARJETA_SECUNDARIA);
+        p.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_BORDE, 1),
+                new EmptyBorder(15, 30, 15, 30)
+        ));
+        
+        JLabel lblNum = new JLabel(String.valueOf(orden));
+        lblNum.setForeground(new Color(96, 165, 250)); // Azul brillante para el número
+        lblNum.setFont(new Font("SansSerif", Font.BOLD, 26));
+        
+        JLabel lblDni = new JLabel(dni);
+        lblDni.setForeground(Color.WHITE);
+        lblDni.setFont(new Font("SansSerif", Font.BOLD, 30));
+
+        p.add(lblNum, BorderLayout.WEST);
+        p.add(lblDni, BorderLayout.CENTER);
+        return p;
+    }
+
+    /**
+     * Actualiza la UI usando objetos reales Turno.
+     */
+    public void actualizarPantalla(final Turno actual, final List<Turno> historial) {
+        SwingUtilities.invokeLater(() -> {
+            lblTurnoActual.setText(actual.getDniCliente());
+            
+            panelHistorial.removeAll();
+            // Llenamos las 4 tarjetas del historial
+            for (int i = 0; i < historial.size() && i < 4; i++) {
+                panelHistorial.add(crearTarjetaTurno(i + 1, historial.get(i).getDniCliente()));
             }
+            // Si hay menos de 4, rellenamos con guiones
+            for (int i = historial.size(); i < 4; i++) {
+                panelHistorial.add(crearTarjetaTurno(i + 1, "---"));
+            }
+            
+            panelHistorial.revalidate();
+            panelHistorial.repaint();
         });
     }
 
     public static void main(String[] args) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    VentanaMonitorVisualizacion frame = new VentanaMonitorVisualizacion();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) {}
+        SwingUtilities.invokeLater(() -> new VentanaMonitorVisualizacion().setVisible(true));
     }
 }
