@@ -3,47 +3,50 @@ package com.sgf;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.SwingUtilities;
 
-/**
- * Servidor de Red para el Monitor.
- * Escucha objetos serializados (Turno y List<Turno>) para respetar la lógica FIFO.
- */
 public class ServidorMonitor implements Runnable {
 
     private int puerto;
-    private VentanaMonitorVisualizacion vista;
+    private VentanaMonitorVisualizacion ventana;
+    private List<Turno> historial;
+    private Turno turnoActual;
 
-    public ServidorMonitor(int puerto, VentanaMonitorVisualizacion vista) {
+    public ServidorMonitor(int puerto, VentanaMonitorVisualizacion ventana) {
         this.puerto = puerto;
-        this.vista = vista;
+        this.ventana = ventana;
+        this.historial = new ArrayList<>();
+        this.turnoActual = null;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(puerto)) {
             System.out.println("Servidor Monitor activo en puerto " + puerto);
 
             while (true) {
-                // Aceptamos la conexión del Operador
                 try (Socket socket = serverSocket.accept();
-                    // Creamos un ObjectInputStream para recibir objetos serializados
-                    //esto porque usamos la clase Turno y List<Turno>
-                    //Si fuera un string, debemos usar un BufferedReader
-                    ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-                    
-                    // Leemos los objetos en el orden en que el Operador los envía
-                    Turno actual = (Turno) in.readObject();
-                    List<Turno> historial = (List<Turno>) in.readObject();
-                    
-                    // Actualizamos la interfaz gráfica con los objetos reales
-                    if (actual != null) {
-                        vista.actualizarPantalla(actual, historial);
+                     ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+                    Turno nuevoTurno = (Turno) in.readObject();
+
+                    // Movemos el turno actual al historial
+                    if (turnoActual != null) {
+                        historial.add(0, turnoActual);
+                        if (historial.size() > 4) {
+                            historial.remove(4); // máximo 4 turnos
+                        }
                     }
-                    
+
+                    turnoActual = nuevoTurno;
+
+                    // Actualizamos la UI en el EDT
+                    SwingUtilities.invokeLater(() -> ventana.actualizarPantalla(turnoActual, historial));
+
                 } catch (Exception e) {
-                    System.err.println("Error al recibir objetos: " + e.getMessage());
+                    System.err.println("Error recibiendo turno: " + e.getMessage());
                 }
             }
         } catch (Exception e) {

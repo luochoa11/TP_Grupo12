@@ -6,26 +6,25 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class VentanaTerminalRegistro extends JFrame {
 
     private JPanel contentPane;
     private JTextField textFieldDNI;
 
-    public VentanaTerminalRegistro() {
-        // Título y configuración básica de la ventana
+    public VentanaTerminalRegistro(ClienteSocket cliente) {
+        
+
         setTitle("Terminal de Registro");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 400, 300);
         
-        // Panel principal donde vas a arrastrar los botones
+        
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         
-        // El layout en 'null' o 'Absolute' es vital para poder arrastrar y soltar libremente
+        
         contentPane.setLayout(null); 
         
         JTextArea txtrIngresesuDni = new JTextArea();
@@ -39,10 +38,15 @@ public class VentanaTerminalRegistro extends JFrame {
         textFieldDNI.setColumns(10);
         
         JButton btnIngresar = new JButton("Ingresar");
-        btnIngresar.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
+        btnIngresar.addActionListener(e -> {
+            String dni = textFieldDNI.getText().trim();
+            if (!dni.isEmpty()) {
+                Turno t = new Turno(dni);
+                cliente.enviarTurno(t); // Se envía al servidor
+                 textFieldDNI.setText("");
+              }
         });
+        
         btnIngresar.setBounds(154, 102, 88, 22);
         contentPane.add(btnIngresar);
     }
