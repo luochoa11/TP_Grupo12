@@ -72,4 +72,8 @@ public class LogicaFila {
     public int getCantidadEnEspera() {
         return filaEspera.size();
     }
+
+    public List<Turno> getCola() {
+    return new ArrayList<>(filaEspera);
 }
+}   
