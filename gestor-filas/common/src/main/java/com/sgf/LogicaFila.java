@@ -5,6 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.sgf.excepciones.DniInvalidoException;
+import com.sgf.excepciones.FilaVaciaException;
+
 /**
  * Gestiona la estructura de datos de la fila y el historial.
  * Cumple con el requerimiento funcional de lógica FIFO.
@@ -27,26 +30,34 @@ public class LogicaFila {
     }
 
     /**
-     * Registra un nuevo turno proveniente de la terminal.
+     * Registra un nuevo turno proveniente de la terminal, validando formato.
      */
-    public void agregarTurno(Turno t) {
+    public void agregarTurno(Turno t) throws DniInvalidoException {
+
         if (t != null && !t.getDniCliente().trim().isEmpty()) {
+            // Validar formato del DNI
+            String dni = t.getDniCliente().trim();
+            if (dni.length() < 7 || dni.length() > 8 || !dni.matches("[0-9]+")) {
+                throw new DniInvalidoException(dni);
+            }
+
             this.filaEspera.add(t);
         }
     }
 
     /**
      * Lógica de llamado (utiliza Panel de Operador).
+     * Lanza excepción si no hay nadie.
      */
-    public Turno llamarSiguiente() {
+    public Turno llamarSiguiente() throws FilaVaciaException {
         if (filaEspera.isEmpty()) {
-            return null;
+            throw new FilaVaciaException();
         }
 
         // Si había alguien en pantalla, pasa al historial antes de llamar al nuevo
         if (this.turnoActual != null) {
             this.historial.add(0, this.turnoActual);
-
+            
             if (this.historial.size() > 4) {
                 this.historial.remove(4); 
                 // Mantiene el máximo de 4 en el historial

@@ -6,18 +6,18 @@ public class MainMonitor {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // 1: Creamos la Vista
+            // 1: Iniciamos la ventana
             VentanaMonitorVisualizacion ventana = new VentanaMonitorVisualizacion();
             
-            // 2: Creamos el Controlador y le damos la vista
+            // 2: Creamos el Controlador y le damos la ventana
             ControladorMonitor controlador = new ControladorMonitor(ventana);
             
             ventana.setVisible(true);
 
             // 3: El Servidor habla con el Controlador
-            new Thread(new ServidorMonitor(5000, controlador)).start();
+            new Thread(new ServidorMonitor(Constantes.PUERTO_MONITOR1, controlador)).start();
             
-            System.out.println("SGF Monitor: Sistema ensamblado y listo.");
+            System.out.println("Monitor: Sistema ensamblado y listo.");
         });
     }
 }

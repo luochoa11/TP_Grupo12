@@ -26,7 +26,7 @@ public class ServidorMonitor implements Runnable {
                     Turno nuevoTurno = (Turno) in.readObject();
 
                     // Delegamos la lógica al controlador
-                    controlador.recibirNuevoTurno(nuevoTurno);
+                    controlador.procesarNuevoTurno(nuevoTurno);
 
                 } catch (Exception e) {
                     System.err.println("Error recibiendo turno: " + e.getMessage());

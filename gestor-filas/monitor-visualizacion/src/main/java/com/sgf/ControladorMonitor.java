@@ -22,7 +22,7 @@ public class ControladorMonitor {
     /**
      * Procesa el nuevo turno recibido
      */
-    public void recibirNuevoTurno(Turno nuevoTurno) {
+    public void procesarNuevoTurno(Turno nuevoTurno) {
         if (nuevoTurno == null) return;
 
         // Gestiona el historial
