@@ -3,22 +3,15 @@ package com.sgf;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.SwingUtilities;
 
 public class ServidorMonitor implements Runnable {
 
     private int puerto;
-    private VentanaMonitorVisualizacion ventana;
-    private List<Turno> historial;
-    private Turno turnoActual;
+    private ControladorMonitor controlador;
 
-    public ServidorMonitor(int puerto, VentanaMonitorVisualizacion ventana) {
+    public ServidorMonitor(int puerto, ControladorMonitor controlador) {
         this.puerto = puerto;
-        this.ventana = ventana;
-        this.historial = new ArrayList<>();
-        this.turnoActual = null;
+        this.controlador = controlador;
     }
 
     @Override
@@ -28,22 +21,12 @@ public class ServidorMonitor implements Runnable {
 
             while (true) {
                 try (Socket socket = serverSocket.accept();
-                     ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+                    ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
                     Turno nuevoTurno = (Turno) in.readObject();
 
-                    // Movemos el turno actual al historial
-                    if (turnoActual != null) {
-                        historial.add(0, turnoActual);
-                        if (historial.size() > 4) {
-                            historial.remove(4); // máximo 4 turnos
-                        }
-                    }
-
-                    turnoActual = nuevoTurno;
-
-                    // Actualizamos la UI en el EDT
-                    SwingUtilities.invokeLater(() -> ventana.actualizarPantalla(turnoActual, historial));
+                    // Delegamos la lógica al controlador
+                    controlador.recibirNuevoTurno(nuevoTurno);
 
                 } catch (Exception e) {
                     System.err.println("Error recibiendo turno: " + e.getMessage());
