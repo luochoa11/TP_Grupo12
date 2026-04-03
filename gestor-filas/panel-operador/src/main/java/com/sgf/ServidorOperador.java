@@ -5,19 +5,15 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
-import javax.swing.SwingUtilities;
-import com.sgf.excepciones.SGFException;
 
 public class ServidorOperador implements Runnable {
 
     private int puerto;
-    private LogicaFila logica; 
-    private VentanaPanelOperador ventana;
+    private ControladorOperador controlador;
 
-    public ServidorOperador(int puerto, LogicaFila logica, VentanaPanelOperador ventana) {
+    public ServidorOperador(int puerto, ControladorOperador controlador) {
         this.puerto = puerto;
-        this.logica = logica;
-        this.ventana = ventana;
+        this.controlador = controlador;
     }
 
     @Override
@@ -27,27 +23,20 @@ public class ServidorOperador implements Runnable {
             System.out.println("Servidor Operador activo en puerto " + puerto);
 
             while (true) {
-                // 1. Aceptamos la conexión entrante
                 Socket socketCliente = server.accept();
 
-                // 2. Creamos un hilo para atender a este cliente sin bloquear el servidor
+                // Creamos un hilo para atender a este cliente sin bloquear el servidor
                 new Thread(() -> {
                     try (ObjectInputStream in = new ObjectInputStream(socketCliente.getInputStream())) {
                         
                         Turno turno = (Turno) in.readObject();
 
-                        logica.agregarTurno(turno);
-                        
-                        SwingUtilities.invokeLater(() -> {
-                            ventana.actualizarVista();
-                        });
-
-                        System.out.println("En cola: " + logica.getCantidadEnEspera());
+                        controlador.procesarTurnoDesdeRed(turno);
 
                     } catch (Exception e) {
-                        System.err.println("Error procesando turno: " + e.getMessage());
+                        System.err.println("Error de red: " + e.getMessage());
                     } finally {
-                        // 3. Siempre cerramos el socket del cliente al terminar
+                        // Siempre cerramos el socket del cliente al terminar
                         try {
                             if (!socketCliente.isClosed()) {
                                 socketCliente.close();
@@ -56,7 +45,7 @@ public class ServidorOperador implements Runnable {
                             System.err.println("Error al cerrar socket cliente: " + ex.getMessage());
                         }
                     }
-                }).start(); // ¡No te olvides de arrancar el hilo!
+                }).start();
             }
 
         } catch (BindException e) {

@@ -1,20 +1,32 @@
 package com.sgf;
 
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 public class MainOperador {
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
 
-        int PUERTO = Constantes.PUERTO_OPERADOR1;
+        SwingUtilities.invokeLater(() -> {
+            // 1. Inicializamos la lógica (Modelo)
+            LogicaFila modelo = new LogicaFila();
 
-        LogicaFila logica = new LogicaFila();
+            // 2. Inicializamos la Vista
+            VentanaPanelOperador ventana = new VentanaPanelOperador();
 
-        // UI operador
-        VentanaPanelOperador ventana = new VentanaPanelOperador(logica);
-        
-        
-        // servidor que recibe turnos
-        ServidorOperador servidor = new ServidorOperador(PUERTO, logica, ventana);
-        new Thread(servidor).start();
-        
-        ventana.setVisible(true); 
+            // 3. Inicializamos el Controlador y conectamos
+            ControladorOperador controlador = new ControladorOperador(ventana, modelo);
+            ventana.setControlador(controlador);
+
+            ventana.setVisible(true);
+
+            // 4. Iniciamos el servidor para recibir DNIs de la Terminal
+            // Le pasamos el controlador para que maneje la entrada
+            new Thread(new ServidorOperador(Constantes.PUERTO_OPERADOR1, controlador)).start();
+
+            System.out.println("SGF Operador: Iniciado y listo.");
+        });
     }
 }
