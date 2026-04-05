@@ -1,9 +1,13 @@
 package com.sgf;
 
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import com.sgf.excepciones.DNIRepetidoException;
+
 import java.io.IOException;
 
 public class ServidorOperador implements Runnable {
@@ -27,25 +31,32 @@ public class ServidorOperador implements Runnable {
 
                 // Creamos un hilo para atender a este cliente sin bloquear el servidor
                 new Thread(() -> {
-                    try (ObjectInputStream in = new ObjectInputStream(socketCliente.getInputStream())) {
-                        
-                        Turno turno = (Turno) in.readObject();
+                try (
+                    ObjectInputStream in = new ObjectInputStream(socketCliente.getInputStream());
+                    PrintWriter out = new PrintWriter(socketCliente.getOutputStream(), true)
+                ) {
 
+                    Turno turno = (Turno) in.readObject();
+
+                    try {
                         controlador.procesarTurnoDesdeRed(turno);
+                        out.println("OK");
+                        out.flush();
 
-                    } catch (Exception e) {
-                        System.err.println("Error de red: " + e.getMessage());
-                    } finally {
-                        // Siempre cerramos el socket del cliente al terminar
-                        try {
-                            if (!socketCliente.isClosed()) {
-                                socketCliente.close();
-                            }
-                        } catch (IOException ex) {
-                            System.err.println("Error al cerrar socket cliente: " + ex.getMessage());
-                        }
+                    } catch (DNIRepetidoException e) {
+
+                        out.println("ERROR_DNI_REPETIDO");
+
                     }
-                }).start();
+
+                } catch (Exception e) {
+                    System.err.println("Error de red: " + e.getMessage());
+                } finally {
+                    try {
+                        socketCliente.close();
+                    } catch (IOException ignored) {}
+                }
+            }).start();
             }
 
         } catch (BindException e) {

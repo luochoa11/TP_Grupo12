@@ -1,5 +1,6 @@
 package com.sgf;
 
+import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.DniInvalidoException;
 
 public class ControladorRegistro {
@@ -28,10 +29,11 @@ public class ControladorRegistro {
         }
     }
 
-    private void validarDNI(String dni) throws DniInvalidoException {
+    private void validarDNI(String dni) throws DniInvalidoException,DNIRepetidoException {
         if (dni.length() < 7 || dni.length() > 8) {
             throw new DniInvalidoException(dni);
         }
+       
     }
 
 
@@ -41,15 +43,23 @@ public class ControladorRegistro {
             validarDNI(dni);
             
             Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
-            cliente.enviarTurno(t); 
-
+            String rta = cliente.procesarTurnoRemoto(t);
+            if (rta.equals("OK")){
             vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);
             vista.setDNI("");
-
-        } catch (DniInvalidoException e) {
+            }
+            else{
+                vista.mostrarMensaje("El DNI ingresado ya tiene un lugar en la fila");
+            }
+        }
+        catch (DniInvalidoException e){
             vista.mostrarMensaje(e.getMessage());
-        } catch (Exception e) {
-            vista.mostrarMensaje("Error de conexión: No se pudo enviar el turno.");
+        }
+        catch(DNIRepetidoException e){
+                vista.mostrarMensaje(e.getMessage());
+        }
+        catch (Exception e) {
+            vista.mostrarMensaje("Error de conexión: No se pudo enviar el turno. ");
         }
         
     }

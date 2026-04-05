@@ -1,7 +1,6 @@
 package com.sgf;
 
 import java.awt.*;
-import java.io.ObjectOutputStream;
 import java.util.List;
 
 import javax.swing.*;
@@ -77,7 +76,7 @@ public class VentanaPanelOperador extends JFrame {
         contentPane.add(panelCentro, BorderLayout.CENTER);
 
         // Botón llamar
-        JButton btnLlamar = new JButton("Llamar siguiente");
+        btnLlamar = new JButton("Llamar siguiente");
         btnLlamar.setFont(new Font("Segoe UI", Font.BOLD, 24));
         btnLlamar.setBackground(COLOR_ACCENTO);
         btnLlamar.setForeground(COLOR_FONDO);

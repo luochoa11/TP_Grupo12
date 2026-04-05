@@ -11,7 +11,7 @@ public class MainOperador {
 
         SwingUtilities.invokeLater(() -> {
             // 1. Inicializamos la lógica (Modelo)
-            LogicaFila modelo = new LogicaFila();
+            LogicaFila modelo = LogicaFila.getInstance();
 
             // 2. Inicializamos la Vista
             VentanaPanelOperador ventana = new VentanaPanelOperador();

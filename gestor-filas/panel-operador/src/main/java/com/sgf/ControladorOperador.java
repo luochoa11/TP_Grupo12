@@ -1,7 +1,7 @@
 package com.sgf;
 
+import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.FilaVaciaException;
-import com.sgf.excepciones.SGFException;
 import javax.swing.SwingUtilities;
 
 public class ControladorOperador {
@@ -23,7 +23,7 @@ public class ControladorOperador {
             Turno siguiente = modelo.llamarSiguiente();
 
             // Si hay turno valido, enviamos al monitor 
-            clienteMonitor.enviarTurno(siguiente);
+            clienteMonitor.enviarTurno(siguiente); 
 
             // actualizamos la vista 
             SwingUtilities.invokeLater(() -> {
@@ -41,19 +41,19 @@ public class ControladorOperador {
     /**
      * Este metodo es llamado por el ServidorOperador cuando llega un DNI de la Terminal.
      */
-    public void procesarTurnoDesdeRed(Turno nuevo) {
+    public void procesarTurnoDesdeRed(Turno nuevo) throws DNIRepetidoException {
         try {
-            // Agregamos a la lógica (valida duplicados y formato)
             modelo.agregarTurno(nuevo);
-            
-            // Actualizamos la vista
+
             SwingUtilities.invokeLater(() -> {
                 vista.actualizarVista(modelo.getTurnoActual(), modelo.getCola());
             });
+
+        } catch (DNIRepetidoException e) {
+            throw e; // la tiro denuevo 
         } catch (Exception e) {
-            System.err.println("Error al agregar turno desde red: " + e.getMessage());
+            System.err.println("Error inesperado: " + e.getMessage());
         }
-            
     }
 
 }
