@@ -5,7 +5,7 @@ public class MainTerminal {
 
         System.out.println("Arrancando...");
 
-        ClienteSocket cliente = new ClienteSocket("localhost",Constantes.PUERTO_OPERADOR1);
+        ClienteSocket cliente = new ClienteSocket(Constantes.HOST_OPERADOR1,Constantes.PUERTO_OPERADOR1);
 
         try {
             javax.swing.UIManager.setLookAndFeel(
