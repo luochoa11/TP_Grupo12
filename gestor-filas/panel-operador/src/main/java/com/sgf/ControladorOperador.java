@@ -14,7 +14,7 @@ public class ControladorOperador {
         this.vista = vista;
         this.modelo = modelo;
         
-        this.clienteMonitor = new ClienteSocket("localhost", Constantes.PUERTO_MONITOR1);
+        this.clienteMonitor = new ClienteSocket(Constantes.HOST_MONITOR1, Constantes.PUERTO_MONITOR1);
     } 
 
     public void accionarLlamado() {
