@@ -39,11 +39,11 @@ public class ControladorOperador {
 
 
     /**
-     * Este metodo es llamado por el ServidorOperador cuando llega un DNI de la Terminal.
+     * Este metodo es llamado por el ServidorOperador cuando llega un DNI de la Terminal. // MOVERLO DESPUES
      */
     public void procesarTurnoDesdeRed(Turno nuevo) throws DNIRepetidoException {
         try {
-            modelo.agregarTurno(nuevo);
+            modelo.agregarTurno(nuevo); // se valida duplicado
 
             SwingUtilities.invokeLater(() -> {
                 vista.actualizarVista(modelo.getTurnoActual(), modelo.getCola());
