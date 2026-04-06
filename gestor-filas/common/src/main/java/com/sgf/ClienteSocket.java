@@ -52,7 +52,7 @@ public class ClienteSocket {
         out.writeObject(turno);
         out.flush();
 
-        return in.readLine(); // "OK" o "ERROR_DNI_REPETIDO"
+        return in.readLine(); // espera , "OK" o "ERROR_DNI_REPETIDO"
 
     } catch (Exception e) {
         return "ERROR_CONEXION";
