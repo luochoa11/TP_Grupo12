@@ -55,6 +55,10 @@ public class ManejadorCliente implements Runnable {
                 case "GET_COLA":
                     out.writeObject(logica.getCola());
                     break;
+                case "GET_TURNO_PUESTO":
+                    int idPuesto2 = (int) in.readObject();
+                    out.writeObject(logica.getTurnoPuesto(idPuesto2));
+                    break;
 
             }
             out.flush();

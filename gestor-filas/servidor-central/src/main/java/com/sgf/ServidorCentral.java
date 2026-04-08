@@ -15,10 +15,10 @@ public class ServidorCentral implements Runnable{
 
     @Override
     public void run() {
-        try(serverSocket server = new ServerSocket(puerto)){
-            system.out.println("Servidor Central escuchando en puerto " + puerto);
+        try(ServerSocket server = new ServerSocket(puerto)){
+            System.out.println("Servidor Central escuchando en puerto " + puerto);
             while(true){
-                Socket socketCliente = serverSocket.accept();
+                Socket socketCliente = server.accept();
                
                 ManejadorCliente manejador = new ManejadorCliente(socketCliente, logica);
                 Thread hiloCliente = new Thread(manejador);

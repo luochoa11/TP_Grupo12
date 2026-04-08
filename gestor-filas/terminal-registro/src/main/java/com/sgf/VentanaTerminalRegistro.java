@@ -77,7 +77,7 @@ public class VentanaTerminalRegistro extends JFrame {
         JOptionPane.showMessageDialog(this, mensaje);
     }
 
-    public VentanaTerminalRegistro(ClienteSocket cliente) {
+    public VentanaTerminalRegistro(ClienteTerminal cliente) {
         setTitle("Terminal de Registro");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 600));

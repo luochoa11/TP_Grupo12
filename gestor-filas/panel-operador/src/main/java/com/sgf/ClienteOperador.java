@@ -88,6 +88,30 @@ public class ClienteOperador {
         }
     }
 
+    public Turno getTurnoActual(int idPuesto) {
+        try (Socket socket = new Socket(host, puerto);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("GET_TURNO_PUESTO");
+            out.writeObject(idPuesto);
+            out.flush();
+
+            Object respuesta = in.readObject();
+            
+            if(respuesta instanceof Turno) {
+                return (Turno) respuesta;
+            } else {
+                System.err.println("Respuesta inesperada del servidor: " + respuesta);
+                return null;
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error al comunicarse con el servidor: " + e.getMessage());
+            return null;
+        }
+    }
+
     
 
    

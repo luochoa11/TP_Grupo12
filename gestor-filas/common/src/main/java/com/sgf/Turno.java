@@ -46,6 +46,20 @@ public class Turno implements Serializable {
         this.estado = estado;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+     if (this == obj) return true;
+     if (obj == null || getClass() != obj.getClass()) return false;
+         Turno other = (Turno) obj;
+    
+    return dniCliente != null && dniCliente.equals(other.dniCliente);
+    }
+
+    @Override
+    public int hashCode() {
+        return dniCliente != null ? dniCliente.hashCode() : 0;
+    }
+
     //public LocalDateTime getHorario() {
     //    return horario;
     //}

@@ -139,6 +139,11 @@ public class LogicaFila {
                 return true;
             }
         }
+        for (Turno t : turnosActuales.values()) {
+            if (t.getDniCliente().equals(dni)) {
+                return true;
+            }
+        }
         return false;
     }
 }

@@ -1,7 +1,8 @@
 package com.sgf;
 
-import com.sgf.excepciones.DNIRepetidoException;
-import com.sgf.excepciones.FilaVaciaException;
+
+import java.util.List;
+
 import javax.swing.SwingUtilities;
 
 public class ControladorOperador {
@@ -47,5 +48,18 @@ public class ControladorOperador {
         }
     }
  
+    public void actualizarCola() {
+    try {
+        List<Turno> cola = cliente.getCola();
+        Turno actual = cliente.getTurnoActual(idPuesto); // opcional
+
+        SwingUtilities.invokeLater(() -> {
+            vista.actualizarVista(actual, cola);
+        });
+
+    } catch (Exception e) {
+        System.err.println("Error actualizando cola: " + e.getMessage());
+    }
+}
 
 }

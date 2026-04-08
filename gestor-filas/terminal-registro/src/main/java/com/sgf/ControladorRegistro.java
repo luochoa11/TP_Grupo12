@@ -5,9 +5,9 @@ import com.sgf.excepciones.DniInvalidoException;
 
 public class ControladorRegistro {
     private VentanaTerminalRegistro vista;
-    private ClienteSocket cliente;
+    private ClienteTerminal cliente;
 
-    public ControladorRegistro(VentanaTerminalRegistro vista, ClienteSocket cliente) {
+    public ControladorRegistro(VentanaTerminalRegistro vista, ClienteTerminal cliente) {
         this.vista = vista;
         this.cliente = cliente;
     }
@@ -43,7 +43,7 @@ public class ControladorRegistro {
             validarDNI(dni);
             
             Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
-            String rta = cliente.procesarTurnoRemoto(t);
+            String rta = cliente.registrarTurno(t);
             if (rta.equals("OK")){
             vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);
             vista.setDNI("");

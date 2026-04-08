@@ -15,7 +15,7 @@ public class MainOperador {
             VentanaPanelOperador ventana = new VentanaPanelOperador();
 
             // 3. Inicializamos el Controlador y conectamos
-            ClienteOperador cliente = new ClienteOperador("localhost",Constantes.PUERTO_OPERADOR1);
+            ClienteOperador cliente = new ClienteOperador("localhost",Constantes.PUERTO_SERVIDOR_CENTRAL);
             ControladorOperador controlador = new ControladorOperador(ventana, cliente,Constantes.ID_PUESTO1);
             ventana.setControlador(controlador);
 
