@@ -10,6 +10,7 @@ import java.io.Serializable;
 public class Turno implements Serializable {
     private static final long serialVersionUID = 1L; //Para asegurar la compatibilidad durante la serializacion y deserializacion
     private String dniCliente;
+    private int puestoAtencion;
     //private LocalDateTime horario;
 
     public Turno(String dniCliente) {
@@ -19,6 +20,14 @@ public class Turno implements Serializable {
 
     public String getDniCliente() {
         return dniCliente;
+    }
+    
+    public int getPuestoAtencion() {
+        return puestoAtencion;
+    }
+
+    public void setPuestoAtencion(int puestoAtencion) {
+        this.puestoAtencion = puestoAtencion;
     }
 
     //public LocalDateTime getHorario() {
