@@ -24,6 +24,7 @@
     <module>panel-operador</module>
     <module>monitor-visualizacion</module>
     <module>common</module>
+    <module>servidor-central</module>
  </modules>
 
   <dependencies>
