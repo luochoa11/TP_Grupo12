@@ -1,6 +1,5 @@
 package com.sgf;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,18 +9,16 @@ import java.util.List;
 public class ControladorMonitor {
 
     private VentanaMonitorVisualizacion vista;
-   
 
     public ControladorMonitor(VentanaMonitorVisualizacion vista) {
         this.vista = vista;
-        
     }
 
     /**
      * Procesa el nuevo turno recibido
      */
-  public void actualizarDesdeServidor(Turno turnoActual, List<Turno> historial) {
-    vista.actualizarPantalla(turnoActual, historial);
+    public void actualizarDesdeServidor(Turno turnoActual, List<Turno> historial) {
+        vista.actualizarPantalla(turnoActual, historial);
         
     }
 }

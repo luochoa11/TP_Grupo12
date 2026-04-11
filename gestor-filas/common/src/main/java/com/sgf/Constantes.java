@@ -11,6 +11,6 @@ public class Constantes {
     public static final String HOST_MONITOR1 = "localhost";
     public static final String HOST_TERMINAL1 = "localhost";
     public static final String HOST_SERVIDOR_CENTRAL = "localhost";
-   
+
     public static final int ID_PUESTO1 = 1;
 }

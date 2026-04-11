@@ -33,7 +33,11 @@ public class ControladorRegistro {
         if (dni.length() < 7 || dni.length() > 8) {
             throw new DniInvalidoException(dni);
         }
-       
+
+        if (dni.startsWith("0")){
+            //ej el dni 0123456 lo daba como valido
+            throw new DniInvalidoException("El DNI no puede comenzar con 0");
+        }
     }
 
 
@@ -45,8 +49,8 @@ public class ControladorRegistro {
             Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
             String rta = cliente.registrarTurno(t);
             if (rta.equals("OK")){
-            vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);
-            vista.setDNI("");
+                vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);
+                vista.setDNI("");
             }
             else{
                 vista.mostrarMensaje("El DNI ingresado ya tiene un lugar en la fila");

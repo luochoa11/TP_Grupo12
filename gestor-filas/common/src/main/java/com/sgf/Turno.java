@@ -49,11 +49,11 @@ public class Turno implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-     if (this == obj) return true;
-     if (obj == null || getClass() != obj.getClass()) return false;
-         Turno other = (Turno) obj;
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+            Turno other = (Turno) obj;
     
-    return dniCliente != null && dniCliente.equals(other.dniCliente);
+        return dniCliente != null && dniCliente.equals(other.dniCliente);
     }
 
     @Override

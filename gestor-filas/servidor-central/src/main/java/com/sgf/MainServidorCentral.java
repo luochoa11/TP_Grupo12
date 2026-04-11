@@ -7,9 +7,9 @@ public class MainServidorCentral {
         LogicaFila fila = LogicaFila.getInstance(); 
 
         // Arrancamos el servidor en un hilo
-        ServidorCentral servidor = new ServidorCentral(Constantes.PUERTO_SERVIDORCENTRAL1, fila);
+        ServidorCentral servidor = new ServidorCentral(Constantes.PUERTO_SERVIDOR_CENTRAL);
         new Thread(servidor).start();
         
-        System.out.println("Servidor Central corriendo en el puerto " + Constantes.HOST_SERVIDORCENTRAL1);
+        System.out.println("Servidor Central corriendo en el puerto " + Constantes.PUERTO_SERVIDOR_CENTRAL);
     }
 }
