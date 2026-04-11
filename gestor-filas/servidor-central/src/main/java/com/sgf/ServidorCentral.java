@@ -1,8 +1,8 @@
 package com.sgf;
 
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.BindException;
 
 public class ServidorCentral implements Runnable{
     private int puerto;
@@ -19,7 +19,7 @@ public class ServidorCentral implements Runnable{
             System.out.println("Servidor Central escuchando en puerto " + puerto);
             while(true){
                 Socket socketCliente = server.accept();
-               
+                
                 ManejadorCliente manejador = new ManejadorCliente(socketCliente, logica);
                 Thread hiloCliente = new Thread(manejador);
                 hiloCliente.start();

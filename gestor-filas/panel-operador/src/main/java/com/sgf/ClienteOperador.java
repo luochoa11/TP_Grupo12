@@ -1,7 +1,7 @@
 package com.sgf;
 
-import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
@@ -17,8 +17,8 @@ public class ClienteOperador {
 
     public Turno llamarSiguiente(int idPuesto){
         try (Socket socket = new Socket(host, puerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             // Enviamos el ID del puesto al servidor
             out.writeObject("LLAMAR_SIGUIENTE");
@@ -30,7 +30,7 @@ public class ClienteOperador {
             if(respuesta instanceof Turno) {
                 return (Turno) respuesta;
             } 
-             else {
+            else {
                 System.err.println("Respuesta inesperada del servidor: " + respuesta);
                 return null;
             }
@@ -43,8 +43,8 @@ public class ClienteOperador {
 
     public Turno reintentarLlamado(int idPuesto){
         try (Socket socket = new Socket(host, puerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             // Enviamos el ID del puesto al servidor
         out.writeObject("REINTENTAR_LLAMADO");
@@ -68,8 +68,8 @@ public class ClienteOperador {
 
     public List<Turno> getCola() {
         try (Socket socket = new Socket(host, puerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("GET_COLA");
             out.flush();
@@ -93,8 +93,8 @@ public class ClienteOperador {
 
     public Turno getTurnoActual(int idPuesto) {
         try (Socket socket = new Socket(host, puerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("GET_TURNO_PUESTO");
             out.writeObject(idPuesto);
@@ -117,7 +117,4 @@ public class ClienteOperador {
         }
     }
 
-    
-
-   
 }

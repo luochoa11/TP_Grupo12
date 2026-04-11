@@ -1,9 +1,23 @@
 package com.sgf;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -18,7 +32,7 @@ public class VentanaPanelOperador extends JFrame {
     private JButton btnLlamar;
     private JButton btnReintentar;
 
-    private Timer timer; //reintento
+    private Timer timer; //para habilitar reintento (30s)
     private Timer timerPull; //actualizar vista
     private ControladorOperador controlador;
 
@@ -29,7 +43,7 @@ public class VentanaPanelOperador extends JFrame {
 
     public VentanaPanelOperador() {
 
-        setTitle("Panel deOperador");
+        setTitle("Panel de Operador");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 600));
 
@@ -44,12 +58,11 @@ public class VentanaPanelOperador extends JFrame {
     }
 
     private void initUI() {
-
         // Turno actual
         JPanel panelNorte = new JPanel(new BorderLayout());
         panelNorte.setOpaque(false);
 
-        lblActual = new JLabel("Actual: ---", SwingConstants.CENTER);
+        lblActual = new JLabel("No hay clientes pendientes", SwingConstants.CENTER);
         lblActual.setFont(new Font("SansSerif", Font.BOLD, 26));
         lblActual.setForeground(Color.WHITE);
         lblActual.setBorder(BorderFactory.createCompoundBorder(
@@ -80,7 +93,9 @@ public class VentanaPanelOperador extends JFrame {
         panelCentro.add(scroll, BorderLayout.CENTER);
 
         contentPane.add(panelCentro, BorderLayout.CENTER);
-        JPanel panelBotones = new JPanel(new GridLayout(1, 2, 10, 0)); // 1 fila, 2 columnas
+
+        //Botones de acción
+        JPanel panelBotones = new JPanel(new GridLayout(1, 2, 15, 0)); // 1 fila, 2 columnas
         panelBotones.setOpaque(false);
 
         // Botón llamar
@@ -95,6 +110,7 @@ public class VentanaPanelOperador extends JFrame {
             reiniciarTIntento();
             
         });
+
         btnReintentar = new JButton("Reintentar llamado");
         btnReintentar.setFont(new Font("Segoe UI", Font.BOLD, 24));
         btnReintentar.setBackground(COLOR_ACCENTO);
@@ -112,28 +128,34 @@ public class VentanaPanelOperador extends JFrame {
 
     }
 
+    /**
+     * Configura el timer de 30 segundos para el re-intento.
+     */
     private void timerIntentos(){
         timer = new Timer(30000, e-> {
             btnReintentar.setEnabled(true);
+            btnReintentar.setText("Reintentar llamado");
             timer.stop();
         });
     }
 
     private void reiniciarTIntento(){
-        timer.restart();
         btnReintentar.setEnabled(false);
+        btnReintentar.setText("Esperar 30s...");
+        timer.restart();
     }
 
     public void setControlador(ControladorOperador controlador) {
         this.controlador = controlador;
     }
+
     private void iniciarPull() {
         this.timerPull = new Timer(2000, e -> { // cada 2 segundos
         if (controlador != null) {
             controlador.actualizarCola();
         }
-    });
-    timerPull.start();
+        });
+        timerPull.start();
     }
 
     private JPanel crearItemTurno(String dni) {
@@ -155,7 +177,14 @@ public class VentanaPanelOperador extends JFrame {
 
 
     public void actualizarVista(Turno actual, List<Turno> cola) {
-        lblActual.setText("Actual: " + (actual != null ? actual.getDniCliente() : "---"));
+        // Si no hay turno actual y la cola está vacía, mostramos el mensaje solicitado
+        if (actual == null && cola.isEmpty()) {
+            lblActual.setText("No hay clientes pendientes");
+        } else if (actual != null) {
+            lblActual.setText("Atendiendo: " + actual.getDniCliente() + " (Intento " + actual.getIntentos() + "/3)");
+        } else {
+            lblActual.setText("Esperando llamado...");
+        }
 
         panelCola.removeAll();
         for (Turno t : cola) {
@@ -170,5 +199,4 @@ public class VentanaPanelOperador extends JFrame {
         JOptionPane.showMessageDialog(this, mensaje, "Aviso del Sistema", JOptionPane.INFORMATION_MESSAGE);
     }
 
-  
 }

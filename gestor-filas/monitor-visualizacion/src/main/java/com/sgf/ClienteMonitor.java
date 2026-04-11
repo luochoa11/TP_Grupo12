@@ -1,9 +1,9 @@
 package com.sgf;
 
-import java.util.List;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class ClienteMonitor implements Runnable {
     private String host;
@@ -22,26 +22,26 @@ public class ClienteMonitor implements Runnable {
         System.out.println("Cliente Monitor iniciado. Conectando a " + host + ":" + puerto);
 
         while(activo){
-           try(Socket socket = new Socket(host,puerto);
-           ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-           ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        ){
-            out.writeObject("GET_ESTADO_MONITOR");
-            out.flush();
+            try(Socket socket = new Socket(host,puerto);
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ){
+                out.writeObject("GET_ESTADO_MONITOR");
+                out.flush();
 
-            Turno turnoActual = (Turno) in.readObject();
-            List<Turno> historial = (List<Turno>) in.readObject();
-            controlador.actualizarDesdeServidor(turnoActual, historial);   
-              
-        }catch (Exception e){
-        System.err.println("Error de conexión: " + e.getMessage());
-     }
-     try {
-        Thread.sleep(1000); // Espera 1 segundo antes de intentar reconectar
-     } catch (InterruptedException e) {
-        System.err.println("Cliente Monitor interrumpido: " + e.getMessage());
-     }
-    }
+                Turno turnoActual = (Turno) in.readObject();
+                List<Turno> historial = (List<Turno>) in.readObject();
+                controlador.actualizarDesdeServidor(turnoActual, historial);   
+            
+            }catch (Exception e){
+                System.err.println("Error de conexión: " + e.getMessage());
+            }
+            try {
+                Thread.sleep(1000); // Espera 1 segundo antes de intentar reconectar
+            } catch (InterruptedException e) {
+                System.err.println("Cliente Monitor interrumpido: " + e.getMessage());
+            }
+        }
     }
 
 }

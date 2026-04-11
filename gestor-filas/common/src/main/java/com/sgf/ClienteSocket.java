@@ -40,34 +40,33 @@ public class ClienteSocket {
         }
     }
 
-  public String procesarTurnoRemoto(Turno turno) {
-    try (
-        Socket socket = conectarConRetry();
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        BufferedReader in = new BufferedReader(
-            new InputStreamReader(socket.getInputStream())
-        )
-    ) {
+    public String procesarTurnoRemoto(Turno turno) {
+        try (
+            Socket socket = conectarConRetry();
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream())
+            )
+        ) {
 
-        out.writeObject(turno);
-        out.flush();
+            out.writeObject(turno);
+            out.flush();
 
-        return in.readLine(); // espera , "OK" o "ERROR_DNI_REPETIDO"
+            return in.readLine(); // espera , "OK" o "ERROR_DNI_REPETIDO"
 
-    } catch (Exception e) {
-        return "ERROR_CONEXION";
-    }
-}
-
-private Socket conectarConRetry() throws InterruptedException {
-    while (true) {
-        try {
-            return new Socket(host, puerto);
-        } catch (IOException e) {
-            System.out.println("Esperando servidor en puerto " + puerto + "...");
-            Thread.sleep(2000);
+        } catch (Exception e) {
+            return "ERROR_CONEXION";
         }
     }
-}
 
+    private Socket conectarConRetry() throws InterruptedException {
+        while (true) {
+            try {
+                return new Socket(host, puerto);
+            } catch (IOException e) {
+                System.out.println("Esperando servidor en puerto " + puerto + "...");
+                Thread.sleep(2000);
+            }
+        }
+    }
 }
