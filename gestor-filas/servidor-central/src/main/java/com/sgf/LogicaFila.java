@@ -13,10 +13,11 @@ import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.FilaVaciaException;
 
 /**
- * Gestiona la estructura de datos de la fila y el historial.
+ * Implementacion de la lógica de la fila.
+ * Es un singleton para garantizar que toda la aplicacion use la misma instancia.
  * Cumple con el requerimiento funcional de lógica FIFO.
  */
-public class LogicaFila {
+public class LogicaFila implements ILogicaFila{
     private static LogicaFila instance = null;
     
     // Cola de espera para los turnos que no fueron llamados aun
@@ -42,6 +43,7 @@ public class LogicaFila {
      * Registra un nuevo turno proveniente de la terminal, validando repeticion.
      * -> No es respo de la fila esta validacion -> Asume validado por la ventana
      */
+    @Override
     public synchronized void agregarTurno(Turno t) throws DNIRepetidoException {
 
         String dni = t.getDniCliente().trim();
@@ -55,6 +57,7 @@ public class LogicaFila {
      * El cliente que ocupaba el monitor principal es desplazado al historial.
      * Lanza excepción si no hay nadie.
      */
+    @Override
     public synchronized Turno llamarSiguiente(int idPuesto) throws FilaVaciaException {
         if (filaEspera.isEmpty()) {
             throw new FilaVaciaException();
@@ -82,6 +85,7 @@ public class LogicaFila {
      * Mueve un turno al historial de forma inteligente.
      * Mantiene las últimas 4 posiciones y evita duplicados visuales.
      */
+
     private void actualizarHistorial(Turno t) {
         
         // Si el DNI ya existe en el historial, no se hace nada (mantiene su posición vieja)
@@ -115,6 +119,7 @@ public class LogicaFila {
      * Gestiona el reintento de llamado. 
      * Si el reintento desplaza visualmente a otro turno diferente, el anterior va al historial.
      */
+    @Override
     public synchronized Turno reIntentarLlamado(int idPuesto) {
         Turno t = this.turnosActuales.get(idPuesto);
 
@@ -149,18 +154,22 @@ public class LogicaFila {
     /**
      * @return el turno que debe mostrarse destacado en el monitor.
      */
+    @Override
     public synchronized Map<Integer, Turno> getTurnosActivos() {
         return new HashMap<>(this.turnosActuales);
     }
 
+    @Override
     public synchronized Turno getTurnoPuesto(int idPuesto) {
         return turnosActuales.get(idPuesto);
     }
 
+    @Override
     public synchronized Turno getUltimoLlamado() {
         return ultimoLlamado;
     }
 
+    @Override
     public List<Turno> getHistorial() {
         return new ArrayList<>(historial);
     }
@@ -169,10 +178,12 @@ public class LogicaFila {
         return filaEspera.size();
     }
 
+    @Override
     public List<Turno> getCola() {
     return new ArrayList<>(filaEspera);
     }
 
+    @Override
     public boolean hasDni(String dni) {
         for (Turno t : filaEspera) {
             if (t.getDniCliente().equals(dni)) {

@@ -10,9 +10,9 @@ import com.sgf.excepciones.FilaVaciaException;
 
 public class ManejadorCliente implements Runnable {
     private Socket socket;
-    private LogicaFila logica;
+    private ILogicaFila logica;
 
-    public ManejadorCliente(Socket socket, LogicaFila logica) {
+    public ManejadorCliente(Socket socket, ILogicaFila logica) {
         this.socket = socket;
         this.logica = logica;
     }
