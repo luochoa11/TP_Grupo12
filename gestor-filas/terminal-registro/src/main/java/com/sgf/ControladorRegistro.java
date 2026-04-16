@@ -5,9 +5,9 @@ import com.sgf.excepciones.DniInvalidoException;
 
 public class ControladorRegistro {
     private VentanaTerminalRegistro vista;
-    private ClienteTerminal cliente;
+    private ClienteRegistro cliente;
 
-    public ControladorRegistro(VentanaTerminalRegistro vista, ClienteTerminal cliente) {
+    public ControladorRegistro(VentanaTerminalRegistro vista, ClienteRegistro cliente) {
         this.vista = vista;
         this.cliente = cliente;
     }

@@ -2,7 +2,7 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
-public class MainTerminal {
+public class MainRegistro {
     public static void main(String[] args) {
         //ejemplo 
         // java -cp "terminal-registro/target/classes;common/target/classes" com.sgf.MainTerminal 2
@@ -14,7 +14,7 @@ public class MainTerminal {
             idTerminal = " #" + args[0];
         }
 
-        ClienteTerminal cliente = new ClienteTerminal(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+        ClienteRegistro cliente = new ClienteRegistro(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
 
         try {
             javax.swing.UIManager.setLookAndFeel(

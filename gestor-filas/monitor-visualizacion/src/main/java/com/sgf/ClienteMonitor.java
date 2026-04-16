@@ -23,8 +23,10 @@ public class ClienteMonitor implements Runnable {
 
         while(activo){
             try(Socket socket = new Socket(host,puerto);
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
             ){
                 out.writeObject("GET_ESTADO_MONITOR");
                 out.flush();

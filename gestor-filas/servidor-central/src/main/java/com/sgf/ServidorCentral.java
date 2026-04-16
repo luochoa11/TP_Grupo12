@@ -6,11 +6,11 @@ import java.net.Socket;
 
 public class ServidorCentral implements Runnable{
     private int puerto;
-    private LogicaFila logica;
+    private ILogicaFila logica;
 
-    public ServidorCentral(int puerto) {
+    public ServidorCentral(int puerto, ILogicaFila logica) {
         this.puerto = puerto;
-        this.logica = LogicaFila.getInstance();
+        this.logica = logica;
     }
 
     @Override
