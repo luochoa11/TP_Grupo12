@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.modelos;
 
 import java.io.Serializable;
 //import java.time.LocalDateTime; // Lo comento para usar en otras iteraciones

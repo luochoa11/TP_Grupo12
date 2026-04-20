@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.presentacion;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -17,6 +17,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
+import com.sgf.infraestructura.ClienteRegistro;
 
 public class VentanaTerminalRegistro extends JFrame {
 

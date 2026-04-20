@@ -1,16 +1,17 @@
-package com.sgf;
-
+package com.sgf.presentacion;
 
 import java.util.List;
 
 import javax.swing.SwingUtilities;
+
+import com.sgf.infraestructura.ClienteOperador;
+import com.sgf.modelos.Turno;
 
 public class ControladorOperador {
 
     private VentanaPanelOperador vista;
     private ClienteOperador cliente;
     private int idPuesto;
-
 
 
     public ControladorOperador(VentanaPanelOperador vista, ClienteOperador cliente,int idPuesto) {
@@ -47,11 +48,11 @@ public class ControladorOperador {
             vista.mostrarMensaje("Error al procesar el reintento: " + e.getMessage());
         }
     }
- 
+
     public void actualizarCola() {
     try {
         List<Turno> cola = cliente.getCola();
-        Turno actual = cliente.getTurnoActual(idPuesto); // opcional
+        Turno actual = cliente.getTurnoPuesto(idPuesto); // opcional
 
         SwingUtilities.invokeLater(() -> {
             vista.actualizarVista(actual, cola);

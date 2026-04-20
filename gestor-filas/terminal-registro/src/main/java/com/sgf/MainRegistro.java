@@ -2,6 +2,10 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
+import com.sgf.infraestructura.ClienteRegistro;
+import com.sgf.presentacion.ControladorRegistro;
+import com.sgf.presentacion.VentanaTerminalRegistro;
+
 public class MainRegistro {
     public static void main(String[] args) {
         //ejemplo 

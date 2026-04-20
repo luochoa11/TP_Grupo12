@@ -1,12 +1,14 @@
-package com.sgf;
+package com.sgf.infraestructura;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.FilaVaciaException;
+import com.sgf.modelos.Turno;
 
 public class ManejadorCliente implements Runnable {
     private Socket socket;
@@ -24,6 +26,7 @@ public class ManejadorCliente implements Runnable {
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         ){
             String comando = (String) in.readObject();
+            
             switch(comando){
                 case "NUEVO_TURNO":
                     Turno t = (Turno) in.readObject();
@@ -45,7 +48,7 @@ public class ManejadorCliente implements Runnable {
                     break;
                 case "REINTENTAR_LLAMADO":
                     int id=(int)in.readObject();
-                    Turno reIntento = logica.reIntentarLlamado(id);
+                    Turno reIntento = logica.reintentarLlamado(id);
                     out.writeObject(reIntento);
                     break;
                 case "GET_ESTADO_MONITOR":

@@ -1,7 +1,9 @@
-package com.sgf;
+package com.sgf.presentacion;
 
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.DniInvalidoException;
+import com.sgf.infraestructura.ClienteRegistro;
+import com.sgf.modelos.Turno;
 
 public class ControladorRegistro {
     private VentanaTerminalRegistro vista;
@@ -30,12 +32,7 @@ public class ControladorRegistro {
     }
 
     private void validarDNI(String dni) throws DniInvalidoException,DNIRepetidoException {
-        if (dni.length() < 7 || dni.length() > 8) {
-            throw new DniInvalidoException(dni);
-        }
-
-        if (dni.startsWith("0")){
-            //ej el dni 0123456 lo daba como valido
+        if (dni.length() < 7 || dni.length() > 8 || dni.startsWith("0")) {
             throw new DniInvalidoException(dni);
         }
     }
@@ -44,26 +41,25 @@ public class ControladorRegistro {
     public void ingresarDNI() {
         String dni = vista.getDNI();
             try {
-            validarDNI(dni);
+                validarDNI(dni);
             
-            Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
-            String rta = cliente.registrarTurno(t);
-            if (rta.equals("OK")){
+                Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
+                cliente.agregarTurno(t);
+                
+                //Si llegó acá, no lanzó excepción
                 vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);
                 vista.setDNI("");
-            }
-            else{
-                vista.mostrarMensaje("El DNI ingresado ya tiene un lugar en la fila");
-            }
+        
         }
         catch (DniInvalidoException e){
             vista.mostrarMensaje(e.getMessage());
         }
         catch(DNIRepetidoException e){
-                vista.mostrarMensaje(e.getMessage());
+            vista.mostrarMensaje(e.getMessage());
         }
         catch (Exception e) {
             vista.mostrarMensaje("Error de conexión: No se pudo enviar el turno. ");
+            e.printStackTrace();
         }
         
     }

@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.presentacion;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,6 +19,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+
+import com.sgf.modelos.Turno;
 
 public class VentanaMonitorVisualizacion extends JFrame {
 

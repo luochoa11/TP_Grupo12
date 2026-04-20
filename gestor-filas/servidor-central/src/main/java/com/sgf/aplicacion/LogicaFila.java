@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.aplicacion;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.FilaVaciaException;
+import com.sgf.modelos.Turno;
 
 /**
  * Implementacion de la lógica de la fila.
@@ -40,7 +41,7 @@ public class LogicaFila implements ILogicaFila{
 	}
 
     /**
-     * Registra un nuevo turno proveniente de la terminal, validando repeticion.
+     * --- Implementacion de IServicioRegistro ---
      * -> No es respo de la fila esta validacion -> Asume validado por la ventana
      */
     @Override
@@ -53,9 +54,8 @@ public class LogicaFila implements ILogicaFila{
     }
 
     /**
-     * Procesa el llamado de un nuevo cliente. 
-     * El cliente que ocupaba el monitor principal es desplazado al historial.
-     * Lanza excepción si no hay nadie.
+     * --- Implementacion de IServicioOperador ---
+     *   Lanza excepción si no hay nadie.
      */
     @Override
     public synchronized Turno llamarSiguiente(int idPuesto) throws FilaVaciaException {
@@ -75,52 +75,16 @@ public class LogicaFila implements ILogicaFila{
         nuevo.incrementarIntentos(); //Primer intento
 
         this.ultimoLlamado = nuevo;
-
         turnosActuales.put(idPuesto, nuevo);
-
         return nuevo;
     }
 
-    /**
-     * Mueve un turno al historial de forma inteligente.
-     * Mantiene las últimas 4 posiciones y evita duplicados visuales.
-     */
-
-    private void actualizarHistorial(Turno t) {
-        
-        // Si el DNI ya existe en el historial, no se hace nada (mantiene su posición vieja)
-        for (Turno h : historial) {
-            if (h.getDniCliente().equals(t.getDniCliente())) {
-                return;
-            }
-        }
-
-        //Si no estaba, lo agregamos al inicio
-        this.historial.add(0, t);
-
-        if (this.historial.size() > 4) {
-            this.historial.remove(4); //mantiene el máximo de 4 en el historial
-        }
-    }
-
-    /**
-     * Elimina un DNI del historial cuando vuelve a ser el llamado principal del monitor.
-     */
-    private void quitarDelHistorial(String dni) {
-        Iterator<Turno> it = historial.iterator();
-        while (it.hasNext()) {
-            if (it.next().getDniCliente().equals(dni)) {
-                it.remove();
-            }
-        }
-    }
-
-    /**
+/**
      * Gestiona el reintento de llamado. 
      * Si el reintento desplaza visualmente a otro turno diferente, el anterior va al historial.
      */
     @Override
-    public synchronized Turno reIntentarLlamado(int idPuesto) {
+    public synchronized Turno reintentarLlamado(int idPuesto) {
         Turno t = this.turnosActuales.get(idPuesto);
 
         if (t != null) { //deberia haber una excepcion?
@@ -150,13 +114,10 @@ public class LogicaFila implements ILogicaFila{
         }
         return null;
     }
-    
-    /**
-     * @return el turno que debe mostrarse destacado en el monitor.
-     */
+
     @Override
-    public synchronized Map<Integer, Turno> getTurnosActivos() {
-        return new HashMap<>(this.turnosActuales);
+    public List<Turno> getCola() {
+        return new ArrayList<>(filaEspera);
     }
 
     @Override
@@ -164,6 +125,7 @@ public class LogicaFila implements ILogicaFila{
         return turnosActuales.get(idPuesto);
     }
 
+    // --- Implementacion de IServicioMonitor ---
     @Override
     public synchronized Turno getUltimoLlamado() {
         return ultimoLlamado;
@@ -174,13 +136,48 @@ public class LogicaFila implements ILogicaFila{
         return new ArrayList<>(historial);
     }
 
-    public int getCantidadEnEspera() {
-        return filaEspera.size();
+    /** --- FUNCIONES AUXILIARES ---
+     * Mueve un turno al historial de forma inteligente.
+     * Mantiene las últimas 4 posiciones y evita duplicados visuales.
+     */
+
+    private void actualizarHistorial(Turno t) {
+        // Si el DNI ya existe en el historial, no se hace nada (mantiene su posición vieja)
+        for (Turno h : historial) {
+            if (h.getDniCliente().equals(t.getDniCliente())) {
+                return;
+            }
+        }
+
+        this.historial.add(0, t);//Si no estaba, lo agregamos al inicio
+
+        if (this.historial.size() > 4) {
+            this.historial.remove(4); //mantiene el máximo de 4 en el historial
+        }
     }
 
+    /**
+     * Elimina un DNI del historial cuando vuelve a ser el llamado principal del monitor.
+     */
+    private void quitarDelHistorial(String dni) {
+        Iterator<Turno> it = historial.iterator();
+        while (it.hasNext()) {
+            if (it.next().getDniCliente().equals(dni)) {
+                it.remove();
+            }
+        }
+    }
+    
+    /**
+     * @return el turno que debe mostrarse destacado en el monitor.
+     */
     @Override
-    public List<Turno> getCola() {
-    return new ArrayList<>(filaEspera);
+    public synchronized Map<Integer, Turno> getTurnosActivos() {
+        return new HashMap<>(this.turnosActuales);
+    }
+
+    public int getCantidadEnEspera() {
+        return filaEspera.size();
     }
 
     @Override

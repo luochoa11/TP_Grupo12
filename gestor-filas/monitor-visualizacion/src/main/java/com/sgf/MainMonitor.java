@@ -2,6 +2,10 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
+import com.sgf.infraestructura.ClienteMonitor;
+import com.sgf.presentacion.ControladorMonitor;
+import com.sgf.presentacion.VentanaMonitorVisualizacion;
+
 public class MainMonitor {
 
     public static void main(String[] args) {

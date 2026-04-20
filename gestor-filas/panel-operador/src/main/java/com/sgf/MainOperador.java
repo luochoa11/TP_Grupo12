@@ -3,6 +3,10 @@ package com.sgf;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import com.sgf.infraestructura.ClienteOperador;
+import com.sgf.presentacion.ControladorOperador;
+import com.sgf.presentacion.VentanaPanelOperador;
+
 public class MainOperador {
 
     public static void main(String[] args) {

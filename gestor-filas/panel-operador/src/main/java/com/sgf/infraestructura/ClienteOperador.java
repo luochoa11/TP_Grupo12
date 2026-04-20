@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.infraestructura;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -6,7 +6,11 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 
-public class ClienteOperador {
+import com.sgf.excepciones.FilaVaciaException;
+import com.sgf.interfaces.IServicioOperador;
+import com.sgf.modelos.Turno;
+
+public class ClienteOperador implements IServicioOperador{
     private String host;
     private int puerto;
 
@@ -15,7 +19,8 @@ public class ClienteOperador {
         this.puerto = puerto;
     }
 
-    public Turno llamarSiguiente(int idPuesto){
+    @Override
+    public Turno llamarSiguiente(int idPuesto) throws FilaVaciaException {
         try (Socket socket = new Socket(host, puerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
@@ -27,27 +32,24 @@ public class ClienteOperador {
 
             Object respuesta = in.readObject();
             
-            if(respuesta instanceof Turno) {
+            if ("ERROR_FILA_VACIA".equals(respuesta)) throw new FilaVaciaException();
                 return (Turno) respuesta;
-            } 
-            else {
-                System.err.println("Respuesta inesperada del servidor: " + respuesta);
-                return null;
-            }
 
+        } catch (FilaVaciaException e) {
+            throw e;
         } catch (Exception e) {
-            System.err.println("Error al comunicarse con el servidor: " + e.getMessage());
             return null;
         }
     }
 
+    @Override
     public Turno reintentarLlamado(int idPuesto){
         try (Socket socket = new Socket(host, puerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             // Enviamos el ID del puesto al servidor
-        out.writeObject("REINTENTAR_LLAMADO");
+            out.writeObject("REINTENTAR_LLAMADO");
             out.writeObject(idPuesto);
             out.flush();
 
@@ -66,6 +68,7 @@ public class ClienteOperador {
         }
     }
 
+    @Override
     public List<Turno> getCola() {
         try (Socket socket = new Socket(host, puerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -91,7 +94,8 @@ public class ClienteOperador {
         }
     }
 
-    public Turno getTurnoActual(int idPuesto) {
+    @Override
+    public Turno getTurnoPuesto(int idPuesto) {
         try (Socket socket = new Socket(host, puerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {

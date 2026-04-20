@@ -1,4 +1,4 @@
-package com.sgf;
+package com.sgf.presentacion;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -21,6 +21,8 @@ import javax.swing.Timer;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+
+import com.sgf.modelos.Turno;
 
 public class VentanaPanelOperador extends JFrame {
 
