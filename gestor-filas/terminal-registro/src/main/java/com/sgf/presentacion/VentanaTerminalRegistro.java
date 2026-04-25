@@ -56,6 +56,7 @@ public class VentanaTerminalRegistro extends JFrame {
     private final Color COLOR_FONDO = new Color(15, 23, 42);
     private final Color COLOR_BOTON = new Color(30, 41, 59);
     private final Color COLOR_TEXTO_ACCENTO = new Color(96, 165, 250);
+    private final Color COLOR_TEXTO_SUAVE = new Color(148, 163, 184);   // Gris slate (Labels)
     
     public void setControlador(ControladorRegistro controlador) {
         this.controlador = controlador;
@@ -141,7 +142,7 @@ public class VentanaTerminalRegistro extends JFrame {
 
         this.lblBienvenida2 = new JLabel("Ingrese su DNI para registrarse");
         this.lblBienvenida2.setHorizontalAlignment(SwingConstants.CENTER);
-        this.lblBienvenida2.setForeground(new Color(148, 163, 184));
+        this.lblBienvenida2.setForeground(COLOR_TEXTO_SUAVE);
         this.lblBienvenida2.setFont(new Font("Segoe UI", Font.PLAIN, 24));
         this.panelSaludo.add(this.lblBienvenida2);
 
@@ -155,7 +156,7 @@ public class VentanaTerminalRegistro extends JFrame {
         this.textDNI.setHorizontalAlignment(SwingConstants.CENTER);
         this.textDNI.setEditable(false);
         this.textDNI.setBackground(Color.WHITE);
-        this.textDNI.setBorder(BorderFactory.createLineBorder(COLOR_TEXTO_ACCENTO, 2));
+        this.textDNI.setBorder(BorderFactory.createLineBorder(COLOR_TEXTO_ACCENTO, 3));
         this.panel_1.add(this.textDNI);
 
         this.panelBotonIngreso = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -164,6 +165,11 @@ public class VentanaTerminalRegistro extends JFrame {
 
         this.btnIngresar = new JButton("Ingresar");
         this.btnIngresar.setPreferredSize(new Dimension(300, 70));
+        this.btnIngresar.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        this.btnIngresar.setBackground(COLOR_TEXTO_ACCENTO);
+        this.btnIngresar.setForeground(COLOR_FONDO);
+        this.btnIngresar.setFocusPainted(false);
+        this.btnIngresar.setBorderPainted(false);
         this.panelBotonIngreso.add(this.btnIngresar);
 
         this.panelTeclado = new JPanel();

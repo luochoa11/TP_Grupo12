@@ -4,14 +4,14 @@ import javax.swing.SwingUtilities;
 
 import com.sgf.infraestructura.ClienteMonitor;
 import com.sgf.presentacion.ControladorMonitor;
-import com.sgf.presentacion.VentanaMonitorVisualizacion;
+import com.sgf.presentacion.VentanaMonitor;
 
 public class MainMonitor {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // 1: Iniciamos la ventana
-            VentanaMonitorVisualizacion ventana = new VentanaMonitorVisualizacion();
+            VentanaMonitor ventana = new VentanaMonitor();
             
             // 2: Creamos el Controlador y le damos la ventana
             ControladorMonitor controlador = new ControladorMonitor(ventana);
