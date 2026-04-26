@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -15,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
@@ -25,7 +27,11 @@ public class VentanaMonitor extends JFrame {
     private static final long serialVersionUID = 1L;
     
     private JPanel panelTurnos;
-    
+
+    private Timer timerParpadeo;   // timer que alterna el color del DNI en rellamado
+    // Lista para trackear todos los labels que deben parpadear en cada actualización
+    private List<JLabel> labelsParaTitilar = new ArrayList<>();
+
     // Colores basados en la identidad visual de la App
      private final Color COLOR_FONDO_OSCURO = new Color(15, 23, 42);      // Azul oscuro fondo
     private final Color COLOR_ACCENTO_CELESTE = new Color(96, 165, 250); // Celeste del operador
@@ -96,9 +102,16 @@ public class VentanaMonitor extends JFrame {
         tagDni.setBorder(new EmptyBorder(0, 0, 0, 15));
         
         JLabel valDni = new JLabel(turno.getDniCliente(), SwingConstants.LEFT);
-        valDni.setFont(fuenteEtiqueta);
-        valDni.setForeground(resaltarDni ? COLOR_ROJO_ALERTA : COLOR_TEXTO_VALOR);
+        valDni.setFont(fuenteValor);
         
+        // Lógica de parpadeo: lo agregamos a la lista si corresponde
+        if (resaltarDni) {
+            valDni.setForeground(COLOR_ROJO_ALERTA);
+            labelsParaTitilar.add(valDni);
+        } else {
+            valDni.setForeground(COLOR_TEXTO_VALOR);
+        }
+
         pnlDni.add(tagDni);
         pnlDni.add(valDni);
 
@@ -129,10 +142,15 @@ public class VentanaMonitor extends JFrame {
      */
     public void actualizarPantalla(Turno actual, List<Turno> historial) {
         SwingUtilities.invokeLater(() -> {
+            
+           // 1. Limpieza de estado anterior
+            if (timerParpadeo != null && timerParpadeo.isRunning()) {
+                timerParpadeo.stop();
+            }
+            labelsParaTitilar.clear();
             panelTurnos.removeAll();
 
             if (actual != null) {
-                // Usamos getIntentos() del modelo
                 boolean esRellamada = actual.getIntentos() > 1;
                 panelTurnos.add(crearTarjeta(actual, true, esRellamada));
                 panelTurnos.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -140,9 +158,23 @@ public class VentanaMonitor extends JFrame {
 
             if (historial != null && !historial.isEmpty()) {
                 for (Turno t : historial) {
-                    panelTurnos.add(crearTarjeta(t, false, false));
+                    boolean esRellamadaH = t.getIntentos() > 1;
+                    panelTurnos.add(crearTarjeta(t, false, esRellamadaH));
                     panelTurnos.add(Box.createRigidArea(new Dimension(0, 10)));
                 }
+            }
+
+            // Iniciar parpadeo sincronizado si hay turnos con reintentos
+            if (!labelsParaTitilar.isEmpty()) {
+                final boolean[] encendido = {true};
+                timerParpadeo = new Timer(500, e -> {
+                    Color colorActual = encendido[0] ? COLOR_ROJO_ALERTA : COLOR_TEXTO_VALOR;
+                    for (JLabel lbl : labelsParaTitilar) {
+                        lbl.setForeground(colorActual);
+                    }
+                    encendido[0] = !encendido[0];
+                });
+                timerParpadeo.start();
             }
 
             panelTurnos.revalidate();

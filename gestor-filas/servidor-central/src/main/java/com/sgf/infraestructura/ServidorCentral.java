@@ -4,12 +4,12 @@ import java.io.ObjectOutputStream;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.modelos.Turno;
@@ -57,6 +57,7 @@ public class ServidorCentral implements Runnable{
         while (it.hasNext()) {
             ObjectOutputStream out = it.next();
             try {
+                out.reset();  // LIMPIA LA CACHE DEL STREAM PARA ENVIAR DATOS NUEVOS
                 out.writeObject(actual);
                 out.writeObject(historial);
                 out.flush();
