@@ -18,8 +18,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import com.sgf.infraestructura.ClienteRegistro;
-
 public class VentanaTerminalRegistro extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -94,7 +92,7 @@ public class VentanaTerminalRegistro extends JFrame {
         JOptionPane.showMessageDialog(this, mensaje);
     }
 
-    public VentanaTerminalRegistro(ClienteRegistro cliente) {
+    public VentanaTerminalRegistro() {
         setTitle("Terminal de Registro");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 600));

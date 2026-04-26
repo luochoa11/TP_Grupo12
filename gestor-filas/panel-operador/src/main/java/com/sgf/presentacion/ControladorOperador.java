@@ -4,31 +4,31 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
-import com.sgf.infraestructura.ClienteOperador;
+import com.sgf.interfaces.IServicioOperador;
 import com.sgf.modelos.Turno;
 
 public class ControladorOperador {
 
     private VentanaPanelOperador vista;
-    private ClienteOperador cliente;
+    private IServicioOperador servicio;
     private int idPuesto;
 
 
-    public ControladorOperador(VentanaPanelOperador vista, ClienteOperador cliente,int idPuesto) {
+    public ControladorOperador(VentanaPanelOperador vista, IServicioOperador servicio,int idPuesto) {
         this.vista = vista;
-        this.cliente = cliente;
+        this.servicio = servicio;
         this.idPuesto = idPuesto;
     } 
 
     public void accionarLlamado() {
         try {
             // Intentamos obtener el siguiente (Puede lanzar FilaVaciaException)
-            Turno siguiente = cliente.llamarSiguiente(idPuesto);
+            Turno siguiente = servicio.llamarSiguiente(idPuesto);
 
 
             // actualizamos la vista 
             SwingUtilities.invokeLater(() -> {
-            vista.actualizarVista(siguiente, cliente.getCola()); 
+            vista.actualizarVista(siguiente, servicio.getCola()); 
         });
 
     
@@ -40,9 +40,9 @@ public class ControladorOperador {
 
     public void accionarReintento() {
         try {
-            Turno reIntento = cliente.reintentarLlamado(idPuesto);
+            Turno reIntento = servicio.reintentarLlamado(idPuesto);
             SwingUtilities.invokeLater(() -> {
-                vista.actualizarVista(reIntento, cliente.getCola());
+                vista.actualizarVista(reIntento, servicio.getCola());
             });
         } catch (Exception e) {
             vista.mostrarMensaje("Error al procesar el reintento: " + e.getMessage());
@@ -51,8 +51,8 @@ public class ControladorOperador {
 
     public void actualizarCola() {
     try {
-        List<Turno> cola = cliente.getCola();
-        Turno actual = cliente.getTurnoPuesto(idPuesto); // opcional
+        List<Turno> cola = servicio.getCola();
+        Turno actual = servicio.getTurnoPuesto(idPuesto); // opcional
 
         SwingUtilities.invokeLater(() -> {
             vista.actualizarVista(actual, cola);

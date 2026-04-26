@@ -3,22 +3,17 @@ package com.sgf;
 import javax.swing.SwingUtilities;
 
 import com.sgf.infraestructura.ClienteRegistro;
+import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.presentacion.ControladorRegistro;
 import com.sgf.presentacion.VentanaTerminalRegistro;
 
 public class MainRegistro {
     public static void main(String[] args) {
-        //ejemplo 
-        // java -cp "terminal-registro/target/classes;common/target/classes" com.sgf.MainTerminal 2
-
         System.out.println("Arrancando...");
+        
         // Identifica la terminal si se pasan argumentos
-        String idTerminal = "";
-        if (args.length > 0) {
-            idTerminal = " #" + args[0];
-        }
-
-        ClienteRegistro cliente = new ClienteRegistro(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+        String idTerminal = (args.length > 0) ? " #" + args[0] : "";
+        final String tituloFinal = "Terminal de Registro" + idTerminal;
 
         try {
             javax.swing.UIManager.setLookAndFeel(
@@ -28,13 +23,13 @@ public class MainRegistro {
             e.printStackTrace();
         }
     
-        final String tituloFinal = "Terminal de Registro" + idTerminal;
-
         SwingUtilities.invokeLater(() -> {
-            VentanaTerminalRegistro ventana = new VentanaTerminalRegistro(cliente);
+            VentanaTerminalRegistro ventana = new VentanaTerminalRegistro();
             ventana.setTitle(tituloFinal); // Seteamos el título con el ID
+
+            IServicioRegistro servicio = new ClienteRegistro(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
             
-            ControladorRegistro controlador = new ControladorRegistro(ventana, cliente);
+            ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
             ventana.setControlador(controlador);
             ventana.setVisible(true);
             

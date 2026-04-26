@@ -3,7 +3,6 @@ package com.sgf.infraestructura;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sgf.interfaces.IServicioMonitor;
@@ -16,6 +15,9 @@ public class ClienteMonitor implements Runnable, IServicioMonitor {
     private ControladorMonitor controlador;
     private boolean activo=true;
 
+    private Turno actual; //el ultimo actual
+    private List<Turno> historial; //el ultimo historial 
+
     public ClienteMonitor(String host, int puerto, ControladorMonitor controlador) {
         this.host = host;
         this.puerto = puerto;
@@ -26,30 +28,12 @@ public class ClienteMonitor implements Runnable, IServicioMonitor {
     // Se mantienen para cumplir con la interfaz, aunque el loop principal no los use.
     @Override
     public Turno getUltimoLlamado() {
-        try (Socket socket = new Socket(host, puerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
-            out.writeObject("GET_ULTIMO_LLAMADO_UNICO");// Comando específico si fuera necesario
-            out.flush();
-            return (Turno) in.readObject();
-        } catch (Exception e) {
-            return null;
-        }
+        return actual;
     }
 
     @Override
     public List<Turno> getHistorial() {
-        try (Socket socket = new Socket(host, puerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-            
-            out.writeObject("GET_HISTORIAL");
-            out.flush();
-            return (List<Turno>) in.readObject();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+        return historial;
     }
 
 

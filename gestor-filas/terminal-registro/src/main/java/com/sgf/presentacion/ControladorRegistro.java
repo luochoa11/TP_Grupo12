@@ -2,16 +2,16 @@ package com.sgf.presentacion;
 
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.excepciones.DniInvalidoException;
-import com.sgf.infraestructura.ClienteRegistro;
+import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.modelos.Turno;
 
 public class ControladorRegistro {
     private VentanaTerminalRegistro vista;
-    private ClienteRegistro cliente;
+    private IServicioRegistro servicio;
 
-    public ControladorRegistro(VentanaTerminalRegistro vista, ClienteRegistro cliente) {
+    public ControladorRegistro(VentanaTerminalRegistro vista, IServicioRegistro servicio) {
         this.vista = vista;
-        this.cliente = cliente;
+        this.servicio = servicio;
     }
 
     public void escribirNumero(String numero) {  // funcion que escribe el numero en el text field
@@ -44,7 +44,7 @@ public class ControladorRegistro {
                 validarDNI(dni);
             
                 Turno t = new Turno(dni); //si validó, creo el turno y lo envío al servidor
-                cliente.agregarTurno(t);
+                servicio.agregarTurno(t);
                 
                 //Si llegó acá, no lanzó excepción
                 vista.mostrarMensaje("¡Turno Registrado!\nDocumento: " + dni);

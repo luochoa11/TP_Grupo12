@@ -4,6 +4,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import com.sgf.infraestructura.ClienteOperador;
+import com.sgf.interfaces.IServicioOperador;
 import com.sgf.presentacion.ControladorOperador;
 import com.sgf.presentacion.VentanaPanelOperador;
 
@@ -38,8 +39,8 @@ public class MainOperador {
             ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
             // 3. Inicializamos el Controlador y conectamos
-            ClienteOperador cliente = new ClienteOperador(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
-            ControladorOperador controlador = new ControladorOperador(ventana, cliente,idFinal);
+            IServicioOperador servicio = new ClienteOperador(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+            ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);
             ventana.setControlador(controlador);
 
             ventana.setVisible(true);
