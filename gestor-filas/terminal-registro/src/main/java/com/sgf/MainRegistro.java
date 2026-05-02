@@ -2,7 +2,7 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
-import com.sgf.infraestructura.ClienteRegistro;
+import com.sgf.infraestructura.ProxyRegistro;
 import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.presentacion.ControladorRegistro;
 import com.sgf.presentacion.VentanaTerminalRegistro;
@@ -27,7 +27,7 @@ public class MainRegistro {
             VentanaTerminalRegistro ventana = new VentanaTerminalRegistro();
             ventana.setTitle(tituloFinal); // Seteamos el título con el ID
 
-            IServicioRegistro servicio = new ClienteRegistro(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+            IServicioRegistro servicio = new ProxyRegistro(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
             
             ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
             ventana.setControlador(controlador);

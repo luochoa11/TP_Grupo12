@@ -22,8 +22,10 @@
   <modules>
     <module>terminal-registro</module>
     <module>panel-operador</module>
-    <module>monitor-visualizacion</module>
+    <module>pantalla-anuncio</module>
     <module>common</module>
+    <module>monitor</module>
+    <module>servicio-directorio</module>
     <module>servidor-central</module>
  </modules>
 

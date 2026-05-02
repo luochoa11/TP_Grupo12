@@ -1,0 +1,3 @@
+com\sgf\MainMonitor.class
+com\sgf\failover\GestorFalla.class
+com\sgf\salud\HeartbeatChecker.class

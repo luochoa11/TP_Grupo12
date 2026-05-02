@@ -3,7 +3,7 @@ package com.sgf;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import com.sgf.infraestructura.ClienteOperador;
+import com.sgf.infraestructura.ProxyOperador;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.presentacion.ControladorOperador;
 import com.sgf.presentacion.VentanaPanelOperador;
@@ -39,7 +39,7 @@ public class MainOperador {
             ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
             // 3. Inicializamos el Controlador y conectamos
-            IServicioOperador servicio = new ClienteOperador(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+            IServicioOperador servicio = new ProxyOperador(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
             ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);
             ventana.setControlador(controlador);
 

@@ -14,7 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.modelos.Turno;
 
-public class ServidorCentral implements Runnable{
+/**
+ * Clase que representa el Servidor Central del sistema. 
+ */
+
+public class ServidorCentral implements Runnable {
     private int puerto;
     private ILogicaFila logica;
     private List<ObjectOutputStream> monitores = Collections.synchronizedList(new ArrayList<>());
