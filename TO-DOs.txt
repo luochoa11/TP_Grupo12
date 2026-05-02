@@ -1,13 +1,24 @@
 
 --> Averiguar por FAILOVER METHODS
 
-1. Cambiar nombres de todo lo que tenga Monitor --> Anuncio para dar lugar al señor monitor 
-2. Implementar Monitor, Interfaz ServerControl, HearBeart Checker, Latidos 
-3. HeartBeat DTO y NodoEstado DTO para transferir al monitor las cosas 
-4. SyncEstado por eventos 
-5. Implementar Directorio: Interfaz ServerRegister : Metodos getReadyServers() subscribeServer () conexión con los nodos Cliente 
+1. SyncEstado por eventos 
+2. Implementar Directorio: Interfaz ServerRegister : Metodos getReadyServers() subscribeServer () conexión con los nodos Cliente 
+3. Unificar Nombres Ingles / Español
+4. Configuración del operador por archivo 
+5. Hacer Diagramas / Informe / Justificar Decisiones
 
-6. Unificar Nombres Ingles / Español
-7. Configuración del operador por archivo 
-8. Hacer Diagramas / Informe / Justificar Decisiones
+Implementar: 
+-En common: 
+      modelos: modeloHeartbeatDTO, NodoEstadoDTO
+      interfaces: definir métodos IServicioControl (ServerControl), IServicioDirectorio, IServicioHeartbeat (Latidos, definí un método con ese nombre, no me maten)
+-En monitor:
+      salud: HeartbeatChecker
+      failover: GestorFallas
+-En servicio-directorio: 
+      infraestructura: GestorRutas
 
+-En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario)
+      disponibilidad: EmisorHeartbeat, SincronizadorEstado
+
+-En panel-operador, pantalla-anuncio, terminal-registro:
+      infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio <<-- implementar resiliencia: bucle de reintentos, tiempo de espera, consultar el directorio por la nueva ip, actualizar la interna y reconectar.
