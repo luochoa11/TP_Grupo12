@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.sgf.Constantes;
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.disponibilidad.SincronizadorEstado;
+import com.sgf.interfaces.IServicioDirectorio;
 import com.sgf.modelos.Turno;
 
 /**
@@ -20,14 +23,23 @@ import com.sgf.modelos.Turno;
 
 public class ServidorCentral implements Runnable {
     private int puerto;
+    private String ip;
     private ILogicaFila logica;
     private List<ObjectOutputStream> monitores = Collections.synchronizedList(new ArrayList<>());
-    Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>();
+    Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>(); //esto sigue?
+    private boolean esPrimario;
+    private SincronizadorEstado sincronizador;
+    private IServicioDirectorio directorio;
 
 
-    public ServidorCentral(int puerto, ILogicaFila logica) {
+    public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario, IServicioDirectorio directorio) {
         this.puerto = puerto;
+        this.ip = ip;
         this.logica = logica;
+        this.esPrimario = esPrimario;
+        this.directorio = directorio;
+        this.sincronizador = new SincronizadorEstado(logica, directorio);
+    
     }
 
     @Override
@@ -71,7 +83,7 @@ public class ServidorCentral implements Runnable {
         }}
     }
     
-    public void notificarOperadores() {
+    public void notificarOperadores() { //esto sigue?
         for (Map.Entry<Integer, ObjectOutputStream> entry : operadores.entrySet()) {
         int id = entry.getKey();
         ObjectOutputStream out = entry.getValue();
@@ -89,4 +101,19 @@ public class ServidorCentral implements Runnable {
         }
 
     }
-}}
+}
+public boolean esPrimario() {
+    return esPrimario;
+}
+public void promoverEstado(){
+    this.esPrimario = true; 
+    directorio.actualizarPrimario(ip, puerto);
+
+}
+
+public void sincronizarEstado() {
+    if (esPrimario && sincronizador != null) {
+        sincronizador.sincronizar();
+    }
+}
+}

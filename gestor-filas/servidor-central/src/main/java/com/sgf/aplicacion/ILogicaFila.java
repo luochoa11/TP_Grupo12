@@ -1,5 +1,6 @@
 package com.sgf.aplicacion;
 
+import java.util.List;
 import java.util.Map;
 
 import com.sgf.interfaces.IServicioAnuncio;
@@ -28,4 +29,6 @@ public interface ILogicaFila extends IServicioRegistro, IServicioOperador, IServ
     Map<Integer, Turno> getTurnosActivos();
 
     boolean hasDni(String dni);
+
+    void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo);
 }

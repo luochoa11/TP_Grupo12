@@ -13,12 +13,13 @@ Implementar:
       interfaces: definir métodos IServicioControl (ServerControl), IServicioDirectorio, IServicioHeartbeat (Latidos, definí un método con ese nombre, no me maten)
 -En monitor:
       salud: HeartbeatChecker // avanzado + monitorSalud para recibir latidos (les parece?)
-      failover: GestorFallas
+      failover: GestorFallas//avanzado
 -En servicio-directorio: 
-      infraestructura: GestorRutas
+      infraestructura: GestorRutas 
 
--En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario)
-      disponibilidad: EmisorHeartbeat//avanzado, SincronizadorEstado
+-En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario) //listo
+      disponibilidad: EmisorHeartbeat//avanzado, SincronizadorEstado //avanzado
+      //faltaria ver el MainServidor en base a los cambios
 
 -En panel-operador, pantalla-anuncio, terminal-registro:
       infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio <<-- implementar resiliencia: bucle de reintentos, tiempo de espera, consultar el directorio por la nueva ip, actualizar la interna y reconectar.

@@ -11,6 +11,8 @@ public class GestorRutas implements IServicioDirectorio{
 
     private String ipPrimario;
     private int puertoPrimario;
+    private String ipSecundario;
+    private int puertoSecundario;
 
     public GestorRutas() {
 
@@ -27,7 +29,18 @@ public class GestorRutas implements IServicioDirectorio{
 
     @Override
     public void actualizarPrimario(String ip, int puerto){
+        this.ipSecundario = this.ipPrimario;
+        this.puertoSecundario = this.puertoPrimario;    
         this.ipPrimario = ip;
         this.puertoPrimario = puerto;
     }
+
+    public String getIPSecundario() {
+        return ipSecundario;
+    }
+
+    public int getPuertoSecundario() {
+        return puertoSecundario;
+    }
+
 }

@@ -9,7 +9,7 @@ public class MainServidor {
         ILogicaFila logica = LogicaFila.getInstance();
         int puerto = Constantes.PUERTO_SERVIDOR_CENTRAL;
         
-        ServidorCentral servidor = new ServidorCentral(puerto, logica);
+        ServidorCentral servidor = new ServidorCentral(puerto, logica,true,);
         
         Thread hiloServidor = new Thread(servidor);
         hiloServidor.start();

@@ -15,6 +15,7 @@ public class HeartbeatChecker implements Runnable {
     private boolean activo = true;
     private final long timeout=5000; // 5 segundos
     private GestorFalla gestorFalla;
+    private NodoEstadoDTO ultimoNodo;
 
     public HeartbeatChecker(GestorFalla gestorFalla) {
         this.gestorFalla = gestorFalla;
@@ -23,6 +24,7 @@ public class HeartbeatChecker implements Runnable {
 
     public synchronized void recibirLatido(HeartbeatDTO hb, NodoEstadoDTO estado) {
         ultimoLatido = System.currentTimeMillis();
+        ultimoNodo = estado;
     }
 
     @Override
@@ -32,7 +34,7 @@ public class HeartbeatChecker implements Runnable {
                 Thread.sleep(1000);
                 if(System.currentTimeMillis() - ultimoLatido > timeout){
                     System.out.println("No se recibió latido en el tiempo esperado. Reportando falla...");
-                    gestorFalla.procesarFalla();
+                    gestorFalla.procesarFalla(ultimoNodo);
                     activo = false; // Detener el checker después de reportar la falla
                 }
             } catch (InterruptedException e) {

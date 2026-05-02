@@ -194,4 +194,22 @@ public class LogicaFila implements ILogicaFila{
         }
         return false;
     }
+
+    public synchronized void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo) {
+        this.filaEspera.clear();
+         if (nuevaCola != null) {
+             this.filaEspera.addAll(nuevaCola);
+          }
+
+         this.turnosActuales.clear();
+        if (nuevosActivos != null) {
+            this.turnosActuales.putAll(nuevosActivos);
+        }
+
+        this.historial.clear();
+         if (nuevoHistorial != null) {
+          this.historial.addAll(nuevoHistorial);
+        }
+     this.ultimoLlamado = nuevoUltimo;
+    }
 }
