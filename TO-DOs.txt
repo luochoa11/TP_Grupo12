@@ -1,0 +1,13 @@
+
+--> Averiguar por FAILOVER METHODS
+
+1. Cambiar nombres de todo lo que tenga Monitor --> Anuncio para dar lugar al señor monitor 
+2. Implementar Monitor, Interfaz ServerControl, HearBeart Checker, Latidos 
+3. HeartBeat DTO y NodoEstado DTO para transferir al monitor las cosas 
+4. SyncEstado por eventos 
+5. Implementar Directorio: Interfaz ServerRegister : Metodos getReadyServers() subscribeServer () conexión con los nodos Cliente 
+
+6. Unificar Nombres Ingles / Español
+7. Configuración del operador por archivo 
+8. Hacer Diagramas / Informe / Justificar Decisiones
+
