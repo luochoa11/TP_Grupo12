@@ -10,4 +10,20 @@ public class HeartbeatDTO {
     // ID del nodo que envía el heartbeat
     private String nodoId;
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getNodoId() {
+        return nodoId;
+    }
+
+    public void setNodoId(String nodoId) {
+        this.nodoId = nodoId;
+    }
+
 }

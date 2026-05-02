@@ -13,4 +13,7 @@ public class GestorFalla {
     // Cuando recibe el aviso de falla:
     //  -Llama al IServicioControl del Servidor Secundario.
     //  -Informa al Directorio el cambio de IP.
+    public void procesarFalla(){
+        // Lógica para procesar la falla
+    }
 }

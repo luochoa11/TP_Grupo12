@@ -1,0 +1,47 @@
+package com.sgf.salud;
+
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import com.sgf.modelos.HeartbeatDTO;
+import com.sgf.modelos.NodoEstadoDTO;
+
+public class MonitorSalud implements Runnable {
+    private int puerto;
+    private HeartbeatChecker heartbeatChecker;
+
+    public MonitorSalud(int puerto, HeartbeatChecker heartbeatChecker) {
+        this.puerto = puerto;
+        this.heartbeatChecker = heartbeatChecker;
+    }
+
+    @Override
+    public void run() {
+        try( ServerSocket serverSocket = new ServerSocket(puerto) ){
+            System.out.println("Monitor de Salud iniciado en el puerto " + puerto);
+            while(true){
+               try(
+                Socket socket = serverSocket.accept();
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+                    String mensaje = (String) in.readObject();
+                    if("HEARTBEAT".equals(mensaje)){
+                        // Recibir el DTO del heartbeat
+                        HeartbeatDTO hb = (HeartbeatDTO) in.readObject();
+                        // Recibir el DTO del estado del nodo
+                        NodoEstadoDTO estado = (NodoEstadoDTO) in.readObject();
+
+                        heartbeatChecker.recibirLatido(hb,estado);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error procesando conexión entrante: " + e.getMessage());
+                }
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+}
