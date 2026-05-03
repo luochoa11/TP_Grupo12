@@ -10,8 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.sgf.Constantes;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioDirectorio;

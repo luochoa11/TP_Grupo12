@@ -26,12 +26,21 @@ public class GestorFalla {
         // Lógica para procesar la falla
         try{
         System.out.println("Procesando falla del nodo: " + nodo.getIp() + ":" + nodo.getPuerto());
-        servicioControl.promoverPrimario(nodo);
+            
+        if(nodo.getIp().equals(servicioDirectorio.getIPPrimario()) && nodo.getPuerto() == servicioDirectorio.getPuertoPrimario()) {
+            System.out.println("Falla detectada en el nodo primario: " + nodo.getIp() + ":" + nodo.getPuerto());
+        } else {
+            System.out.println("Falla detectada en un nodo secundario: " + nodo.getIp() + ":" + nodo.getPuerto());
+            return; // Si la falla no es del primario, no hacemos nada
+        }
+        
+        String ipSecundario = servicioDirectorio.getIPSecundario();
+        int puertoSecundario = servicioDirectorio.getPuertoSecundario();
 
-        String nuevaIp = nodo.getIp(); 
-        int nuevoPuerto = nodo.getPuerto(); 
+       //servicioControl.primoverPrimario(id, puesto)
+        servicioDirectorio.actualizarPrimario(ipSecundario, puertoSecundario);
+        servicioControl.promoverEstado(ipSecundario, puertoSecundario);
 
-        servicioDirectorio.actualizarPrimario(nuevaIp, nuevoPuerto);
         } catch (Exception e) {
             System.err.println("Error procesando la falla: " + e.getMessage());
         }

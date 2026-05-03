@@ -10,6 +10,7 @@ public interface IServicioControl {
     // Se implemente en ServidorCentral
 
     //promueve el nodo a primario
-    void promoverPrimario(Object nodo);
+    void promoverEstado(String ip, int puerto);
+
 
 }
