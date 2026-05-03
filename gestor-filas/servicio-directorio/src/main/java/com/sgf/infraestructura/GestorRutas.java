@@ -1,5 +1,6 @@
 package com.sgf.infraestructura;
 
+import com.sgf.Constantes;
 import com.sgf.interfaces.IServicioDirectorio;
 
 /**
@@ -15,7 +16,11 @@ public class GestorRutas implements IServicioDirectorio{
     private int puertoSecundario;
 
     public GestorRutas() {
-
+    	this.ipPrimario = Constantes.HOST_SERVIDOR_CENTRAL;
+        this.puertoPrimario = Constantes.PUERTO_SERVIDOR_CENTRAL;
+        
+        this.ipSecundario = Constantes.HOST_SERVIDOR_B;
+        this.puertoSecundario = Constantes.PUERTO_SERVIDOR_B;
     }
     @Override
     public String getIPPrimario(){

@@ -15,7 +15,7 @@ Implementar:
       salud: HeartbeatChecker // avanzado + monitorSalud para recibir latidos (les parece?)
       failover: GestorFallas//avanzado
 -En servicio-directorio: 
-      infraestructura: GestorRutas 
+      infraestructura: GestorRutas //avanzado
 
 -En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario) //listo
       disponibilidad: EmisorHeartbeat//avanzado, SincronizadorEstado //avanzado
