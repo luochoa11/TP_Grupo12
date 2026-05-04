@@ -78,19 +78,19 @@ public class ManejadorCliente implements Runnable {
                     out.writeObject(logica.getTurnoPuesto(idPuesto2));
                     break;
                 case "SINCRONIZAR_ESTADO":
-                List<Turno> cola = (List<Turno>) in.readObject();
-                Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
-                List<Turno> historial = (List<Turno>) in.readObject();
-                Turno ultimo = (Turno) in.readObject();
+                    List<Turno> cola = (List<Turno>) in.readObject();
+                    Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
+                    List<Turno> historial = (List<Turno>) in.readObject();
+                    Turno ultimo = (Turno) in.readObject();
 
-                logica.reemplazarEstado(cola, activos, historial, ultimo);
-                break;
+                    logica.reemplazarEstado(cola, activos, historial, ultimo);
+                    break;
                 case "SUSCRIBIR_MONITOR":
                     servidor.agregarMonitor(out);
 
                     while (true) {
                         Thread.sleep(10000); // mantener viva la conexión
-    } //en el manejador
+                    } //en el manejador
 
             }
             out.flush();
@@ -102,7 +102,4 @@ public class ManejadorCliente implements Runnable {
             } catch (IOException ignored) {}
         }
     }
-
-
-    
 }

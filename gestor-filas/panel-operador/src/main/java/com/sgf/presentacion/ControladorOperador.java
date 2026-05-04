@@ -20,7 +20,7 @@ public class ControladorOperador {
         this.idPuesto = idPuesto;
     } 
 
-    public void accionarLlamado() {
+    public Turno accionarLlamado() {
         try {
             // Intentamos obtener el siguiente (Puede lanzar FilaVaciaException)
             Turno siguiente = servicio.llamarSiguiente(idPuesto);
@@ -31,9 +31,11 @@ public class ControladorOperador {
             vista.actualizarVista(siguiente, servicio.getCola()); 
         });
 
+        return siguiente;
     
         } catch (Exception e) {
             vista.mostrarMensaje("Error al procesar el llamado: " + e.getMessage());
+            return null;
         }
     }
 
@@ -50,17 +52,17 @@ public class ControladorOperador {
     }
 
     public void actualizarCola() {
-    try {
-        List<Turno> cola = servicio.getCola();
-        Turno actual = servicio.getTurnoPuesto(idPuesto); // opcional
+        try {
+            List<Turno> cola = servicio.getCola();
+            Turno actual = servicio.getTurnoPuesto(idPuesto); // opcional
 
-        SwingUtilities.invokeLater(() -> {
-            vista.actualizarVista(actual, cola);
-        });
+            SwingUtilities.invokeLater(() -> {
+                vista.actualizarVista(actual, cola);
+            });
 
-    } catch (Exception e) {
-        System.err.println("Error actualizando cola: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error actualizando cola: " + e.getMessage());
+        }
     }
-}
 
 }

@@ -12,7 +12,7 @@ public class Turno implements Serializable {
     private String dniCliente;
     private int idPuesto;
     private int intentos;
-    private String estado; // "ESPERA", "LLAMADO","ATENDIDO"
+    private String estado; // "ESPERA", "LLAMADO","ATENDIDO", "AUSENTE"
     //private LocalDateTime horario;
 
     public Turno(String dniCliente) {
@@ -36,6 +36,9 @@ public class Turno implements Serializable {
     }
     public int getIntentos() {
         return intentos;
+    }
+    public void setIntentos(int intentos) {
+        this.intentos = intentos;
     }
     public void incrementarIntentos() {
         this.intentos++;
