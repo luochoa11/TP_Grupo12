@@ -1,6 +1,5 @@
 package com.sgf.salud;
 
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;

@@ -12,14 +12,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
-import com.sgf.interfaces.IServicioDirectorio;
+import com.sgf.interfaces.IServicioControl;
 import com.sgf.modelos.Turno;
 
 /**
  * Clase que representa el Servidor Central del sistema. 
  */
 
-public class ServidorCentral implements Runnable {
+public class ServidorCentral implements Runnable,IServicioControl {
     private int puerto;
     private String ip;
     private ILogicaFila logica;
@@ -27,17 +27,14 @@ public class ServidorCentral implements Runnable {
     Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>(); //esto sigue?
     private boolean esPrimario;
     private SincronizadorEstado sincronizador;
-    private IServicioDirectorio directorio;
 
 
-    public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario, IServicioDirectorio directorio) {
+    public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
         this.ip = ip;
         this.logica = logica;
         this.esPrimario = esPrimario;
-        this.directorio = directorio;
-        this.sincronizador = new SincronizadorEstado(logica, directorio);
-    
+        this.sincronizador = sincronizador;
     }
 
     @Override
@@ -103,9 +100,9 @@ public class ServidorCentral implements Runnable {
 public boolean esPrimario() {
     return esPrimario;
 }
-public void promoverEstado(){
+public void promoverEstado(String ipSecundario, int puertoSecundario) {
     this.esPrimario = true; 
-    directorio.actualizarPrimario(ip, puerto);
+    sincronizador.actualizarSecundario(ipSecundario, puertoSecundario); // El secundario ya no es secundario
 
 }
 
@@ -113,5 +110,11 @@ public void sincronizarEstado() {
     if (esPrimario && sincronizador != null) {
         sincronizador.sincronizar();
     }
+}
+public String getIp() {
+    return ip;
+}
+public int getPuerto() {
+    return puerto;
 }
 }

@@ -11,6 +11,8 @@ public interface IServicioControl {
 
     //promueve el nodo a primario
     void promoverEstado(String ip, int puerto);
+    int getPuerto();
+    String getIp();
 
 
 }

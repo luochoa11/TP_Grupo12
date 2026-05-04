@@ -11,35 +11,35 @@ import com.sgf.modelos.NodoEstadoDTO;
  */
 public class GestorFalla {
     // Server Manager
-     private IServicioControl servicioControl;
      private IServicioDirectorio servicioDirectorio;
+     private IServicioControl controlPrimario;
+     private IServicioControl controlSecundario;
 
-     public GestorFalla(IServicioControl servicioControl, IServicioDirectorio servicioDirectorio) {
-        this.servicioControl = servicioControl;
-        this.servicioDirectorio = servicioDirectorio;
+     public GestorFalla(IServicioDirectorio servicioDirectorio, IServicioControl controlPrimario, IServicioControl controlSecundario) {
+         this.servicioDirectorio = servicioDirectorio;
+         this.controlPrimario = controlPrimario;
+         this.controlSecundario = controlSecundario;
     }
 
     // Cuando recibe el aviso de falla:
     //  -Llama al IServicioControl del Servidor Secundario.
     //  -Informa al Directorio el cambio de IP.
-    public void procesarFalla(NodoEstadoDTO nodo) {
+    public void procesarFalla(NodoEstadoDTO nodoFalla) {
         // Lógica para procesar la falla
         try{
-        System.out.println("Procesando falla del nodo: " + nodo.getIp() + ":" + nodo.getPuerto());
-            
-        if(nodo.getIp().equals(servicioDirectorio.getIPPrimario()) && nodo.getPuerto() == servicioDirectorio.getPuertoPrimario()) {
-            System.out.println("Falla detectada en el nodo primario: " + nodo.getIp() + ":" + nodo.getPuerto());
-        } else {
-            System.out.println("Falla detectada en un nodo secundario: " + nodo.getIp() + ":" + nodo.getPuerto());
-            return; // Si la falla no es del primario, no hacemos nada
-        }
-        
-        String ipSecundario = servicioDirectorio.getIPSecundario();
-        int puertoSecundario = servicioDirectorio.getPuertoSecundario();
+        System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
+         
+        if(nodoFalla.getIp().equals(controlPrimario.getIp()) && nodoFalla.getPuerto() == controlPrimario.getPuerto()) {
+            // El nodo primario ha fallado, promover el secundario a primario
 
-       //servicioControl.primoverPrimario(id, puesto)
-        servicioDirectorio.actualizarPrimario(ipSecundario, puertoSecundario);
-        servicioControl.promoverEstado(ipSecundario, puertoSecundario);
+            controlSecundario.promoverEstado(controlPrimario.getIp(), controlPrimario.getPuerto()); //le pasa la info del primario para guardarla con nuevo secundario
+            servicioDirectorio.actualizarPrimario(controlSecundario.getIp(), controlSecundario.getPuerto());
+
+            IServicioControl temp = controlPrimario;
+        
+           this.controlPrimario = controlSecundario; // El secundario ahora es el primario
+           this.controlSecundario = temp; // El primario ahora es el secundario (aunque esté caído, se mantiene la referencia para cuando vuelva a levantarse)
+        } 
 
         } catch (Exception e) {
             System.err.println("Error procesando la falla: " + e.getMessage());

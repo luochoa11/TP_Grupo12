@@ -3,6 +3,7 @@ package com.sgf.disponibilidad;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.sgf.infraestructura.ServidorCentral;
 import com.sgf.modelos.HeartbeatDTO;
 import com.sgf.modelos.NodoEstadoDTO;
 
@@ -15,15 +16,14 @@ public class EmisorHeartbeat implements Runnable {
     private String hostMonitor;
     private int puertoMonitor;
     private boolean activo = true;
+    private ServidorCentral servidor;
 
-    private String nodoId;
     private String ip;
     private int puerto;
 
-    public EmisorHeartbeat(String hostMonitor, int puertoMonitor, String nodoId, String ip, int puerto) {
+    public EmisorHeartbeat(String hostMonitor, int puertoMonitor, String ip, int puerto) {
         this.hostMonitor = hostMonitor;
         this.puertoMonitor = puertoMonitor;
-        this.nodoId = nodoId;
         this.ip = ip;
         this.puerto = puerto;
     }
@@ -35,24 +35,26 @@ public class EmisorHeartbeat implements Runnable {
                 Socket socket = new Socket(hostMonitor, puertoMonitor);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ) {
+                 if (!servidor.esPrimario()) {
+                    Thread.sleep(1000);
+                    continue;
+                }  
 
-                // 1. Crear el DTO del heartbeat
-                HeartbeatDTO hb = new HeartbeatDTO();
+                HeartbeatDTO hb = new HeartbeatDTO();//Crear el DTO del heartbeat
                 hb.setTimestamp(System.currentTimeMillis());
-                hb.setNodoId(nodoId);
 
-                // 2. Crear el DTO del estado del nodo
-                NodoEstadoDTO estado = new NodoEstadoDTO();
+                NodoEstadoDTO estado = new NodoEstadoDTO();   // Crear el DTO del estado del nodo
                 estado.setIp(ip);
                 estado.setPuerto(puerto);
                 estado.setEstado(1);
 
-                // 3. Envío
-                out.writeObject("HEARTBEAT");
+                out.writeObject("HEARTBEAT"); // Envío    
                 out.writeObject(hb);
                 out.writeObject(estado);
                 out.flush();
 
+                socket.close();
+                
                 Thread.sleep(2000);
 
             } catch (Exception e) {

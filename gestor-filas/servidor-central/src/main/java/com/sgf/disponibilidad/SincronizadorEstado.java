@@ -4,7 +4,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.aplicacion.ILogicaFila;
-import com.sgf.interfaces.IServicioDirectorio;
 
 /**
  * Clase que envía datos del servidor primario al servidor secundario para mantenerlos 
@@ -12,18 +11,17 @@ import com.sgf.interfaces.IServicioDirectorio;
  */
 public class SincronizadorEstado {
     private ILogicaFila logica;
-    private IServicioDirectorio directorio;
+    private int puertoSecundario;
+    private String ipSecundario;
 
-    public SincronizadorEstado(ILogicaFila logica, IServicioDirectorio directorio) {
+    public SincronizadorEstado(ILogicaFila logica, int puertoSecundario, String ipSecundario) {
         this.logica = logica;
-        this.directorio = directorio;
+        this.ipSecundario = ipSecundario;
+        this.puertoSecundario = puertoSecundario;
     }
 
     public void sincronizar(){
         try{
-         String ipSecundario = directorio.getIPSecundario();
-         int puertoSecundario = directorio.getPuertoSecundario();
-
             if (ipSecundario == null) {
                 return;
             }
@@ -45,5 +43,9 @@ public class SincronizadorEstado {
             System.err.println("Error al sincronizar estado: " + e.getMessage());
         }    
     
-}
+    }
+     public void actualizarSecundario(String ip, int puerto) {
+        this.ipSecundario = ip;
+        this.puertoSecundario = puerto;
+    }
 }
