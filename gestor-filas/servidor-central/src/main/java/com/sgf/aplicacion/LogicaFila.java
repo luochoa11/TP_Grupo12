@@ -64,9 +64,16 @@ public class LogicaFila implements ILogicaFila{
         }
 
         // Si el monitor principal estaba ocupado, movemos ese turno al historial
+        Turno anterior = turnosActuales.get(idPuesto);
+        if (anterior != null) {
+            anterior.setEstado("ATENDIDO");
+            actualizarHistorial(anterior);
+        }
+
         if (this.ultimoLlamado != null) {
             actualizarHistorial(this.ultimoLlamado);
         }
+
 
         //el nuevo turno sale de la cola 
         Turno nuevo = this.filaEspera.poll();
@@ -104,6 +111,7 @@ public class LogicaFila implements ILogicaFila{
                 return t;
             } else {
                 // Si falla el 3er intento, el puesto queda libre y el turno va al historial
+                t.setEstado("AUSENTE");
                 actualizarHistorial(t);
                 turnosActuales.remove(idPuesto);
                 if (this.ultimoLlamado != null && this.ultimoLlamado.getDniCliente().equals(t.getDniCliente())) {
@@ -197,19 +205,19 @@ public class LogicaFila implements ILogicaFila{
 
     public synchronized void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo) {
         this.filaEspera.clear();
-         if (nuevaCola != null) {
-             this.filaEspera.addAll(nuevaCola);
-          }
+        if (nuevaCola != null) {
+            this.filaEspera.addAll(nuevaCola);
+        }
 
-         this.turnosActuales.clear();
+        this.turnosActuales.clear();
         if (nuevosActivos != null) {
             this.turnosActuales.putAll(nuevosActivos);
         }
 
         this.historial.clear();
-         if (nuevoHistorial != null) {
-          this.historial.addAll(nuevoHistorial);
+        if (nuevoHistorial != null) {
+            this.historial.addAll(nuevoHistorial);
         }
-     this.ultimoLlamado = nuevoUltimo;
+        this.ultimoLlamado = nuevoUltimo;
     }
 }

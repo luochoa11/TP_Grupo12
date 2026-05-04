@@ -47,6 +47,9 @@ public class VentanaPanelOperador extends JFrame {
     private final Color COLOR_TEXTO_SUAVE = new Color(148, 163, 184); // Gris slate
     private final Color COLOR_ROJO = new Color(220, 38, 38);      // Rojo alerta
 
+    private boolean ausente = false; //FIXME
+
+    private int segundosRestantes = 10;
 
     public VentanaPanelOperador() {
 
@@ -135,15 +138,19 @@ public class VentanaPanelOperador extends JFrame {
 
         btnLlamar = crearBotonEstilizado("Llamar siguiente", COLOR_ACCENTO);
         btnLlamar.addActionListener(e -> {
-            if (controlador != null) controlador.accionarLlamado();
-            reiniciarTIntento();
+            if (controlador != null) {
+                Turno siguiente = controlador.accionarLlamado();
+                if(siguiente != null){
+                    reiniciarTIntento();
+                }
+            }
         });
 
-        btnReintentar = crearBotonEstilizado("Esperar 30s...", new Color(51, 65, 85));
+        btnReintentar = crearBotonEstilizado("Reintentar Llamado", new Color(51, 65, 85));
         btnReintentar.setEnabled(false);
         btnReintentar.addActionListener(e -> {
             if (controlador != null) controlador.accionarReintento();
-            reiniciarTIntento();
+            if(!ausente)  reiniciarTIntento();
         });
 
         panelBotones.add(btnLlamar);
@@ -190,21 +197,33 @@ public class VentanaPanelOperador extends JFrame {
      * Configura el timer de 30 segundos para el re-intento.
      */
     private void timerIntentos(){
-        timer = new Timer(30000, e-> {
-            btnReintentar.setEnabled(true);
-            btnReintentar.setText("Reintentar llamado");
-            btnReintentar.setBackground(COLOR_ACCENTO);
-            btnReintentar.setForeground(COLOR_FONDO);
-            timer.stop();
+        timer = new Timer(1000, e -> { // cada 1 segundo
+            segundosRestantes--;
+
+            if (segundosRestantes > 0) {
+                btnReintentar.setText("Esperar " + segundosRestantes + "s...");
+            } else {
+                btnReintentar.setEnabled(true);
+                if(!ausente) 
+                    btnReintentar.setText("Reintentar Llamado");
+                else  btnReintentar.setText("Marcar Ausente");
+                btnReintentar.setBackground(COLOR_ACCENTO);
+                btnReintentar.setForeground(COLOR_FONDO);
+                timer.stop();
+            }
         });
     }
 
     private void reiniciarTIntento(){
+        segundosRestantes = 10;
+
         btnReintentar.setEnabled(false);
-        btnReintentar.setText("Esperar 30s...");
+        btnReintentar.setText("Reintentar en 10s...");
         btnReintentar.setBackground(new Color(51, 65, 85));
         btnReintentar.setForeground(Color.WHITE);
+
         timer.restart();
+        actualizarVista(null, null);
     }
 
     public void setControlador(ControladorOperador controlador) {
@@ -213,9 +232,9 @@ public class VentanaPanelOperador extends JFrame {
 
     private void iniciarPull() {
         this.timerPull = new Timer(2000, e -> { // cada 2 segundos
-        if (controlador != null) {
-            controlador.actualizarCola();
-        }
+            if (controlador != null) {
+                controlador.actualizarCola();
+            }
         });
         timerPull.start();
     }
@@ -227,8 +246,8 @@ public class VentanaPanelOperador extends JFrame {
                 lblDniValor.setText(actual.getDniCliente());
                 lblIntentoValor.setText(actual.getIntentos() + "/3");
                 
-                // Si es reintento, destacamos en rojo como en el monitor
-                if (actual.getIntentos() > 1) {
+                if (actual.getIntentos() >1) {
+                    if(actual.getIntentos() >=3)  ausente = true;
                     lblDniValor.setForeground(COLOR_ROJO);
                     panelActualContenedor.setBorder(new LineBorder(COLOR_ROJO, 3, true));
                 } else {

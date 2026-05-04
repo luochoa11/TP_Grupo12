@@ -34,7 +34,8 @@ public class GestorRutas implements IServicioDirectorio{
         return puertoPrimario;
     }
 
-    public void actualizarPrimario(){
+    @Override
+    public void actualizarPrimario(String ip, int puerto){
     	String ipAUX;
     	int puertoAUX;    	
     	ipAUX = this.ipPrimario;

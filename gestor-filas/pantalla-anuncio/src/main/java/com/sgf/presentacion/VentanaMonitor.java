@@ -47,6 +47,16 @@ public class VentanaMonitor extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);
 
+        timerParpadeo = new Timer(500, e -> {
+        for (JLabel lbl : labelsParaTitilar) {
+            if (lbl.getForeground().equals(COLOR_ROJO_ALERTA)) {
+                lbl.setForeground(COLOR_TEXTO_VALOR);
+            } else {
+                lbl.setForeground(COLOR_ROJO_ALERTA);
+            }
+        }
+        });
+
         initComponents();
     }
 
@@ -144,21 +154,20 @@ public class VentanaMonitor extends JFrame {
         SwingUtilities.invokeLater(() -> {
             
            // 1. Limpieza de estado anterior
-            if (timerParpadeo != null && timerParpadeo.isRunning()) {
-                timerParpadeo.stop();
-            }
+            timerParpadeo.stop();
+
             labelsParaTitilar.clear();
             panelTurnos.removeAll();
 
             if (actual != null) {
-                boolean esRellamada = actual.getIntentos() > 1;
+                boolean esRellamada = actual.getIntentos() >= 2 && actual.getIntentos() <= 3 && actual.getEstado().equalsIgnoreCase("LLAMADO"); //FIXME acá hay que meter STate
                 panelTurnos.add(crearTarjeta(actual, true, esRellamada));
                 panelTurnos.add(Box.createRigidArea(new Dimension(0, 15)));
             }
 
             if (historial != null && !historial.isEmpty()) {
                 for (Turno t : historial) {
-                    boolean esRellamadaH = t.getIntentos() > 1;
+                    boolean esRellamadaH = t.getIntentos() >= 2 && t.getIntentos() <= 3 && t.getEstado().equalsIgnoreCase("LLAMADO");
                     panelTurnos.add(crearTarjeta(t, false, esRellamadaH));
                     panelTurnos.add(Box.createRigidArea(new Dimension(0, 10)));
                 }
@@ -166,14 +175,6 @@ public class VentanaMonitor extends JFrame {
 
             // Iniciar parpadeo sincronizado si hay turnos con reintentos
             if (!labelsParaTitilar.isEmpty()) {
-                final boolean[] encendido = {true};
-                timerParpadeo = new Timer(500, e -> {
-                    Color colorActual = encendido[0] ? COLOR_ROJO_ALERTA : COLOR_TEXTO_VALOR;
-                    for (JLabel lbl : labelsParaTitilar) {
-                        lbl.setForeground(colorActual);
-                    }
-                    encendido[0] = !encendido[0];
-                });
                 timerParpadeo.start();
             }
 
