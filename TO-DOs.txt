@@ -10,7 +10,7 @@
 Implementar: 
 -En common: 
       modelos: modeloHeartbeatDTO, NodoEstadoDTO
-      interfaces: definir métodos IServicioControl (ServerControl), IServicioDirectorio, IServicioHeartbeat (Latidos, definí un método con ese nombre, no me maten)
+      interfaces: definir métodos IServicioControl (ServerControl), IServicioDirectorio, IServicioHeartbeat (Latidos, definí un método con ese nombre, no me maten) // jajajaja no pude implementar latidos ya que los manda por socket, habra alguna forma?
 -En monitor:
       salud: HeartbeatChecker // avanzado + monitorSalud para recibir latidos (les parece?)
       failover: GestorFallas//avanzado
@@ -20,6 +20,7 @@ Implementar:
 -En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario) //listo
       disponibilidad: EmisorHeartbeat//avanzado, SincronizadorEstado //avanzado
       //faltaria ver el MainServidor en base a los cambios
+      // subi al drive el diagrama de secuencia de heartbeat. es raro lo de "pareja" pero fue la forma de implementarlo para que no se tengan que conocer entre si los servidores para sincronizarse.
 
 -En panel-operador, pantalla-anuncio, terminal-registro:
       infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio <<-- implementar resiliencia: bucle de reintentos, tiempo de espera, consultar el directorio por la nueva ip, actualizar la interna y reconectar.

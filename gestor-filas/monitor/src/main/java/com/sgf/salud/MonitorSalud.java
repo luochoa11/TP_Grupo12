@@ -1,6 +1,7 @@
 package com.sgf.salud;
 
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -33,6 +34,11 @@ public class MonitorSalud implements Runnable {
                         NodoEstadoDTO estado = (NodoEstadoDTO) in.readObject();
 
                         heartbeatChecker.recibirLatido(hb,estado);
+
+                        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                        NodoEstadoDTO pareja= heartbeatChecker.obtenerPareja(estado);
+                        out.writeObject(pareja); // le informa quien es el otro server 
+                        out.flush();
                     }
                 } catch (Exception e) {
                     System.err.println("Error procesando conexión entrante: " + e.getMessage());

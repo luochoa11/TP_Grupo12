@@ -12,14 +12,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
-import com.sgf.interfaces.IServicioControl;
 import com.sgf.modelos.Turno;
 
 /**
  * Clase que representa el Servidor Central del sistema. 
  */
 
-public class ServidorCentral implements Runnable,IServicioControl {
+public class ServidorCentral implements Runnable {
     private int puerto;
     private String ip;
     private ILogicaFila logica;
@@ -27,7 +26,7 @@ public class ServidorCentral implements Runnable,IServicioControl {
     Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>(); //esto sigue?
     private boolean esPrimario;
     private SincronizadorEstado sincronizador;
-
+    
 
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
@@ -100,14 +99,13 @@ public class ServidorCentral implements Runnable,IServicioControl {
 public boolean esPrimario() {
     return esPrimario;
 }
-public void promoverEstado(String ipSecundario, int puertoSecundario) {
+public void promoverEstado() {
     this.esPrimario = true; 
-    sincronizador.actualizarSecundario(ipSecundario, puertoSecundario); // El secundario ya no es secundario
 
 }
 
 public void sincronizarEstado() {
-    if (esPrimario && sincronizador != null) {
+    if (esPrimario && sincronizador != null) { // el primario le manda la fila al secundario para que se sincronice
         sincronizador.sincronizar();
     }
 }
@@ -117,4 +115,14 @@ public String getIp() {
 public int getPuerto() {
     return puerto;
 }
+public SincronizadorEstado getSincronizador() {
+    return sincronizador;   
+}
+
+public void degradarEstado() {
+    this.esPrimario = false;
+    //limpiar el sincronizador para que deje de enviar datos
+    this.sincronizador.actualizarSecundario(null, 0);
+}
+
 }

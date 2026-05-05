@@ -1,5 +1,6 @@
 package com.sgf.disponibilidad;
 
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
@@ -34,11 +35,8 @@ public class EmisorHeartbeat implements Runnable {
             try (
                 Socket socket = new Socket(hostMonitor, puertoMonitor);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             ) {
-                if (!servidor.esPrimario()) {
-                    Thread.sleep(1000);
-                    continue;
-                }  
 
                 HeartbeatDTO hb = new HeartbeatDTO();//Crear el DTO del heartbeat
                 hb.setTimestamp(System.currentTimeMillis());
@@ -47,13 +45,25 @@ public class EmisorHeartbeat implements Runnable {
                 estado.setIp(ip);
                 estado.setPuerto(puerto);
                 estado.setEstado(1);
+                estado.setEsPrimario(servidor.esPrimario());
 
                 out.writeObject("HEARTBEAT"); // Envío    
                 out.writeObject(hb);
                 out.writeObject(estado);
                 out.flush();
 
-                socket.close();
+                NodoEstadoDTO pareja= (NodoEstadoDTO) in.readObject(); // Recibir el DTO del  server compañero
+                if(pareja!=null){
+                    if(pareja.isEsPrimario()&& servidor.esPrimario()) {
+                        // Si el monitor me dice que el otro server es primario, pero yo también me considero primario, debo degradar mi estado a secundario
+                        servidor.degradarEstado();
+                    } else if (!pareja.isEsPrimario()) {
+                        // Si el monitor me dice que el otro server es secundario, lo debo conocer para sincronizarlo
+                       servidor.getSincronizador().actualizarSecundario(pareja.getIp(), pareja.getPuerto());
+
+                    }
+                }
+
                 
                 Thread.sleep(2000);
 

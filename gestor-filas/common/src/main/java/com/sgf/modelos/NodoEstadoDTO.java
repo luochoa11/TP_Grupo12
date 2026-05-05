@@ -12,6 +12,8 @@ public class NodoEstadoDTO {
     // Estado del nodo (0: inactivo, 1: activo)
     private int estado;
 
+    private boolean esPrimario;
+
     public String getIp() {
         return ip;
     }
@@ -35,4 +37,12 @@ public class NodoEstadoDTO {
     public void setEstado(int estado) {
         this.estado = estado;
     }
+
+    public boolean isEsPrimario() { 
+        return esPrimario; 
+    }
+
+    public void setEsPrimario(boolean esPrimario) { 
+        this.esPrimario = esPrimario; 
+    }   
 }

@@ -1,6 +1,8 @@
 package com.sgf.failover;
 
-import com.sgf.interfaces.IServicioControl;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import com.sgf.interfaces.IServicioDirectorio;
 import com.sgf.modelos.NodoEstadoDTO;
 
@@ -12,38 +14,40 @@ import com.sgf.modelos.NodoEstadoDTO;
 public class GestorFalla {
     // Server Manager
     private IServicioDirectorio servicioDirectorio;
-    private IServicioControl controlPrimario;
-    private IServicioControl controlSecundario;
 
-    public GestorFalla(IServicioDirectorio servicioDirectorio, IServicioControl controlPrimario, IServicioControl controlSecundario) {
+    public GestorFalla(IServicioDirectorio servicioDirectorio) {
         this.servicioDirectorio = servicioDirectorio;
-        this.controlPrimario = controlPrimario;
-        this.controlSecundario = controlSecundario;
     }
 
     // Cuando recibe el aviso de falla:
     //  -Llama al IServicioControl del Servidor Secundario.
     //  -Informa al Directorio el cambio de IP.
-    public void procesarFalla(NodoEstadoDTO nodoFalla) {
+    public void procesarFalla(NodoEstadoDTO nodoFalla, NodoEstadoDTO primario, NodoEstadoDTO secundario) {
         // Lógica para procesar la falla
-        try{
-        System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
     
-        if(nodoFalla.getIp().equals(controlPrimario.getIp()) && nodoFalla.getPuerto() == controlPrimario.getPuerto()) {
-            // El nodo primario ha fallado, promover el secundario a primario
-
-            controlSecundario.promoverEstado(controlPrimario.getIp(), controlPrimario.getPuerto()); //le pasa la info del primario para guardarla con nuevo secundario
-            servicioDirectorio.actualizarPrimario(controlSecundario.getIp(), controlSecundario.getPuerto());
-
-            IServicioControl temp = controlPrimario;
-        
-           this.controlPrimario = controlSecundario; // El secundario ahora es el primario
-           this.controlSecundario = temp; // El primario ahora es el secundario (aunque esté caído, se mantiene la referencia para cuando vuelva a levantarse)
-        } 
-
-        } catch (Exception e) {
-            System.err.println("Error procesando la falla: " + e.getMessage());
+        System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
+        if(primario!=null && nodoFalla.getIp().equals(primario.getIp()) && nodoFalla.getPuerto() == primario.getPuerto()){
+            System.out.println("El nodo caído es el primario. Promoviendo secundario a primario...");
+            
+            enviarPromocion(secundario);
+            servicioDirectorio.actualizarPrimario(secundario.getIp(), secundario.getPuerto());
+        } else {
+            System.out.println("El nodo caído no es el primario. No se requiere acción inmediata.");
         }
     
+    }
+    private void enviarPromocion(NodoEstadoDTO secundario){
+        try{
+            Socket socket = new Socket(secundario.getIp(), secundario.getPuerto());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+
+            out.writeObject("PROMOVER");
+            out.flush();
+
+            socket.close();
+        } catch(Exception e){
+            System.err.println("Error al enviar promoción: " + e.getMessage());
+        }
+
     }
 }

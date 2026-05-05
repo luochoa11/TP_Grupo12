@@ -11,13 +11,12 @@ import com.sgf.aplicacion.ILogicaFila;
  */
 public class SincronizadorEstado {
     private ILogicaFila logica;
-    private int puertoSecundario;
-    private String ipSecundario;
+    int puertoSecundario=0;
+    String ipSecundario=null;
+  
 
-    public SincronizadorEstado(ILogicaFila logica, int puertoSecundario, String ipSecundario) {
+    public SincronizadorEstado(ILogicaFila logica) {
         this.logica = logica;
-        this.ipSecundario = ipSecundario;
-        this.puertoSecundario = puertoSecundario;
     }
 
     public void sincronizar(){
