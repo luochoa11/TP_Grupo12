@@ -2,8 +2,8 @@ package com.sgf.modelos;
 
 /**
  * DTO que representa el estado de un nodo (servidor) en el sistema.
- * 
  */
+
 public class NodoEstadoDTO {
     // IP del nodo 
     private String ip;

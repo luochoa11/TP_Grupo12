@@ -26,7 +26,7 @@ import javax.swing.border.MatteBorder;
 
 import com.sgf.modelos.Turno;
 
-public class VentanaPanelOperador extends JFrame {
+public class VentanaOperador extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel panelCola;
@@ -51,7 +51,7 @@ public class VentanaPanelOperador extends JFrame {
 
     private int segundosRestantes = 10;
 
-    public VentanaPanelOperador() {
+    public VentanaOperador() {
 
         setTitle("Panel de Operador");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -149,8 +149,10 @@ public class VentanaPanelOperador extends JFrame {
         btnReintentar = crearBotonEstilizado("Reintentar Llamado", new Color(51, 65, 85));
         btnReintentar.setEnabled(false);
         btnReintentar.addActionListener(e -> {
-            if (controlador != null) controlador.accionarReintento();
-            if(!ausente)  reiniciarTIntento();
+            if (controlador != null) 
+                controlador.accionarReintento();
+            if(!ausente) 
+                reiniciarTIntento();
         });
 
         panelBotones.add(btnLlamar);
@@ -194,7 +196,7 @@ public class VentanaPanelOperador extends JFrame {
     }
 
     /**
-     * Configura el timer de 30 segundos para el re-intento.
+     * Configura el timer de 10 segundos para el re-intento.
      */
     private void timerIntentos(){
         timer = new Timer(1000, e -> { // cada 1 segundo
@@ -247,7 +249,8 @@ public class VentanaPanelOperador extends JFrame {
                 lblIntentoValor.setText(actual.getIntentos() + "/3");
                 
                 if (actual.getIntentos() >1) {
-                    if(actual.getIntentos() >=3)  ausente = true;
+                    if(actual.getIntentos() >=3) 
+                        ausente = true;
                     lblDniValor.setForeground(COLOR_ROJO);
                     panelActualContenedor.setBorder(new LineBorder(COLOR_ROJO, 3, true));
                 } else {

@@ -4,6 +4,14 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * ServidorDirectorio es el componente central del Servicio de Directorio. 
+ * -Escucha en un puerto específico y responde a las consultas de los Proxies de los Clientes.
+ * -Mantiene la información actualizada sobre la IP y puerto del Servidor Primario, 
+ * y proporcionar esta información a los Proxies cuando se les solicite. 
+ * -Permite que el Servidor Primario actualice su ruta en caso de cambios o caídas.    
+ */
+
 public class ServidorDirectorio implements Runnable {
     
     private int puerto;

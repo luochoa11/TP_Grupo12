@@ -10,9 +10,9 @@ import com.sgf.modelos.Turno;
  */
 public class ControladorAnuncio {
 
-    private VentanaMonitor vista;
+    private VentanaAnuncio vista;
 
-    public ControladorAnuncio(VentanaMonitor vista) {
+    public ControladorAnuncio(VentanaAnuncio vista) {
         this.vista = vista;
     }
 

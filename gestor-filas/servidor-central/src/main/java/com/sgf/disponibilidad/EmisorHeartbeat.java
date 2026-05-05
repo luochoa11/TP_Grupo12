@@ -12,7 +12,7 @@ import com.sgf.modelos.NodoEstadoDTO;
  */
 public class EmisorHeartbeat implements Runnable {
     // Hilo que llama a IServicioHeartbeat
-   
+
     private String hostMonitor;
     private int puertoMonitor;
     private boolean activo = true;
@@ -28,14 +28,14 @@ public class EmisorHeartbeat implements Runnable {
         this.puerto = puerto;
     }
 
-     @Override
+    @Override
     public void run() {
         while (activo) {
             try (
                 Socket socket = new Socket(hostMonitor, puertoMonitor);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ) {
-                 if (!servidor.esPrimario()) {
+                if (!servidor.esPrimario()) {
                     Thread.sleep(1000);
                     continue;
                 }  
