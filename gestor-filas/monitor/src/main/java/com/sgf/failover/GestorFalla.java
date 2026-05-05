@@ -11,14 +11,14 @@ import com.sgf.modelos.NodoEstadoDTO;
  */
 public class GestorFalla {
     // Server Manager
-     private IServicioDirectorio servicioDirectorio;
-     private IServicioControl controlPrimario;
-     private IServicioControl controlSecundario;
+    private IServicioDirectorio servicioDirectorio;
+    private IServicioControl controlPrimario;
+    private IServicioControl controlSecundario;
 
-     public GestorFalla(IServicioDirectorio servicioDirectorio, IServicioControl controlPrimario, IServicioControl controlSecundario) {
-         this.servicioDirectorio = servicioDirectorio;
-         this.controlPrimario = controlPrimario;
-         this.controlSecundario = controlSecundario;
+    public GestorFalla(IServicioDirectorio servicioDirectorio, IServicioControl controlPrimario, IServicioControl controlSecundario) {
+        this.servicioDirectorio = servicioDirectorio;
+        this.controlPrimario = controlPrimario;
+        this.controlSecundario = controlSecundario;
     }
 
     // Cuando recibe el aviso de falla:
@@ -28,7 +28,7 @@ public class GestorFalla {
         // Lógica para procesar la falla
         try{
         System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
-         
+    
         if(nodoFalla.getIp().equals(controlPrimario.getIp()) && nodoFalla.getPuerto() == controlPrimario.getPuerto()) {
             // El nodo primario ha fallado, promover el secundario a primario
 
@@ -44,6 +44,6 @@ public class GestorFalla {
         } catch (Exception e) {
             System.err.println("Error procesando la falla: " + e.getMessage());
         }
-       
+    
     }
 }

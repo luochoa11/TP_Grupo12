@@ -4,14 +4,14 @@ import javax.swing.SwingUtilities;
 
 import com.sgf.infraestructura.ProxyAnuncio;
 import com.sgf.presentacion.ControladorAnuncio;
-import com.sgf.presentacion.VentanaMonitor;
+import com.sgf.presentacion.VentanaAnuncio;
 
 public class MainAnuncio {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // 1: Iniciamos la ventana
-            VentanaMonitor ventana = new VentanaMonitor();
+            VentanaAnuncio ventana = new VentanaAnuncio();
             
             // 2: Creamos el Controlador y le damos la ventana
             ControladorAnuncio controlador = new ControladorAnuncio(ventana);

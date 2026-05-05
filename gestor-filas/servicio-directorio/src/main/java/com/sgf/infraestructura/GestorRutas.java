@@ -5,8 +5,8 @@ import com.sgf.interfaces.IServicioDirectorio;
 
 /**
  * Implementación del Servicio de Directorio.
- * Mantiene en memoria la ubicación (IP y Puerto) del servidor que está operando
- * actualmente como Primario.
+ * Realiza la lógica de guardado de IPs 
+ * <<Solo guarda, funciona como libreta de direcciones donde quiera que esté>>
  */
 
 public class GestorRutas implements IServicioDirectorio{
@@ -17,7 +17,7 @@ public class GestorRutas implements IServicioDirectorio{
     private int puertoSecundario;
 
     public GestorRutas() {
-    	this.ipPrimario = Constantes.HOST_SERVIDOR_CENTRAL;
+        this.ipPrimario = Constantes.HOST_SERVIDOR_CENTRAL;
         this.puertoPrimario = Constantes.PUERTO_SERVIDOR_CENTRAL;
         
         this.ipSecundario = Constantes.HOST_SERVIDOR_B;
@@ -36,9 +36,10 @@ public class GestorRutas implements IServicioDirectorio{
 
     @Override
     public void actualizarPrimario(String ip, int puerto){
-    	String ipAUX;
-    	int puertoAUX;    	
-    	ipAUX = this.ipPrimario;
+        String ipAUX;
+        int puertoAUX;    	
+        
+        ipAUX = this.ipPrimario;
         puertoAUX = this.puertoPrimario;    
         this.ipPrimario = this.ipSecundario;
         this.puertoPrimario = this.puertoSecundario;
@@ -48,15 +49,15 @@ public class GestorRutas implements IServicioDirectorio{
     
     
     //despues ver que actualizacion hacer
-/**
-  @Override
+    /**
+    @Override
     public void actualizarPrimario(String ip, int puerto){
         this.ipSecundario = this.ipPrimario;
         this.puertoSecundario = this.puertoPrimario;    
         this.ipPrimario = ip;
         this.puertoPrimario = puerto;
     }
- */
+    */
 
     public String getIPSecundario() {
         return ipSecundario;

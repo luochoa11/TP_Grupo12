@@ -22,7 +22,7 @@ import javax.swing.border.MatteBorder;
 
 import com.sgf.modelos.Turno;
 
-public class VentanaMonitor extends JFrame {
+public class VentanaAnuncio extends JFrame {
 
     private static final long serialVersionUID = 1L;
     
@@ -40,7 +40,7 @@ public class VentanaMonitor extends JFrame {
     private final Color COLOR_TEXTO_ETIQUETA = new Color(100, 116, 139); // Gris suave para labels
     private final Color COLOR_TEXTO_VALOR = new Color(15, 23, 42);       // Texto oscuro principal
 
-    public VentanaMonitor() {
+    public VentanaAnuncio() {
         setTitle("Monitor de Sala");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(800, 600));
@@ -84,6 +84,9 @@ public class VentanaMonitor extends JFrame {
 
     private JPanel crearTarjeta(Turno turno, boolean esActual, boolean resaltarDni) {
 
+        if(turno == null)
+            return new JPanel(); //FIXME
+
         JPanel tarjeta = new JPanel(new GridLayout(1, 2));
         tarjeta.setMaximumSize(new Dimension(1000, 80));
         tarjeta.setPreferredSize(new Dimension(740, 80));
@@ -115,7 +118,7 @@ public class VentanaMonitor extends JFrame {
         valDni.setFont(fuenteValor);
         
         // Lógica de parpadeo: lo agregamos a la lista si corresponde
-        if (resaltarDni) {
+        if (resaltarDni) { //FIXME
             valDni.setForeground(COLOR_ROJO_ALERTA);
             labelsParaTitilar.add(valDni);
         } else {
@@ -160,13 +163,15 @@ public class VentanaMonitor extends JFrame {
             panelTurnos.removeAll();
 
             if (actual != null) {
-                boolean esRellamada = actual.getIntentos() >= 2 && actual.getIntentos() <= 3 && actual.getEstado().equalsIgnoreCase("LLAMADO"); //FIXME acá hay que meter STate
+                boolean esRellamada = actual.getIntentos() >= 2 && actual.getIntentos() <= 3 && actual.getEstado().equalsIgnoreCase("LLAMADO");
+                //^^FIXME acá hay que meter STate
                 panelTurnos.add(crearTarjeta(actual, true, esRellamada));
                 panelTurnos.add(Box.createRigidArea(new Dimension(0, 15)));
             }
 
             if (historial != null && !historial.isEmpty()) {
                 for (Turno t : historial) {
+                    if (t == null) continue;
                     boolean esRellamadaH = t.getIntentos() >= 2 && t.getIntentos() <= 3 && t.getEstado().equalsIgnoreCase("LLAMADO");
                     panelTurnos.add(crearTarjeta(t, false, esRellamadaH));
                     panelTurnos.add(Box.createRigidArea(new Dimension(0, 10)));

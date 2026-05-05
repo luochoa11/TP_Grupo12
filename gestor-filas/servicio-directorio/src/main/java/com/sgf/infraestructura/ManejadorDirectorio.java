@@ -5,6 +5,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+/**
+ * ManejadorDirectorio es el encargado de procesar cada conexión entrante al Servidor de Directorio.
+ */
+
 public class ManejadorDirectorio implements Runnable {
 
     private Socket socket;

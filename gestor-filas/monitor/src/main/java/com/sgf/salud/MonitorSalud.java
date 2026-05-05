@@ -21,9 +21,9 @@ public class MonitorSalud implements Runnable {
         try( ServerSocket serverSocket = new ServerSocket(puerto) ){
             System.out.println("Monitor de Salud iniciado en el puerto " + puerto);
             while(true){
-               try(
-                Socket socket = serverSocket.accept();
-                ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+                try(
+                    Socket socket = serverSocket.accept();
+                    ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
                     String mensaje = (String) in.readObject();
                     if("HEARTBEAT".equals(mensaje)){

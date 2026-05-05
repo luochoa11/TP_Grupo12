@@ -6,7 +6,7 @@ import javax.swing.UIManager;
 import com.sgf.infraestructura.ProxyOperador;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.presentacion.ControladorOperador;
-import com.sgf.presentacion.VentanaPanelOperador;
+import com.sgf.presentacion.VentanaOperador;
 
 public class MainOperador {
 
@@ -34,7 +34,7 @@ public class MainOperador {
         SwingUtilities.invokeLater(() -> {
 
             // 2. Inicializamos la Vista
-            VentanaPanelOperador ventana = new VentanaPanelOperador();
+            VentanaOperador ventana = new VentanaOperador();
             // Título de la ventana para saber cuál es
             ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 

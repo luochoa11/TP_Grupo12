@@ -9,12 +9,12 @@ import com.sgf.modelos.Turno;
 
 public class ControladorOperador {
 
-    private VentanaPanelOperador vista;
+    private VentanaOperador vista;
     private IServicioOperador servicio;
     private int idPuesto;
 
 
-    public ControladorOperador(VentanaPanelOperador vista, IServicioOperador servicio,int idPuesto) {
+    public ControladorOperador(VentanaOperador vista, IServicioOperador servicio,int idPuesto) {
         this.vista = vista;
         this.servicio = servicio;
         this.idPuesto = idPuesto;

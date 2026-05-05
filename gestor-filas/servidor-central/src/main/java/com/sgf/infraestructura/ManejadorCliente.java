@@ -62,7 +62,7 @@ public class ManejadorCliente implements Runnable {
                 case "REINTENTAR_LLAMADO":
                     int id=(int)in.readObject();
                     Turno reIntento = logica.reintentarLlamado(id);
-                    out.writeObject(reIntento); // para el op
+                    out.writeObject(reIntento); // null si se eliminó , el op ya lo maneja
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                     servidor.sincronizarEstado();
                     break;
