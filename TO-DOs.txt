@@ -22,5 +22,5 @@ Implementar:
       //faltaria ver el MainServidor en base a los cambios
       // subi al drive el diagrama de secuencia de heartbeat. es raro lo de "pareja" pero fue la forma de implementarlo para que no se tengan que conocer entre si los servidores para sincronizarse.
 
--En panel-operador, pantalla-anuncio, terminal-registro:
+-En panel-operador, pantalla-anuncio, terminal-registro://avanzado (realizan 3 intentos y preguntan al directorio la nueva direccion del srv)
       infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio <<-- implementar resiliencia: bucle de reintentos, tiempo de espera, consultar el directorio por la nueva ip, actualizar la interna y reconectar.
