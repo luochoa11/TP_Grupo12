@@ -47,7 +47,7 @@ public class VentanaOperador extends JFrame {
     private final Color COLOR_TEXTO_SUAVE = new Color(148, 163, 184); // Gris slate
     private final Color COLOR_ROJO = new Color(220, 38, 38);      // Rojo alerta
 
-    private boolean ausente = false; //FIXME
+    private boolean ausente = false; 
 
     private int segundosRestantes = 10;
 

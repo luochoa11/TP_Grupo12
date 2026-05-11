@@ -23,6 +23,7 @@ public class ManejadorCliente implements Runnable {
         this.servidor = server;
     }
 
+    @SuppressWarnings("unchecked")
     @Override 
     public void run(){
         try(
@@ -92,8 +93,8 @@ public class ManejadorCliente implements Runnable {
                     servidor.agregarMonitor(out);
 
                     while (true) {
-                        Thread.sleep(10000); // mantener viva la conexión
-                    } //en el manejador
+                        Thread.sleep(10000);
+                    }
 
             }
             out.flush();

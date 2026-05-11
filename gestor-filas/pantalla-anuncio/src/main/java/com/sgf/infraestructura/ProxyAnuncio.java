@@ -10,52 +10,77 @@ import com.sgf.modelos.Turno;
 import com.sgf.presentacion.ControladorAnuncio;
 
 public class ProxyAnuncio implements Runnable, IServicioAnuncio {
-    private String host;
-    private int puerto;
-    private ControladorAnuncio controlador;
-    private boolean activo=true;
 
-    private Turno actual; //el ultimo actual
-    private List<Turno> historial; //el ultimo historial 
+    private final String directorioIp;
+    private final int    directorioPuerto;
+    private final ControladorAnuncio controlador;
 
-    public ProxyAnuncio(String host, int puerto, ControladorAnuncio controlador) {
-        this.host = host;
-        this.puerto = puerto;
-        this.controlador = controlador;
+    private String ipServidor;
+    private int    puertoServidor;
+
+    private Turno       actual;
+    private List<Turno> historial;
+
+    public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador) {
+        this.directorioIp     = directorioIp;
+        this.directorioPuerto = directorioPuerto;
+        this.controlador      = controlador;
     }
 
-    // --- MÉTODOS DEL CONTRATO (Individuales) ---
-    // Se mantienen para cumplir con la interfaz, aunque el loop principal no los use.
-    @Override
-    public Turno getUltimoLlamado() {
-        return actual;
+    private void resolverServidor() throws Exception {
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("GET_RUTA_PRIMARIA");
+            out.flush();
+
+            this.ipServidor     = (String) in.readObject();
+            this.puertoServidor = (int)    in.readObject();
+
+            System.out.println("[ProxyAnuncio] Servidor resuelto → "
+                + ipServidor + ":" + puertoServidor);
+        }
     }
 
     @Override
-    public List<Turno> getHistorial() {
-        return historial;
-    }
-
+    public Turno getUltimoLlamado() { return actual; }
 
     @Override
-        public void run() {
-            try (
-                Socket socket = new Socket(host, puerto);
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            ) {
-                out.writeObject("SUSCRIBIR_MONITOR"); 
-                out.flush();
+    public List<Turno> getHistorial() { return historial; }
 
-                while (true) {
-                    Turno actual = (Turno) in.readObject(); // Se duerme el hilo hasta que llegue algo
-                    List<Turno> historial = (List<Turno>) in.readObject();
+    @SuppressWarnings("unchecked")
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                resolverServidor();
 
-                    controlador.actualizarDesdeServidor(actual, historial);
+                try (Socket socket = new Socket(ipServidor, puertoServidor);
+                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                     ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+                    out.writeObject("SUSCRIBIR_MONITOR");
+                    out.flush();
+
+                    // Loop de escucha — se queda acá hasta que el Servidor se caiga
+                    while (true) {
+                        this.actual   = (Turno)       in.readObject();
+                        this.historial = (List<Turno>) in.readObject();
+                        controlador.actualizarDesdeServidor(actual, historial);
+                    }
                 }
 
             } catch (Exception e) {
-                System.err.println("Monitor desconectado: " + e.getMessage());
+                System.err.println("[ProxyAnuncio] Conexión perdida: " + e.getMessage());
+                System.out.println("[ProxyAnuncio] Reintentando en 3 segundos...");
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break; // salida limpia si el hilo es interrumpido
+                }
             }
         }
+    }
 }

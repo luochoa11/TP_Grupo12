@@ -20,12 +20,9 @@ public class SincronizadorEstado {
     }
 
     public void sincronizar(){
-        try{
-            if (ipSecundario == null) {
-                return;
-            }
-        Socket socket = new Socket(ipSecundario, puertoSecundario);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        if (ipSecundario == null)  return;
+        try (Socket socket = new Socket(ipSecundario, puertoSecundario);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
 
         out.writeObject("SINCRONIZAR_ESTADO");
         out.writeObject(logica.getCola());
@@ -36,7 +33,7 @@ public class SincronizadorEstado {
         out.flush();
         socket.close();
 
-        System.out.println("Estado sincronizado con el servidor secundario en " + ipSecundario + ":" + puertoSecundario);
+        System.out.println("[Sync] Estado sincronizado con el servidor secundario en " + ipSecundario + ":" + puertoSecundario);
 
         }catch(Exception e){
             System.err.println("Error al sincronizar estado: " + e.getMessage());

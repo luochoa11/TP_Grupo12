@@ -1,9 +1,10 @@
 package com.sgf.failover;
 
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import com.sgf.interfaces.IServicioDirectorio;
+
 import com.sgf.modelos.NodoEstadoDTO;
 
 /**
@@ -12,27 +13,30 @@ import com.sgf.modelos.NodoEstadoDTO;
  * y tomar las medidas necesarias para garantizar la continuidad del servicio.
  */
 public class GestorFalla {
-    // Server Manager
-    private IServicioDirectorio servicioDirectorio;
+//ServerManager 
 
-    public GestorFalla(IServicioDirectorio servicioDirectorio) {
-        this.servicioDirectorio = servicioDirectorio;
+    private final String directorioIp;
+    private final int    directorioPuerto;
+
+    public GestorFalla(String directorioIp, int directorioPuerto) {
+        this.directorioIp     = directorioIp;
+        this.directorioPuerto = directorioPuerto;
     }
-
     // Cuando recibe el aviso de falla:
     //  -Llama al IServicioControl del Servidor Secundario.
     //  -Informa al Directorio el cambio de IP.
+    
     public void procesarFalla(NodoEstadoDTO nodoFalla, NodoEstadoDTO primario, NodoEstadoDTO secundario) {
         // Lógica para procesar la falla
     
         System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
         if(primario!=null && nodoFalla.getIp().equals(primario.getIp()) && nodoFalla.getPuerto() == primario.getPuerto()){
-            System.out.println("El nodo caído es el primario. Promoviendo secundario a primario...");
+            System.out.println("[GF]El nodo caído es el primario. Promoviendo secundario a primario...");
             
             enviarPromocion(secundario);
-            servicioDirectorio.actualizarPrimario(secundario.getIp(), secundario.getPuerto());
+            actualizarDirectorio(secundario.getIp(), secundario.getPuerto());
         } else {
-            System.out.println("El nodo caído no es el primario. No se requiere acción inmediata.");
+            System.out.println("[GF]El nodo caído no es el primario. No se requiere acción inmediata.");
         }
     
     }
@@ -50,4 +54,24 @@ public class GestorFalla {
         }
 
     }
+
+     private void actualizarDirectorio(String nuevaIp, int nuevoPuerto) {
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("ACTUALIZAR_RUTA");
+            out.writeObject(nuevaIp);
+            out.writeObject(nuevoPuerto);
+            out.flush();
+
+            in.readObject(); // "OK"
+            System.out.println("[GestorFalla] Directorio actualizado → "
+                + nuevaIp + ":" + nuevoPuerto);
+
+        } catch (Exception e) {
+            System.err.println("[GestorFalla] Error al actualizar Directorio: " + e.getMessage());
+        }
+    }
 }
+
