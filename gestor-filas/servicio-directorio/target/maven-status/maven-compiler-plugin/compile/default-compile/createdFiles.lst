@@ -1,2 +1,4 @@
-com\sgf\MainServicioDirectorio.class
 com\sgf\infraestructura\GestorRutas.class
+com\sgf\infraestructura\ManejadorDirectorio.class
+com\sgf\infraestructura\ServidorDirectorio.class
+com\sgf\MainServicioDirectorio.class

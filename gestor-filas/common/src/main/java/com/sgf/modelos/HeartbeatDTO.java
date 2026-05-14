@@ -1,10 +1,14 @@
 package com.sgf.modelos;
 
+import java.io.Serializable;
+
 /**
  * DTO que representa un heartbeat enviado por un nodo (servidor) para indicar que está activo.
  */
 
-public class HeartbeatDTO {
+public class HeartbeatDTO implements Serializable{
+
+    private static final long serialVersionUID = 1L;
     // Timestamp del heartbeat
     private long timestamp;
     // ID del nodo que envía el heartbeat

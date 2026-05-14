@@ -6,19 +6,26 @@ import com.sgf.salud.MonitorSalud;
 
 public class MainMonitor {
     public static void main(String[] args) {
-        // IServicioControl control = new ProxyControlServidor();
-        // IServicioDirectorio directorio = new ProxyDirectorio();
 
-        // GestorFalla gestorFalla = new GestorFalla(control, directorio);
-        
-        /*
+
+        if (args.length < 1) {
+            System.err.println("Uso: MainMonitor <puertoMonitor>");
+            System.exit(1);
+        }
+
+        int    puertoMonitor    = Integer.parseInt(args[0]);
+        String directorioIp     = ConfiguracionRed.get("directorio.ip");
+        int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
+
+        GestorFalla gestorFalla = new GestorFalla(directorioIp, directorioPuerto);
         HeartbeatChecker checker = new HeartbeatChecker(gestorFalla);
-        Thread hiloChecker = new Thread(checker);
-        hiloChecker.start();
 
-        MonitorSalud monitorSalud = new MonitorSalud(Constantes.PUERTO_MONITOR1, checker);
-        Thread hiloRed = new Thread(monitorSalud);
-        hiloRed.start();
-        */
-    }
+        new Thread(checker, "hilo-heartbeat-checker").start();
+        MonitorSalud monitorSalud = new MonitorSalud(puertoMonitor, checker);
+        new Thread(monitorSalud, "hilo-monitor-salud").start();
+
+
+
+        System.out.println("[Monitor] Iniciado en puerto " + puertoMonitor);
+    } 
 }

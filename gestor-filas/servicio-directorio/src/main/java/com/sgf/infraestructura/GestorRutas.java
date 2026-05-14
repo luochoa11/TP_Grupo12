@@ -1,6 +1,5 @@
 package com.sgf.infraestructura;
 
-import com.sgf.Constantes;
 import com.sgf.interfaces.IServicioDirectorio;
 
 /**
@@ -16,14 +15,29 @@ public class GestorRutas implements IServicioDirectorio{
     private String ipSecundario;
     private int puertoSecundario;
 
+
+    //Los servidores se registran
     public GestorRutas() {
-        this.ipPrimario = Constantes.HOST_SERVIDOR_CENTRAL;
-        this.puertoPrimario = Constantes.PUERTO_SERVIDOR_CENTRAL;
-        
-        this.ipSecundario = Constantes.HOST_SERVIDOR_B;
-        this.puertoSecundario = Constantes.PUERTO_SERVIDOR_B;
+        this.ipPrimario = null;
+        this.puertoPrimario = -1;
+        this.ipSecundario = null;
+        this.puertoSecundario = -1;
     }
     
+    public synchronized String registrar(String ip, int puerto) {
+        if (ipPrimario == null) {
+            this.ipPrimario     = ip;
+            this.puertoPrimario = puerto;
+            System.out.println("[Directorio] Registrado PRIMARIO → " + ip + ":" + puerto);
+            return "PRIMARIO";
+        } else {
+            this.ipSecundario     = ip;
+            this.puertoSecundario = puerto;
+            System.out.println("[Directorio] Registrado SECUNDARIO → " + ip + ":" + puerto);
+            return "SECUNDARIO";
+        }
+    }
+
     @Override
     public String getIPPrimario(){
         return ipPrimario;
@@ -34,21 +48,20 @@ public class GestorRutas implements IServicioDirectorio{
         return puertoPrimario;
     }
 
-    @Override
-    public void actualizarPrimario(String ip, int puerto){
-        String ipAUX;
-        int puertoAUX;    	
-        
-        ipAUX = this.ipPrimario;
-        puertoAUX = this.puertoPrimario;    
-        this.ipPrimario = this.ipSecundario;
-        this.puertoPrimario = this.puertoSecundario;
-        this.ipSecundario = ipAUX;
-        this.puertoSecundario = puertoAUX;
-    }    
+ @Override
+    public synchronized void actualizarPrimario(String ip, int puerto) {
+        // Swap: el secundario pasa a ser primario
+
+        this.ipPrimario      = this.ipSecundario;
+        this.puertoPrimario  = this.puertoSecundario;
+        this.ipSecundario    = null; // lo dejamos null, el server tiene que registrarse de nuevo
+        this.puertoSecundario = -1;
+
+        System.out.println("[Directorio] Swap realizado. Nuevo primario → " 
+            + this.ipPrimario + ":" + this.puertoPrimario);
+    }
     
-    
-    //despues ver que actualizacion hacer
+    //despues ver que actualizacion hacer =)
     /**
     @Override
     public void actualizarPrimario(String ip, int puerto){

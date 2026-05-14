@@ -121,8 +121,7 @@ public SincronizadorEstado getSincronizador() {
 
 public void degradarEstado() {
     this.esPrimario = false;
-    //limpiar el sincronizador para que deje de enviar datos
-    this.sincronizador.actualizarSecundario(null, 0);
+    System.out.println("[Servidor] "+this.ip+":"+this.puerto+"Degradado a SECUNDARIO.");
 }
 
 }

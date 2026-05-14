@@ -1,6 +1,7 @@
 package com.sgf.disponibilidad;
 
 import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 
 import com.sgf.aplicacion.ILogicaFila;
@@ -9,42 +10,68 @@ import com.sgf.aplicacion.ILogicaFila;
  * Clase que envía datos del servidor primario al servidor secundario para mantenerlos 
  * sincronizados en caso de falla del primario.
  */
+
+
 public class SincronizadorEstado {
-    private ILogicaFila logica;
-    int puertoSecundario=0;
-    String ipSecundario=null;
-  
 
-    public SincronizadorEstado(ILogicaFila logica) {
-        this.logica = logica;
+    private final ILogicaFila logica;
+    private final String directorioIp;
+    private final int    directorioPuerto;
+
+    public SincronizadorEstado(ILogicaFila logica, String directorioIp, int directorioPuerto) {
+        this.logica           = logica;
+        this.directorioIp     = directorioIp;
+        this.directorioPuerto = directorioPuerto;
     }
 
-    public void sincronizar(){
-        try{
-            if (ipSecundario == null) {
-                return;
-            }
-        Socket socket = new Socket(ipSecundario, puertoSecundario);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+    private String[] resolverSecundario() {
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
-        out.writeObject("SINCRONIZAR_ESTADO");
-        out.writeObject(logica.getCola());
-        out.writeObject(logica.getTurnosActivos());
-        out.writeObject(logica.getHistorial());
-        out.writeObject(logica.getUltimoLlamado());
+            out.writeObject("GET_RUTA_SECUNDARIA");
+            out.flush();
 
-        out.flush();
-        socket.close();
+            String ip     = (String) in.readObject();
+            int    puerto = (int)    in.readObject();
 
-        System.out.println("Estado sincronizado con el servidor secundario en " + ipSecundario + ":" + puertoSecundario);
 
-        }catch(Exception e){
-            System.err.println("Error al sincronizar estado: " + e.getMessage());
-        }    
-    
+            System.out.println("[Sync] Secundario resuelto → " + ip + ":" + puerto);
+
+
+            if (ip == null) return null;
+            return new String[]{ip, String.valueOf(puerto)};
+
+        } catch (Exception e) {
+            System.err.println("[Sync] No se pudo consultar el Directorio: " + e.getMessage());
+            return null;
+        }
     }
-     public void actualizarSecundario(String ip, int puerto) {
-        this.ipSecundario = ip;
-        this.puertoSecundario = puerto;
+
+    public void sincronizar() {
+        String[] secundario = resolverSecundario();
+        if (secundario == null) {
+            System.out.println("[Sync] No hay secundario registrado.");
+            return;
+        }
+
+        String ip     = secundario[0];
+        int    puerto = Integer.parseInt(secundario[1]);
+
+        try (Socket socket = new Socket(ip, puerto);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+            out.writeObject("SINCRONIZAR_ESTADO");
+            out.writeObject(logica.getCola());
+            out.writeObject(logica.getTurnosActivos());
+            out.writeObject(logica.getHistorial());
+            out.writeObject(logica.getUltimoLlamado());
+            out.flush();
+
+            System.out.println("[Sync] Estado sincronizado → " + ip + ":" + puerto);
+
+        } catch (Exception e) {
+            System.err.println("[Sync] Error al sincronizar: " + e.getMessage());
+        }
     }
 }

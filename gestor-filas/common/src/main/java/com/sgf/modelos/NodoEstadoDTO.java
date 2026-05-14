@@ -1,10 +1,13 @@
 package com.sgf.modelos;
 
+import java.io.Serializable;
+
 /**
  * DTO que representa el estado de un nodo (servidor) en el sistema.
  */
 
-public class NodoEstadoDTO {
+public class NodoEstadoDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
     // IP del nodo 
     private String ip;
     // Puerto del nodo 

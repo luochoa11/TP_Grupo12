@@ -22,8 +22,10 @@ public class MonitorSalud implements Runnable {
         try( ServerSocket serverSocket = new ServerSocket(puerto) ){
             System.out.println("Monitor de Salud iniciado en el puerto " + puerto);
             while(true){
+
                 try(
                     Socket socket = serverSocket.accept();
+                    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                     ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
                     String mensaje = (String) in.readObject();
@@ -35,7 +37,6 @@ public class MonitorSalud implements Runnable {
 
                         heartbeatChecker.recibirLatido(hb,estado);
 
-                        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                         NodoEstadoDTO pareja= heartbeatChecker.obtenerPareja(estado);
                         out.writeObject(pareja); // le informa quien es el otro server 
                         out.flush();

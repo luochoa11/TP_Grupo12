@@ -36,12 +36,20 @@ public class ManejadorDirectorio implements Runnable {
                 case "ACTUALIZAR_RUTA":
                     String nuevaIp = (String) in.readObject();
                     int nuevoPuerto = (int) in.readObject();
-                    
                     gestorRutas.actualizarPrimario(nuevaIp, nuevoPuerto);
-                    
                     out.writeObject("OK");
                     break;
-                    
+
+                 case "REGISTRAR":
+                    String ipReg=(String) in.readObject();
+                    int    puertoReg=(int)    in.readObject();
+                    out.writeObject(gestorRutas.registrar(ipReg, puertoReg));
+                    break;
+                case "GET_RUTA_SECUNDARIA":
+                    out.writeObject(gestorRutas.getIPSecundario());
+                    out.writeObject(gestorRutas.getPuertoSecundario());
+                break;
+
                 default:
                     System.out.println("Comando desconocido recibido en el Directorio: " + comando);
                     break;

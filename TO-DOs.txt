@@ -1,11 +1,11 @@
 
 --> Averiguar por FAILOVER METHODS
 
-1. SyncEstado por eventos 
-2. Implementar Directorio: Interfaz ServerRegister : Metodos getReadyServers() subscribeServer () conexión con los nodos Cliente 
-3. Unificar Nombres Ingles / Español
-4. Configuración del operador por archivo 
-5. Hacer Diagramas / Informe / Justificar Decisiones
+1. SyncEstado por eventos //. si no hay eventos no se sincroniza y perdemos la fila -> fixed
+2. Implementar Directorio: Interfaz ServerRegister : Metodos getReadyServers() subscribeServer () conexión con los nodos Cliente /-listo
+3. Unificar Nombres Ingles / Español -> Continua spanglish 
+4. Configuración del operador por archivo /- esa persona ya no existe 
+5. Hacer Diagramas / Informe / Justificar Decisiones 
 
 Implementar: 
 -En common: 
@@ -19,8 +19,17 @@ Implementar:
 
 -En servidor-central: <<<---se debería poder instanciar para tener 2 (agregar id o mode para asignarle primario/secundario) //listo
       disponibilidad: EmisorHeartbeat//avanzado, SincronizadorEstado //avanzado
-      //faltaria ver el MainServidor en base a los cambios
-      // subi al drive el diagrama de secuencia de heartbeat. es raro lo de "pareja" pero fue la forma de implementarlo para que no se tengan que conocer entre si los servidores para sincronizarse.
+      //faltaria ver el MainServidor en base a los cambios // listo
+      // subi al drive el diagrama de secuencia de heartbeat. es raro lo de "pareja" pero fue la forma de implementarlo para que no se tengan que conocer entre si los servidores para sincronizarse.// esta divain 
 
 -En panel-operador, pantalla-anuncio, terminal-registro:
-      infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio <<-- implementar resiliencia: bucle de reintentos, tiempo de espera, consultar el directorio por la nueva ip, actualizar la interna y reconectar.
+      infraestructura: ProxyOperador, ProxyRegistro, ProxyAnuncio 
+		<<-- implementar resiliencia: bucle de reintentos, tiempo de espera,  // esto no lo implementé, porque pisaba lo de Lautaro, elegí la paz 
+		consultar el directorio por la nueva ip, actualizar la interna y reconectar. // esto si 
+
+----------------------issues-----------------------
+Registro: 
+- Se detectó un comportamiento inconsistente en el registro cuando el dni se ingresa iniciando con valor 0 
+- Cuando se cae un server el botón "aceptar" entra en una dimensión paralela y queda sin hover 
+
+- Vistas > Consola ?? Mucho log hay ahora 
