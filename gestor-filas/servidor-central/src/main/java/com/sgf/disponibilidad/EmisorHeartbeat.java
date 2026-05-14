@@ -33,6 +33,7 @@ public class EmisorHeartbeat implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("[EmisorHeartbeat] Iniciando, apuntando a " + monitorIp + ":" + monitorPuerto);
         while (activo) {
             try {
                 Thread.sleep(intervalo);
@@ -45,6 +46,7 @@ public class EmisorHeartbeat implements Runnable {
     }
 
     private void enviarLatido() {
+        System.out.println("[EmisorHeartbeat] Intentando conectar a " + monitorIp + ":" + monitorPuerto);
         try (Socket socket = new Socket(monitorIp, monitorPuerto);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -65,20 +67,20 @@ public class EmisorHeartbeat implements Runnable {
 
             NodoEstadoDTO pareja = (NodoEstadoDTO) in.readObject();
 
-            if (pareja != null) {
-                if (pareja.isEsPrimario() && esPrimario) {
-                    // Ambos se creen primarios → yo cedo
-                    servidor.degradarEstado();
-                } else if (!pareja.isEsPrimario()) {
-                    // La pareja es secundaria → actualizo sincronizador
-                    servidor.getSincronizador().actualizarSecundario(
-                        pareja.getIp(), pareja.getPuerto()
-                    );
+        if (pareja != null) {
+            if (pareja.isEsPrimario() && esPrimario) {
+                servidor.degradarEstado();
+            } else if (!pareja.isEsPrimario()) {
+                if (servidor.esPrimario()) {
+                    System.out.println("[Heartbeat] Secundario detectado, sincronizando estado...");
+                    servidor.sincronizarEstado();
                 }
             }
+        }
 
         } catch (Exception e) {
             System.err.println("[Heartbeat] Error enviando latido: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

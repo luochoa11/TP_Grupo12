@@ -14,12 +14,12 @@ import com.sgf.infraestructura.ServidorCentral;
 public class MainServidor {
     public static void main(String[] args) throws Exception {
 
-        if (args.length < 2) {
-            System.err.println("Uso: MainServidor <esPrimario> <puerto>");
+        if (args.length < 1) {
+            System.err.println("Uso: MainServidor <puerto>");
             System.exit(1);
         }
 
-        boolean esPrimario    = Boolean.parseBoolean(args[0]);
+        boolean esPrimario;
         int     puerto        = Integer.parseInt(args[1]);
         String  ip            = InetAddress.getLocalHost().getHostAddress();
 
@@ -36,21 +36,21 @@ public class MainServidor {
             out.writeObject("REGISTRAR");
             out.writeObject(ip);
             out.writeObject(puerto);
-            out.writeObject(esPrimario);
             out.flush();
-            in.readObject(); // "OK"
+            String rol = (String) in.readObject(); //devuelve el rol
+            esPrimario = "Primario".equalsIgnoreCase(rol);
         }
 
         // Arrancar servidor
+        
         ILogicaFila logica = LogicaFila.getInstance();
-        SincronizadorEstado sincronizador = new SincronizadorEstado(logica);
+        SincronizadorEstado sincronizador = new SincronizadorEstado(logica, directorioIp, directorioPuerto);
         ServidorCentral servidor = new ServidorCentral(puerto, ip, logica, esPrimario, sincronizador);
         new Thread(servidor, "hilo-servidor").start();
 
         // Arrancar heartbeat hacia el Monitor
         EmisorHeartbeat heartbeat = new EmisorHeartbeat(monitorIp, monitorPuerto, ip, puerto, esPrimario,servidor);
         new Thread(heartbeat, "hilo-heartbeat").start();
-
         // Desregistrarse al bajar
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             heartbeat.detener();

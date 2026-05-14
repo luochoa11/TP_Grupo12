@@ -43,10 +43,13 @@ public class ManejadorDirectorio implements Runnable {
                  case "REGISTRAR":
                     String ipReg=(String) in.readObject();
                     int    puertoReg=(int)    in.readObject();
-                    gestorRutas.registrar(ipReg, puertoReg);
-                    out.writeObject("OK");
+                    out.writeObject(gestorRutas.registrar(ipReg, puertoReg));
                     break;
-                    
+                case "GET_RUTA_SECUNDARIA":
+                    out.writeObject(gestorRutas.getIPSecundario());
+                    out.writeObject(gestorRutas.getPuertoSecundario());
+                break;
+
                 default:
                     System.out.println("Comando desconocido recibido en el Directorio: " + comando);
                     break;

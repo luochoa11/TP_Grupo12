@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -225,7 +226,7 @@ public class VentanaOperador extends JFrame {
         btnReintentar.setForeground(Color.WHITE);
 
         timer.restart();
-        actualizarVista(null, null);
+        actualizarVista(null, Collections.emptyList());
     }
 
     public void setControlador(ControladorOperador controlador) {
@@ -257,7 +258,7 @@ public class VentanaOperador extends JFrame {
                     lblDniValor.setForeground(COLOR_FONDO);
                     panelActualContenedor.setBorder(new LineBorder(COLOR_ACCENTO, 2, true));
                 }
-            } else {
+            } else { 
                 lblDniValor.setText("---");
                 lblIntentoValor.setText("0/3");
                 panelActualContenedor.setBorder(new LineBorder(COLOR_TARJETA, 1, true));

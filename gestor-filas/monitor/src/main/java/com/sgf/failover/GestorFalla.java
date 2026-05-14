@@ -44,10 +44,14 @@ public class GestorFalla {
         try{
             Socket socket = new Socket(secundario.getIp(), secundario.getPuerto());
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            
 
             out.writeObject("PROMOVER");
             out.flush();
 
+            String respuesta = (String) in.readObject(); //bloquea
+            System.out.println("[GestorFalla] Promoción confirmada: " + respuesta);
             socket.close();
         } catch(Exception e){
             System.err.println("Error al enviar promoción: " + e.getMessage());

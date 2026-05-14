@@ -24,15 +24,17 @@ public class GestorRutas implements IServicioDirectorio{
         this.puertoSecundario = -1;
     }
     
-    public synchronized void registrar(String ip, int puerto) {
+    public synchronized String registrar(String ip, int puerto) {
         if (ipPrimario == null) {
             this.ipPrimario     = ip;
             this.puertoPrimario = puerto;
             System.out.println("[Directorio] Registrado PRIMARIO → " + ip + ":" + puerto);
+            return "PRIMARIO";
         } else {
             this.ipSecundario     = ip;
             this.puertoSecundario = puerto;
             System.out.println("[Directorio] Registrado SECUNDARIO → " + ip + ":" + puerto);
+            return "SECUNDARIO";
         }
     }
 
@@ -49,19 +51,17 @@ public class GestorRutas implements IServicioDirectorio{
  @Override
     public synchronized void actualizarPrimario(String ip, int puerto) {
         // Swap: el secundario pasa a ser primario
-        String ipAux    = this.ipPrimario;
-        int    puertoAux = this.puertoPrimario;
 
         this.ipPrimario      = this.ipSecundario;
         this.puertoPrimario  = this.puertoSecundario;
-        this.ipSecundario    = ipAux;
-        this.puertoSecundario = puertoAux;
+        this.ipSecundario    = null; // lo dejamos null, el server tiene que registrarse de nuevo
+        this.puertoSecundario = -1;
 
         System.out.println("[Directorio] Swap realizado. Nuevo primario → " 
             + this.ipPrimario + ":" + this.puertoPrimario);
     }
     
-    //despues??? ver que actualizacion hacer
+    //despues ver que actualizacion hacer =)
     /**
     @Override
     public void actualizarPrimario(String ip, int puerto){

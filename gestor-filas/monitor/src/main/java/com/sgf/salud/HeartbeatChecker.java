@@ -33,7 +33,7 @@ public class HeartbeatChecker implements Runnable {
         nodos.put(clave, estado);
         latidos.put(clave, hb.getTimestamp());
 
-        if (this.primario==null) {
+        if (estado.isEsPrimario()) {
            this.primario = estado;
         } else if (!esMismoNodo(estado, this.primario)) {
             this.secundario = estado;
@@ -46,7 +46,7 @@ public class HeartbeatChecker implements Runnable {
     while (activo) {
         try {
             Thread.sleep(1000);
-            System.out.println("[HeartbeatChecker] 💓 nodos registrados: " + latidos.size());
+            System.out.println("[HeartbeatChecker]  nodos registrados: " + latidos.size());
             long ahora = System.currentTimeMillis();
 
             // Si no hay ningún servidor registrado, espera
