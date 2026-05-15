@@ -1,0 +1,62 @@
+﻿sequenceDiagram
+    actor C as Cliente
+
+    box rgb(200, 220, 240) Terminal Registro
+        participant V as VentanaRegistro
+        participant Ctrl as ControladorRegistro
+        participant ClienteR as ClienteRegistro
+    end
+
+    box rgb(240, 200, 200) Servidor Central
+        participant M as ManejadorRegistro
+        participant S_Primario as Servidor Primario
+        participant L as LogicaFila
+        participant S_Secundario as Servidor Secundario
+    end
+
+    note over V,S_Secundario: UC1 - Cliente solicita nuevo turno
+
+    C->>V: Ingresa DNI y presiona Ingresar
+    activate V
+    V->>+Ctrl: ingresarDNI()
+
+    Ctrl->>+Ctrl: validarDNI(dni)
+    deactivate Ctrl
+
+    alt Formato Invalido
+        Ctrl->>V: mostrarMensaje(DNI invalido)
+
+    else Formato Correcto
+        Ctrl->>+ClienteR: IServicioRegistro.agregarTurno(turno)
+
+        ClienteR->>+M: solicitarNuevoTurno()
+        ClienteR->>M: enviarDatosTurno(turno)
+
+        M->>+S_Primario: verificarDisponibilidad()
+        S_Primario-->>-M: Servidor Activo
+
+        M->>+L: ILogicaFila.agregarTurno(turno)
+
+        alt DNI Duplicado
+            L-->>-M: DNI REPETIDO
+            M-->>ClienteR: respuesta(ERROR_DNI_REPETIDO)
+            ClienteR-->>-Ctrl: DNI REPETIDO
+            Ctrl->>V: mostrarMensaje(DNI ya registrado)
+
+        else Exito
+            L-->>M: Turno agregado
+
+            par Sincronizacion Stand By
+                M->>+S_Secundario: sincronizarEstado(turno)
+                S_Secundario-->>-M: Confirmacion
+        end
+
+        M-->>ClienteR: respuesta(OK)
+        ClienteR-->>Ctrl: Registro exitoso
+        Ctrl->>V: mostrarMensaje(Turno registrado con exito)
+        V->>C: Muestra comprobante
+    end
+    end
+
+    deactivate Ctrl
+    deactivate V
