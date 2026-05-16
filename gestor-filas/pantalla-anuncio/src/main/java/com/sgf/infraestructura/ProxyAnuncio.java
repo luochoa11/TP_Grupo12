@@ -18,7 +18,7 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
     private String ipServidor;
     private int    puertoServidor;
 
-    private Turno       actual;
+    private Turno      actual;
     private List<Turno> historial;
 
     public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador) {
@@ -63,9 +63,8 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
                     out.writeObject("SUSCRIBIR_MONITOR");
                     out.flush();
 
-                    // Loop de escucha — se queda acá hasta que el Servidor se caiga
                     while (true) {
-                        this.actual   = (Turno)       in.readObject();
+                        this.actual    = (Turno)       in.readObject();
                         this.historial = (List<Turno>) in.readObject();
                         controlador.actualizarDesdeServidor(actual, historial);
                     }
@@ -73,9 +72,9 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
             } catch (Exception e) {
                 System.err.println("[ProxyAnuncio] Conexión perdida: " + e.getMessage());
-                System.out.println("[ProxyAnuncio] Reintentando en 3 segundos...");
+                System.out.println("[ProxyAnuncio] Reintentando en 500ms...");
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     break; // salida limpia si el hilo es interrumpido

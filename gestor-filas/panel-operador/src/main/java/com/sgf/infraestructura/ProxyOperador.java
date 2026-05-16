@@ -17,14 +17,14 @@ public class ProxyOperador implements IServicioOperador{
     //pseudocache
     private String ipServidor;
     private int    puertoServidor;
-
+    
+    private final int MAX_INTENTOS = 3;
 
     public ProxyOperador(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
         resolverServidor();
     }
-
 
     private void resolverServidor() {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
@@ -52,17 +52,40 @@ public class ProxyOperador implements IServicioOperador{
         return new Socket(ipServidor, puertoServidor);
     }
 
-    // Si falla la conexión al Servidor, re-consulta al Directorio y reintenta una vez
+    // Lógica de Retry con bucle y pausa de 500ms
     private Socket conectarConFallback() throws Exception {
-        try {
-            return conectarServidor();
-        } catch (Exception e) {
-            System.out.println("[ProxyOperador] Fallo de conexión, re-consultando Directorio...");
-            resolverServidor();
-            return conectarServidor();
-        }
-    }
+        int intentoActual = 1;
 
+        while (intentoActual <= MAX_INTENTOS) {
+            try {
+                Socket socket = conectarServidor();
+                
+                if (intentoActual > 1) {
+                    System.out.println("[ProxyOperador] Conexión recuperada en el intento " + intentoActual);
+                }
+                
+                return socket;
+                
+            } catch (Exception e) {
+                System.out.println("[ProxyOperador] Fallo de conexión (intento " + intentoActual + " de " + MAX_INTENTOS + ").");
+
+                if (intentoActual == MAX_INTENTOS) {
+                    throw new Exception("No se pudo conectar con el servidor tras " + MAX_INTENTOS + " intentos.");
+                }
+
+                System.out.println("[ProxyOperador] Re-consultando Directorio y reintentando...");
+                try {
+                    resolverServidor();
+                    Thread.sleep(500); 
+                } catch (Exception ex) {
+                    System.out.println("[ProxyOperador] Error al consultar el directorio en el reintento.");
+                }
+
+                intentoActual++;
+            }
+        }
+        throw new Exception("Error de conexión inesperado en ProxyOperador.");
+    }
 
     @Override
     public Turno llamarSiguiente(int idPuesto) throws FilaVaciaException {
@@ -134,7 +157,7 @@ public class ProxyOperador implements IServicioOperador{
         }
     }
 
-@Override
+    @Override
     public Turno getTurnoPuesto(int idPuesto) {
         try (Socket socket = conectarConFallback();
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
