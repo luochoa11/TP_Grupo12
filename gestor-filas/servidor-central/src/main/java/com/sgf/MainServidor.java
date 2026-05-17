@@ -20,7 +20,7 @@ public class MainServidor {
         }
 
         boolean esPrimario;
-        int     puerto        = Integer.parseInt(args[1]);
+        int     puerto        = Integer.parseInt(args[0]);
         String  ip            = InetAddress.getLocalHost().getHostAddress();
 
         String directorioIp     = ConfiguracionRed.get("directorio.ip");

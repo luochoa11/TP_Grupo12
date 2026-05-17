@@ -10,5 +10,5 @@ public interface IServicioDirectorio {
 
     public String getIPPrimario();
     public int getPuertoPrimario();
-    public void actualizarPrimario(String ip, int puerto);
+   // public void actualizarPrimario(String ip, int puerto);
 }

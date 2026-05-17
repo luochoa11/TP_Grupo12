@@ -6,6 +6,22 @@ import java.util.Properties;
 
 public class ConfiguracionRed {
 
+    /**
+     * Utilidad para leer configuraciones de red desde un archivo
+     * de propiedades (config.properties) o desde variables de entorno.
+     * <p>
+     * Comportamiento:
+     * - Primero intenta leer la clave desde una variable de entorno
+     *   cuyo nombre corresponde a la clave con puntos reemplazados por
+     *   guiones bajos y en mayúsculas (ej. directorio.ip -> DIRECTORIO_IP).
+     * - Si no existe la variable de entorno, lee la clave desde
+     *   el archivo config.properties ubicado en el classpath.
+     * <p>
+     * Si no se encuentra el archivo de propiedades durante la inicialización
+     * se lanzará ExceptionInInitializerError. Si una clave solicitada no
+     * existe se lanzará IllegalArgumentException.
+     */
+
     private static final Properties props = new Properties();
 
     static {

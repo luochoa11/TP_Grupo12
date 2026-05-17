@@ -48,10 +48,9 @@ public class GestorRutas implements IServicioDirectorio{
         return puertoPrimario;
     }
 
- @Override
+// @Override
     public synchronized void actualizarPrimario(String ip, int puerto) {
-        // Swap: el secundario pasa a ser primario
-
+       
         this.ipPrimario      = this.ipSecundario;
         this.puertoPrimario  = this.puertoSecundario;
         this.ipSecundario    = null; // lo dejamos null, el server tiene que registrarse de nuevo
@@ -60,17 +59,6 @@ public class GestorRutas implements IServicioDirectorio{
         System.out.println("[Directorio] Swap realizado. Nuevo primario → " 
             + this.ipPrimario + ":" + this.puertoPrimario);
     }
-    
-    //despues ver que actualizacion hacer =)
-    /**
-    @Override
-    public void actualizarPrimario(String ip, int puerto){
-        this.ipSecundario = this.ipPrimario;
-        this.puertoSecundario = this.puertoPrimario;    
-        this.ipPrimario = ip;
-        this.puertoPrimario = puerto;
-    }
-    */
 
     public String getIPSecundario() {
         return ipSecundario;

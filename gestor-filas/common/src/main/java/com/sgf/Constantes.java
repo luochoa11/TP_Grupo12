@@ -1,9 +1,8 @@
 package com.sgf;
 
-// no se que tan legal es esto
-//TO-DO Puerto Terminal ? 
+@Deprecated
 public class Constantes {
-    /*
+    /* 
     public static final int PUERTO_OPERADOR1 = 6000;
     public static final int PUERTO_MONITOR1 = 5000;
     public static final int PUERTO_TERMINAL1 = 7000;
@@ -19,9 +18,9 @@ public class Constantes {
     public static final String HOST_MONITOR_CONTROLADOR_SERVIDOR = "localhost";
 
     public static final int ID_PUESTO1 = 1;
-    */
+   /* 
     public static final String HOST_DIRECTORIO = "localhost";
     public static final int PUERTO_DIRECTORIO = 9000;
     public static final int PUERTO_MONITOR_CONTROLADOR_SERVIDOR = 9001;
-    
+    */
 }
