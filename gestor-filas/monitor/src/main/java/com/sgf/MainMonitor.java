@@ -5,15 +5,10 @@ import com.sgf.salud.HeartbeatChecker;
 import com.sgf.salud.MonitorSalud;
 
 public class MainMonitor {
-    public static void main(String[] args) {
+    public static void main(String args[]){
+        
 
-
-        if (args.length < 1) {
-            System.err.println("Uso: MainMonitor <puertoMonitor>");
-            System.exit(1);
-        }
-
-        int    puertoMonitor    = Integer.parseInt(args[0]);
+        int    puertoMonitor    = ConfiguracionRed.getInt("monitor.puerto");
         String directorioIp     = ConfiguracionRed.get("directorio.ip");
         int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
 
