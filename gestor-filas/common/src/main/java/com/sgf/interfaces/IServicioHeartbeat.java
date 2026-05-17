@@ -1,6 +1,5 @@
 package com.sgf.interfaces;
 
-import com.sgf.modelos.HeartbeatDTO;
 
 /**
  * Servicio de Heartbeat para que los servidores puedan reportar su estado al Monitor.
@@ -8,6 +7,5 @@ import com.sgf.modelos.HeartbeatDTO;
 
 public interface IServicioHeartbeat {
     //Latidos
-    public void latidos(HeartbeatDTO latido);
-
+    public void enviarLatido();
 }

@@ -5,10 +5,11 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.infraestructura.ServidorCentral;
+import com.sgf.interfaces.IServicioHeartbeat;
 import com.sgf.modelos.HeartbeatDTO;
 import com.sgf.modelos.NodoEstadoDTO;
 
-public class EmisorHeartbeat implements Runnable {
+public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
 
     private final String monitorIp;
     private final int    monitorPuerto;
@@ -45,7 +46,8 @@ public class EmisorHeartbeat implements Runnable {
         }
     }
 
-    private void enviarLatido() {
+    @Override
+    public void enviarLatido() {
         System.out.println("[EmisorHeartbeat] Intentando conectar a " + monitorIp + ":" + monitorPuerto);
         try (Socket socket = new Socket(monitorIp, monitorPuerto);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());

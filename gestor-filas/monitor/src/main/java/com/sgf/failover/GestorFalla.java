@@ -13,7 +13,6 @@ import com.sgf.modelos.NodoEstadoDTO;
  * y tomar las medidas necesarias para garantizar la continuidad del servicio.
  */
 public class GestorFalla {
-//ServerManager 
 
     private final String directorioIp;
     private final int    directorioPuerto;
@@ -70,8 +69,7 @@ public class GestorFalla {
             out.flush();
 
             in.readObject(); // "OK"
-            System.out.println("[GestorFalla] Directorio actualizado → "
-                + nuevaIp + ":" + nuevoPuerto);
+            System.out.println("[GestorFalla] Directorio actualizado → "+ nuevaIp + ":" + nuevoPuerto);
 
         } catch (Exception e) {
             System.err.println("[GestorFalla] Error al actualizar Directorio: " + e.getMessage());
