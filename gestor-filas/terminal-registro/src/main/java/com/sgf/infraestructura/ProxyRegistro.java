@@ -16,6 +16,9 @@ public class ProxyRegistro implements IServicioRegistro {
     private String ipServidor;
     private int    puertoServidor;
 
+    private final int MAX_INTENTOS = 3;
+
+
     public ProxyRegistro(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
@@ -43,14 +46,38 @@ public class ProxyRegistro implements IServicioRegistro {
         }
     }
 
-    private Socket conectarConFallback() throws Exception {
-        try {
-            return new Socket(ipServidor, puertoServidor);
-        } catch (Exception e) {
-            System.out.println("[ProxyRegistro] Fallo de conexión, re-consultando Directorio...");
-            resolverServidor();
-            return new Socket(ipServidor, puertoServidor);
+private Socket conectarConFallback() throws Exception {
+        int intentoActual = 1;
+
+        while (intentoActual <= MAX_INTENTOS) {
+            try {
+                Socket socket = new Socket(ipServidor, puertoServidor);
+                
+                if (intentoActual > 1) {
+                    System.out.println("[ProxyRegistro] Conexión recuperada en el intento " + intentoActual);
+                }
+                
+                return socket;
+                
+            } catch (Exception e) {
+                System.out.println("[ProxyRegistro] Fallo de conexión (intento " + intentoActual + " de " + MAX_INTENTOS + ").");
+
+                if (intentoActual == MAX_INTENTOS) {
+                    throw new Exception("No se pudo conectar con el servidor tras " + MAX_INTENTOS + " intentos.");
+                }
+
+                System.out.println("[ProxyRegistro] Re-consultando Directorio y reintentando...");
+                try {
+                    resolverServidor();
+                    Thread.sleep(500); 
+                } catch (Exception ex) {
+                    System.out.println("[ProxyRegistro] Error al consultar el directorio en el reintento.");
+                }
+
+                intentoActual++;
+            }
         }
+        throw new Exception("Error de conexión inesperado en ProxyRegistro.");
     }
 
     @Override
