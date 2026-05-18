@@ -20,6 +20,9 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
     private Turno       actual;
     private List<Turno> historial;
+    private volatile boolean activo = true;
+
+    private final int MAX_INTENTOS = 3;
 
     public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador) {
         this.directorioIp     = directorioIp;
@@ -29,8 +32,8 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
     private void resolverServidor() throws Exception {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("GET_RUTA_PRIMARIA");
             out.flush();
@@ -38,8 +41,9 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
             this.ipServidor     = (String) in.readObject();
             this.puertoServidor = (int)    in.readObject();
 
-            System.out.println("[ProxyAnuncio] Servidor resuelto → "
-                + ipServidor + ":" + puertoServidor);
+            System.out.println("[ProxyAnuncio] Servidor resuelto → "+ ipServidor + ":" + puertoServidor);
+        } catch (Exception e) {
+            System.err.println("[ProxyAnuncio] Error al consultar Directorio: " + e.getMessage());
         }
     }
 
@@ -52,35 +56,81 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        while (true) {
+        while (activo) {
             try {
-                resolverServidor();
+                // 1. Si no tenemos IP, la resolvemos de entrada
+                if (ipServidor == null) {
+                    resolverServidor();
+                }
 
-                try (Socket socket = new Socket(ipServidor, puertoServidor);
-                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                     ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+                int intentoActual = 1;
+                boolean conectado = false;
+                Socket socket = null;
 
-                    out.writeObject("SUSCRIBIR_MONITOR");
-                    out.flush();
+                // 2. Intentamos reconectar de forma insistente antes de consultar al directorio de nuevo
+                while (intentoActual <= MAX_INTENTOS && !conectado && activo) {
+                    try {
+                        socket = new Socket(ipServidor, puertoServidor);
+                        conectado = true;
+                    } catch (Exception e) {
+                        System.out.println("[ProxyAnuncio] Intento " + intentoActual + " de suscripción a " 
+                            + ipServidor + ":" + puertoServidor + " falló. Reintentando...");
+                        if (intentoActual < MAX_INTENTOS) {
+                            try { Thread.sleep(1000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                        }
+                        intentoActual++;
+                    }
+                }
 
-                    // Loop de escucha — se queda acá hasta que el Servidor se caiga
-                    while (true) {
-                        this.actual   = (Turno)       in.readObject();
-                        this.historial = (List<Turno>) in.readObject();
-                        controlador.actualizarDesdeServidor(actual, historial);
+                // 3. Si no logramos conectar con el servidor conocido, consultamos al Directorio (Failover)
+                if (!conectado && activo) {
+                    System.out.println("[ProxyAnuncio] Servidor inalcanzable. Buscando nueva ruta en Directorio...");
+                    resolverServidor();
+                    try {
+                        socket = new Socket(ipServidor, puertoServidor);
+                    } catch (Exception e) {
+                        System.err.println("[ProxyAnuncio] El nuevo servidor asignado tampoco responde. Re-iniciando ciclo...");
+                        try { Thread.sleep(3000); } catch (InterruptedException ie) {}
+                        continue;
+                    }
+                }
+
+                // 4. Establecemos el canal de suscripción persistente
+                if (socket != null && activo) {
+                    try (Socket s = socket;
+                        ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+                        ObjectInputStream  in  = new ObjectInputStream(s.getInputStream())) {
+
+                        out.writeObject("SUSCRIBIR_MONITOR");
+                        out.flush();
+                        System.out.println("[ProxyAnuncio] Suscripción establecida en: " + ipServidor + ":" + puertoServidor);
+
+                        // Se mantiene escuchando activamente en este bucle
+                        while (activo) {
+                            this.actual   = (Turno)       in.readObject();
+                            this.historial = (List<Turno>) in.readObject();
+                            controlador.actualizarDesdeServidor(actual, historial);
+                        }
                     }
                 }
 
             } catch (Exception e) {
-                System.err.println("[ProxyAnuncio] Conexión perdida: " + e.getMessage());
-                System.out.println("[ProxyAnuncio] Reintentando en 3 segundos...");
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break; // salida limpia si el hilo es interrumpido
+                if (activo) {
+                    System.err.println("[ProxyAnuncio] Canal de eventos cerrado: " + e.getMessage());
+                    System.out.println("[ProxyAnuncio] Reintentando suscripción en 3 segundos...");
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                 }
             }
         }
     }
+    
+    public void detener() {
+        this.activo = false;
+    }
+
 }
