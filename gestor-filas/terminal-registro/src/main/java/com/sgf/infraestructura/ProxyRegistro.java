@@ -25,6 +25,13 @@ public class ProxyRegistro implements IServicioRegistro {
         resolverServidor();
     }
 
+    // Abre un socket al Servidor usando el cache actual
+    private Socket conectarServidor() throws Exception {
+        return new Socket(ipServidor, puertoServidor);
+    }
+
+
+
     private void resolverServidor() {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -51,7 +58,7 @@ private Socket conectarConFallback() throws Exception {
 
         while (intentoActual <= MAX_INTENTOS) {
             try {
-                Socket socket = new Socket(ipServidor, puertoServidor);
+                Socket socket = conectarServidor();
                 
                 if (intentoActual > 1) {
                     System.out.println("[ProxyRegistro] Conexión recuperada en el intento " + intentoActual);
