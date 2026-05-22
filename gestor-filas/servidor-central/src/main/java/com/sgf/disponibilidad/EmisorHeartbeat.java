@@ -15,26 +15,24 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
     private final int    monitorPuerto;
     private final String miIp;
     private final int    miPuerto;
-    private final boolean esPrimario;
     private final ServidorCentral servidor;
 
     private volatile boolean activo = true;
     private final long intervalo = 2000;
 
     public EmisorHeartbeat(String monitorIp, int monitorPuerto,
-                           String miIp, int miPuerto,
-                           boolean esPrimario, ServidorCentral servidor) {
+            String miIp, int miPuerto,
+            boolean esPrimario, ServidorCentral servidor) {
         this.monitorIp     = monitorIp;
         this.monitorPuerto = monitorPuerto;
         this.miIp          = miIp;
         this.miPuerto      = miPuerto;
-        this.esPrimario    = esPrimario;
         this.servidor      = servidor;
     }
 
     @Override
     public void run() {
-        System.out.println("[EmisorHeartbeat] Iniciando, apuntando a " + monitorIp + ":" + monitorPuerto);
+        System.out.println("[EmisorHeartbeat] Iniciando emisor para " + monitorIp + ":" + monitorPuerto);
         while (activo) {
             try {
                 Thread.sleep(intervalo);
@@ -50,8 +48,8 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
     public void enviarLatido() {
         System.out.println("[EmisorHeartbeat] Intentando conectar a " + monitorIp + ":" + monitorPuerto);
         try (Socket socket = new Socket(monitorIp, monitorPuerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
             HeartbeatDTO hb = new HeartbeatDTO();
             hb.setTimestamp(System.currentTimeMillis());
@@ -60,7 +58,8 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
             estado.setIp(miIp);
             estado.setPuerto(miPuerto);
             estado.setEstado(1);
-            estado.setEsPrimario(esPrimario);
+            // Lee dinámicamente si el nodo ha sido promovido o degradado
+            estado.setEsPrimario(servidor.esPrimario());
 
             out.writeObject("HEARTBEAT");
             out.writeObject(hb);
@@ -70,18 +69,18 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
             NodoEstadoDTO pareja = (NodoEstadoDTO) in.readObject();
 
         if (pareja != null) {
-            if (pareja.isEsPrimario() && esPrimario) {
+            if (pareja.isEsPrimario() && servidor.esPrimario()) {
                 servidor.degradarEstado();
             } else if (!pareja.isEsPrimario()) {
                 if (servidor.esPrimario()) {
-                    System.out.println("[Heartbeat] Secundario detectado, sincronizando estado...");
+                    System.out.println("[Heartbeat] Secundario detectado en red. Disparando sincronización...");
                     servidor.sincronizarEstado();
                 }
             }
         }
 
         } catch (Exception e) {
-            System.err.println("[Heartbeat] Error enviando latido: " + e.getMessage());
+            System.err.println("[Heartbeat] Error al reportar latido al monitor: " + e.getMessage());
             e.printStackTrace();
         }
     }
