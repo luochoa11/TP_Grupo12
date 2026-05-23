@@ -41,7 +41,7 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
             this.ipServidor     = (String) in.readObject();
             this.puertoServidor = (int)    in.readObject();
 
-            System.out.println("[ProxyAnuncio] Servidor resuelto → "+ ipServidor + ":" + puertoServidor);
+            System.out.println("[ProxyAnuncio] Servidor resuelto -> "+ ipServidor + ":" + puertoServidor);
         } catch (Exception e) {
             System.err.println("[ProxyAnuncio] Error al consultar Directorio: " + e.getMessage());
         }

@@ -4,7 +4,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-
 import com.sgf.modelos.NodoEstadoDTO;
 
 /**
@@ -28,14 +27,14 @@ public class GestorFalla {
     public void procesarFalla(NodoEstadoDTO nodoFalla, NodoEstadoDTO primario, NodoEstadoDTO secundario) {
         // Lógica para procesar la falla
     
-        System.out.println("Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
+        System.out.println("[Monitor] Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
         if(primario!=null && nodoFalla.getIp().equals(primario.getIp()) && nodoFalla.getPuerto() == primario.getPuerto()){
-            System.out.println("[GF]El nodo caído es el primario. Promoviendo secundario a primario...");
+            System.out.println("[GestorFalla] El nodo caído es el primario. Promoviendo secundario a primario...");
             
             enviarPromocion(secundario);
             actualizarDirectorio(secundario.getIp(), secundario.getPuerto());
         } else {
-            System.out.println("[GF]El nodo caído no es el primario. No se requiere acción inmediata.");
+            System.out.println("[GestorFalla] El nodo caído no es el primario. No se requiere acción inmediata.");
         }
     
     }
@@ -58,10 +57,10 @@ public class GestorFalla {
 
     }
 
-     private void actualizarDirectorio(String nuevaIp, int nuevoPuerto) {
+    private void actualizarDirectorio(String nuevaIp, int nuevoPuerto) {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("ACTUALIZAR_RUTA");
             out.writeObject(nuevaIp);
@@ -69,7 +68,7 @@ public class GestorFalla {
             out.flush();
 
             in.readObject(); // "OK"
-            System.out.println("[GestorFalla] Directorio actualizado → "+ nuevaIp + ":" + nuevoPuerto);
+            System.out.println("[GestorFalla] Directorio actualizado -> "+ nuevaIp + ":" + nuevoPuerto);
 
         } catch (Exception e) {
             System.err.println("[GestorFalla] Error al actualizar Directorio: " + e.getMessage());

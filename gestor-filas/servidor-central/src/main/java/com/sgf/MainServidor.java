@@ -30,8 +30,8 @@ public class MainServidor {
 
         // Registrarse en el Directorio
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("REGISTRAR");
             out.writeObject(ip);

@@ -39,6 +39,15 @@ public class ManejadorCliente implements Runnable {
                 out.flush();
                 return;
             }
+            
+            // 2. Guarda del Primario CORREGIDA: Bloquea clientes si es secundario,
+            // excepto para el comando SINCRONIZAR_ESTADO enviado por el primario.
+            if (!"SINCRONIZAR_ESTADO".equals(comando) && !servidor.esPrimario()) {
+                out.writeObject("ERROR_SERVIDOR_SECUNDARIO");
+                out.flush();
+                return;
+            }
+
             if ("SINCRONIZAR_ESTADO".equals(comando)) {
                 List<Turno> cola = (List<Turno>) in.readObject();
                 Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();

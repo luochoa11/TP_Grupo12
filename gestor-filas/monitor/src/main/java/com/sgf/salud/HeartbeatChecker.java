@@ -86,6 +86,11 @@ public class HeartbeatChecker implements Runnable {
                                 }
                             }
 
+                            if (nodoCaido != null && secundario != null && esMismoNodo(nodoCaido, secundario)) {
+                                System.out.println("[HeartbeatChecker] Secundario caído. Limpiando referencia...");
+                                secundario = null;
+                            }
+
                             // Limpieza del mapa
                             latidos.remove(clave);
                             nodos.remove(clave);
