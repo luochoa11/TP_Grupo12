@@ -1,7 +1,7 @@
 package com.sgf.disponibilidad;
 
-import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.aplicacion.ILogicaFila;
@@ -26,8 +26,8 @@ public class SincronizadorEstado {
 
     private String[] resolverSecundario() {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("GET_RUTA_SECUNDARIA");
             out.flush();
@@ -36,7 +36,7 @@ public class SincronizadorEstado {
             int    puerto = (int)    in.readObject();
 
 
-            System.out.println("[Sync] Secundario resuelto → " + ip + ":" + puerto);
+            System.out.println("[Sync] Secundario resuelto -> " + ip + ":" + puerto);
 
 
             if (ip == null) return null;
@@ -59,7 +59,7 @@ public class SincronizadorEstado {
         int    puerto = Integer.parseInt(secundario[1]);
 
         try (Socket socket = new Socket(ip, puerto);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
 
             out.writeObject("SINCRONIZAR_ESTADO");
             out.writeObject(logica.getCola());
@@ -68,7 +68,7 @@ public class SincronizadorEstado {
             out.writeObject(logica.getUltimoLlamado());
             out.flush();
 
-            System.out.println("[Sync] Estado sincronizado → " + ip + ":" + puerto);
+            System.out.println("[Sync] Estado actual sincronizado -> " + ip + ":" + puerto);
 
         } catch (Exception e) {
             System.err.println("[Sync] Error al sincronizar: " + e.getMessage());

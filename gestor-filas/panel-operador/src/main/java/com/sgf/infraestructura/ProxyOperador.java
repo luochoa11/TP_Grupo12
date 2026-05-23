@@ -40,7 +40,7 @@ public class ProxyOperador implements IServicioOperador{
             this.ipServidor     = (String) in.readObject();
             this.puertoServidor = (int)    in.readObject();
 
-            System.out.println("[ProxyOperador] Servidor resuelto → "+ ipServidor + ":" + puertoServidor);
+            System.out.println("[ProxyOperador] Servidor resuelto -> "+ ipServidor + ":" + puertoServidor);
 
         } catch (Exception e) {
             throw new RuntimeException(

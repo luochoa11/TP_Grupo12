@@ -40,7 +40,7 @@ public class ManejadorDirectorio implements Runnable {
                     out.writeObject("OK");
                     break;
 
-                 case "REGISTRAR":
+                case "REGISTRAR":
                     String ipReg=(String) in.readObject();
                     int    puertoReg=(int)    in.readObject();
                     out.writeObject(gestorRutas.registrar(ipReg, puertoReg));
@@ -51,13 +51,13 @@ public class ManejadorDirectorio implements Runnable {
                 break;
 
                 default:
-                    System.out.println("Comando desconocido recibido en el Directorio: " + comando);
+                    System.out.println("[Directorio] Comando desconocido recibido: " + comando);
                     break;
             }
             out.flush();
 
         } catch (Exception e) {
-            System.err.println("Error procesando conexión en el Directorio: " + e.getMessage());
+            System.err.println("[Directorio] Error procesando conexión: " + e.getMessage());
         } finally {
             try {
                 socket.close();

@@ -20,6 +20,8 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
     private volatile boolean activo = true;
     private final long intervalo = 2000;
 
+    private String ultimaParejaSincronizada = null;
+
     public EmisorHeartbeat(String monitorIp, int monitorPuerto,
             String miIp, int miPuerto,
             boolean esPrimario, ServidorCentral servidor) {
@@ -67,21 +69,25 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
             out.flush();
 
             NodoEstadoDTO pareja = (NodoEstadoDTO) in.readObject();
+            System.out.println("[EmisorHeartbeat] Latido confirmado por monitor.");
 
         if (pareja != null) {
-            if (pareja.isEsPrimario() && servidor.esPrimario()) {
-                servidor.degradarEstado();
-            } else if (!pareja.isEsPrimario()) {
-                if (servidor.esPrimario()) {
-                    System.out.println("[Heartbeat] Secundario detectado en red. Disparando sincronización...");
-                    servidor.sincronizarEstado();
+                if (pareja.isEsPrimario() && servidor.esPrimario()) {
+                    // Conflicto: dos primarios → este se degrada
+                    servidor.degradarEstado();
+                } else if (!pareja.isEsPrimario() && servidor.esPrimario()) {
+                    // Soy primario y detecto un secundario
+                    String clavePareja = pareja.getIp() + ":" + pareja.getPuerto();
+                    if (!clavePareja.equals(ultimaParejaSincronizada)) {
+                        System.out.println("[Heartbeat] Nuevo secundario detectado -> " + clavePareja + ". Sincronizando...");
+                        servidor.sincronizarEstado();
+                        ultimaParejaSincronizada = clavePareja;
+                    }
                 }
             }
-        }
 
         } catch (Exception e) {
             System.err.println("[Heartbeat] Error al reportar latido al monitor: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

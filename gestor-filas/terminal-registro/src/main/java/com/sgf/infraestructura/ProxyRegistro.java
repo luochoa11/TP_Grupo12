@@ -44,7 +44,7 @@ public class ProxyRegistro implements IServicioRegistro {
             this.ipServidor     = (String) in.readObject();
             this.puertoServidor = (int)    in.readObject();
 
-            System.out.println("[ProxyRegistro] Servidor resuelto → "+ ipServidor + ":" + puertoServidor);
+            System.out.println("[ProxyRegistro] Servidor resuelto -> "+ ipServidor + ":" + puertoServidor);
 
         } catch (Exception e) {
             throw new RuntimeException(
@@ -90,7 +90,7 @@ public class ProxyRegistro implements IServicioRegistro {
         }
 
         // 3. Intentamos conectar una última vez con la IP fresca recuperada del Directorio
-        System.out.println("[ProxyRegistro] Intentando conectar al nuevo Servidor Primario → " + ipServidor + ":" + puertoServidor);
+        System.out.println("[ProxyRegistro] Intentando conectar al nuevo Servidor Primario -> " + ipServidor + ":" + puertoServidor);
         try {
             return new Socket(ipServidor, puertoServidor);
         } catch (Exception e) {
