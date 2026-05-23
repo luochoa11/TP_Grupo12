@@ -103,6 +103,9 @@ public class ProxyRegistro implements IServicioRegistro {
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+            
+            out.writeObject("CLIENTE_REGISTRO");
+            out.flush(); 
 
             out.writeObject("NUEVO_TURNO");
             out.writeObject(turno);

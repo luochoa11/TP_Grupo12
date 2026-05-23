@@ -1,5 +1,6 @@
 package com.sgf.infraestructura;
 
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.BindException;
 import java.net.ServerSocket;
@@ -41,13 +42,53 @@ public class ServidorCentral implements Runnable {
     public void run() {
         try(ServerSocket server = new ServerSocket(puerto)){
             System.out.println("Servidor Central iniciado. Escuchando en el puerto " + puerto);
-            while(true){
+            
+            while (true) {
                 Socket socketCliente = server.accept();
                 
-                ManejadorCliente manejador = new ManejadorCliente(socketCliente, logica,this);
-                Thread hiloCliente = new Thread(manejador);
-                hiloCliente.setName("Hilo-Manejador-" + socketCliente.getInetAddress());
-                hiloCliente.start();
+                // Hilo despachador (Dispatcher) rápido encargado del Handshake
+                new Thread(() -> {
+                    try {
+                        ObjectOutputStream out = new ObjectOutputStream(socketCliente.getOutputStream());
+                        ObjectInputStream in = new ObjectInputStream(socketCliente.getInputStream());
+                        
+                        //Leemos el saludo de identificación
+                        String saludo = (String) in.readObject();
+                        System.out.println("[Servidor] Conexión entrante con saludo: " + saludo);
+                        
+                        // Secundario rechaza todo excepto sincronización y promoción del monitor
+                        if (!esPrimario && !"SYNC_SERVER".equals(saludo) && !"MONITOR_FALLA".equals(saludo)) {
+                            out.writeObject("ERROR_SERVIDOR_SECUNDARIO");
+                            out.flush();
+                            socketCliente.close();
+                            return;
+                        }
+
+                        // Despachamos al hilo específico pasándole los streams ya abiertos
+                        switch (saludo) {
+                            case "CLIENTE_REGISTRO":
+                                new Thread(new ManejadorRegistro(socketCliente, in, out, logica, this)).start();
+                                break;
+                            case "CLIENTE_OPERADOR":
+                                new Thread(new ManejadorOperador(socketCliente, in, out, logica, this)).start();
+                                break;
+                            case "CLIENTE_ANUNCIO":
+                                new Thread(new ManejadorAnuncio(socketCliente, in, out, logica, this)).start();
+                                break;
+                            case "MONITOR_FALLA":
+                                new Thread(new ManejadorMonitor(socketCliente, in, out, logica, this)).start();
+                                break;
+                            case "SYNC_SERVER":
+                                new Thread(new ManejadorSincronizacion(socketCliente, in, out, logica, this)).start();
+                                break;
+                            default:
+                                System.err.println("[Servidor] Saludo no reconocido: " + saludo);
+                                socketCliente.close();
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[ServidorCentral] Error al clasificar conexión: " + e.getMessage());
+                    }
+                }).start();
             }
         }catch(BindException e){
             System.err.println("Error: El puerto " + puerto + " ya está en uso.");
@@ -102,7 +143,8 @@ public class ServidorCentral implements Runnable {
     }
 
     public void promoverEstado() {
-        this.esPrimario = true; 
+        this.esPrimario = true;
+        System.out.println("[Servidor] " + this.ip + ":" + this.puerto + " Promovido a PRIMARIO.");
     }
 
     public void sincronizarEstado() {

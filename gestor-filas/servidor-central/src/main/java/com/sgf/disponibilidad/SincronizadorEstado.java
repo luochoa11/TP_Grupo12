@@ -61,6 +61,9 @@ public class SincronizadorEstado {
         try (Socket socket = new Socket(ip, puerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
 
+            out.writeObject("SYNC_SERVER");
+            out.flush(); 
+
             out.writeObject("SINCRONIZAR_ESTADO");
             out.writeObject(logica.getCola());
             out.writeObject(logica.getTurnosActivos());
