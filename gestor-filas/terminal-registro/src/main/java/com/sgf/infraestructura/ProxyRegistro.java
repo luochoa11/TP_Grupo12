@@ -104,6 +104,7 @@ public class ProxyRegistro implements IServicioRegistro {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
             
+            //aviso qué cliente soy para que el servidor me despache al manejador correcto
             out.writeObject("CLIENTE_REGISTRO");
             out.flush(); 
 

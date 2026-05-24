@@ -59,7 +59,8 @@ public class SincronizadorEstado {
         int    puerto = Integer.parseInt(secundario[1]);
 
         try (Socket socket = new Socket(ip, puerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("SYNC_SERVER");
             out.flush(); 
