@@ -14,8 +14,8 @@ import com.sgf.aplicacion.ILogicaFila;
 
 public abstract class ManejadorBase implements Runnable {
     protected final Socket socket;
-    protected final ObjectInputStream in;
-    protected final ObjectOutputStream out;
+    protected ObjectInputStream in;
+    protected ObjectOutputStream out;
     protected final ILogicaFila logica;
     protected final ServidorCentral servidor;
 

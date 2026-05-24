@@ -14,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
+import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
+import com.sgf.servicios.ServidorCentralFacade;
 
 /**
  * Clase que representa el Servidor Central del sistema. 
@@ -29,6 +31,7 @@ public class ServidorCentral implements Runnable {
     private boolean esPrimario;
     private SincronizadorEstado sincronizador;
     
+    private IServicioAdministrador fachadaServidor; 
 
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
@@ -36,6 +39,9 @@ public class ServidorCentral implements Runnable {
         this.logica = logica;
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
+
+        // aquí se instancian los subsistemas y se inicializa la fachada
+        this.fachadaServidor = new ServidorCentralFacade();
     }
 
     @Override
@@ -80,6 +86,9 @@ public class ServidorCentral implements Runnable {
                                 break;
                             case "SYNC_SERVER":
                                 new Thread(new ManejadorSincronizacion(socketCliente, in, out, logica, this)).start();
+                                break;
+                            case "CLIENTE_ADMINISTRADOR":
+                                new Thread(new ManejadorAdministrador(socketCliente, in, out, logica, this, fachadaServidor)).start();
                                 break;
                             default:
                                 System.err.println("[Servidor] Saludo no reconocido: " + saludo);
