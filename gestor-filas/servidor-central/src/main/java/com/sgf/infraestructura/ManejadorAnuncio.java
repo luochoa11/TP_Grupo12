@@ -3,8 +3,10 @@ package com.sgf.infraestructura;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.modelos.Turno;
 
 /**
  * Maneja las suscripciones persistentes de las Pantallas de Anuncios en sala de espera.
@@ -29,9 +31,18 @@ public class ManejadorAnuncio extends ManejadorBase {
                     Thread.sleep(10000);
                 }
             } else if ("GET_ESTADO_MONITOR".equals(comando)) {
-                out.writeObject(logica.getUltimoLlamado());
-                out.writeObject(logica.getHistorial());
+                Turno ultimo = logica.getUltimoLlamado();
+                List<Turno> historial = logica.getHistorial();
+                
+                encriptarTurno(ultimo);
+                encriptarLista(historial);
+                
+                out.writeObject(ultimo);
+                out.writeObject(historial);
                 out.flush();
+                
+                desencriptarTurno(ultimo);
+                desencriptarLista(historial);
             }
         } catch (Exception e) {
             System.out.println("[ManejadorMonitor] Pantalla de sala desconectada.");

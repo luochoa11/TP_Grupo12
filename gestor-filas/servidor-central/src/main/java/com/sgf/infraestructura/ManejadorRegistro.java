@@ -14,7 +14,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorRegistro extends ManejadorBase {
 
     public ManejadorRegistro(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                            ILogicaFila logica, ServidorCentral servidor) {
+                             ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -25,6 +25,9 @@ public class ManejadorRegistro extends ManejadorBase {
             
             if ("NUEVO_TURNO".equals(comando)) {
                 Turno t = (Turno) in.readObject();
+                
+                desencriptarTurno(t);
+                
                 try {
                     logica.agregarTurno(t);
                     servidor.sincronizarEstado();
