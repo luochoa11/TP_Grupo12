@@ -1,0 +1,62 @@
+﻿sequenceDiagram
+    actor Op as Operador
+
+    box rgb(189, 236, 190) Panel Operador
+        participant V_Op as VentanaPanelOperador
+        participant Ctrl_Op as ControladorOperador
+        participant ClienteOp as ClienteOperador
+    end
+
+    box rgb(234, 213, 248) Servidor Central
+    participant M as ManejadorCliente
+    participant S_Primario as Servidor Primario
+    participant L as LogicaFila
+    participant S_Secundario as Servidor Secundario
+    end
+
+    box rgb(255, 245, 230) Monitor Sala
+        participant Cliente_Mon as ClienteMonitor
+        participant Ctrl_Mon as ControladorMonitor
+        participant V_Mon as VentanaMonitor
+    end
+
+    note over V_Op,V_Mon: UC2 - Llamado y atención
+
+    Op->>V_Op: Selecciona Llamar Siguiente
+    activate V_Op
+    V_Op->>+Ctrl_Op: llamarSiguiente()
+
+    Ctrl_Op->>+ClienteOp: IServicioOperador.llamarSiguiente(id)
+
+    ClienteOp->>+M: solicitarLlamarSiguiente()
+    ClienteOp->>M: enviarDatosPuesto(idPuesto)
+
+    M->>+S_Primario: verificarDisponibilidad()
+    S_Primario-->>-M: Servidor Activo
+
+    M->>+L: ILogicaFila.llamarSiguiente(id)
+    L-->>-M: Turno llamado
+
+    par Sincronizacion Servidor Secundario
+        M->>+S_Secundario: sincronizarEstado(turno)
+        S_Secundario-->>-M: Confirmacion
+    end
+
+    M->>+S_Primario: notificarMonitores(turno)
+
+    par Notificacion Push
+        S_Primario->>+Cliente_Mon: transmitirActualizacion(turno)
+        Cliente_Mon->>+Ctrl_Mon: actualizarDesdeServidor(turno)
+        Ctrl_Mon->>+V_Mon: actualizarPantalla(turno)
+        deactivate V_Mon
+        deactivate Ctrl_Mon
+        deactivate Cliente_Mon
+    end
+
+    deactivate S_Primario
+
+    M-->>-ClienteOp: enviarDatos(turno)
+    ClienteOp-->>-Ctrl_Op: Turno llamado
+    Ctrl_Op->>V_Op: actualizarVista()
+    deactivate Ctrl_Op
+    deactivate V_Op

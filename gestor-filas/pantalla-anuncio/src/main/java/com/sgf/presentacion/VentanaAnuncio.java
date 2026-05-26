@@ -85,7 +85,7 @@ public class VentanaAnuncio extends JFrame {
     private JPanel crearTarjeta(Turno turno, boolean esActual, boolean resaltarDni) {
 
         if(turno == null)
-            return new JPanel(); //FIXME
+            return new JPanel(); 
 
         JPanel tarjeta = new JPanel(new GridLayout(1, 2));
         tarjeta.setMaximumSize(new Dimension(1000, 80));
@@ -118,7 +118,7 @@ public class VentanaAnuncio extends JFrame {
         valDni.setFont(fuenteValor);
         
         // Lógica de parpadeo: lo agregamos a la lista si corresponde
-        if (resaltarDni) { //FIXME
+        if (resaltarDni) {
             valDni.setForeground(COLOR_ROJO_ALERTA);
             labelsParaTitilar.add(valDni);
         } else {
@@ -164,7 +164,6 @@ public class VentanaAnuncio extends JFrame {
 
             if (actual != null) {
                 boolean esRellamada = actual.getIntentos() >= 2 && actual.getIntentos() <= 3 && actual.getEstado().equalsIgnoreCase("LLAMADO");
-                //^^FIXME acá hay que meter STate
                 panelTurnos.add(crearTarjeta(actual, true, esRellamada));
                 panelTurnos.add(Box.createRigidArea(new Dimension(0, 15)));
             }

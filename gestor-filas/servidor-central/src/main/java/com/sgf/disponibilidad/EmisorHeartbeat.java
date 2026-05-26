@@ -5,76 +5,94 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.infraestructura.ServidorCentral;
+import com.sgf.interfaces.IServicioHeartbeat;
 import com.sgf.modelos.HeartbeatDTO;
 import com.sgf.modelos.NodoEstadoDTO;
 
-/**
- * Clase encargada de enviar latidos (heartbeats) al Monitor para reportar el estado del Servidor.
- */
-public class EmisorHeartbeat implements Runnable {
-    // Hilo que llama a IServicioHeartbeat
+public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
 
-    private String hostMonitor;
-    private int puertoMonitor;
-    private boolean activo = true;
-    private ServidorCentral servidor;
+    private final String monitorIp;
+    private final int    monitorPuerto;
+    private final String miIp;
+    private final int    miPuerto;
+    private final ServidorCentral servidor;
 
-    private String ip;
-    private int puerto;
+    private volatile boolean activo = true;
+    private final long intervalo = 2000;
 
-    public EmisorHeartbeat(String hostMonitor, int puertoMonitor, String ip, int puerto) {
-        this.hostMonitor = hostMonitor;
-        this.puertoMonitor = puertoMonitor;
-        this.ip = ip;
-        this.puerto = puerto;
+    private String ultimaParejaSincronizada = null;
+
+    public EmisorHeartbeat(String monitorIp, int monitorPuerto,
+            String miIp, int miPuerto,
+            boolean esPrimario, ServidorCentral servidor) {
+        this.monitorIp     = monitorIp;
+        this.monitorPuerto = monitorPuerto;
+        this.miIp          = miIp;
+        this.miPuerto      = miPuerto;
+        this.servidor      = servidor;
     }
 
     @Override
     public void run() {
+        System.out.println("[EmisorHeartbeat] Iniciando emisor para " + monitorIp + ":" + monitorPuerto);
         while (activo) {
-            try (
-                Socket socket = new Socket(hostMonitor, puertoMonitor);
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            ) {
-
-                HeartbeatDTO hb = new HeartbeatDTO();//Crear el DTO del heartbeat
-                hb.setTimestamp(System.currentTimeMillis());
-
-                NodoEstadoDTO estado = new NodoEstadoDTO();   // Crear el DTO del estado del nodo
-                estado.setIp(ip);
-                estado.setPuerto(puerto);
-                estado.setEstado(1);
-                estado.setEsPrimario(servidor.esPrimario());
-
-                out.writeObject("HEARTBEAT"); // Envío    
-                out.writeObject(hb);
-                out.writeObject(estado);
-                out.flush();
-
-                NodoEstadoDTO pareja= (NodoEstadoDTO) in.readObject(); // Recibir el DTO del  server compañero
-                if(pareja!=null){
-                    if(pareja.isEsPrimario()&& servidor.esPrimario()) {
-                        // Si el monitor me dice que el otro server es primario, pero yo también me considero primario, debo degradar mi estado a secundario
-                        servidor.degradarEstado();
-                    } else if (!pareja.isEsPrimario()) {
-                        // Si el monitor me dice que el otro server es secundario, lo debo conocer para sincronizarlo
-                       servidor.getSincronizador().actualizarSecundario(pareja.getIp(), pareja.getPuerto());
-
-                    }
-                }
-
-                
-                Thread.sleep(2000);
-
-            } catch (Exception e) {
-                System.err.println("Error enviando heartbeat: " + e.getMessage());
+            try {
+                Thread.sleep(intervalo);
+                enviarLatido();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                activo = false;
             }
         }
     }
 
-    public void detener() {
-        this.activo = false;
+    @Override
+    public void enviarLatido() {
+        System.out.println("[EmisorHeartbeat] Intentando conectar a " + monitorIp + ":" + monitorPuerto);
+        try (Socket socket = new Socket(monitorIp, monitorPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            HeartbeatDTO hb = new HeartbeatDTO();
+            hb.setTimestamp(System.currentTimeMillis());
+
+            NodoEstadoDTO estado = new NodoEstadoDTO();
+            estado.setIp(miIp);
+            estado.setPuerto(miPuerto);
+            estado.setEstado(1);
+            // Lee dinámicamente si el nodo ha sido promovido o degradado
+            estado.setEsPrimario(servidor.esPrimario());
+
+            out.writeObject("HEARTBEAT");
+            out.writeObject(hb);
+            out.writeObject(estado);
+            out.flush();
+
+            NodoEstadoDTO pareja = (NodoEstadoDTO) in.readObject();
+            System.out.println("[EmisorHeartbeat] Latido confirmado por monitor.");
+
+            if (pareja != null) {
+                if (pareja.isEsPrimario() && servidor.esPrimario()) {
+                    // Conflicto: dos primarios → este se degrada
+                    servidor.degradarEstado();
+                } else if (!pareja.isEsPrimario() && servidor.esPrimario()) {
+                    // Soy primario y detecto un secundario
+                    String clavePareja = pareja.getIp() + ":" + pareja.getPuerto();
+                    if (!clavePareja.equals(ultimaParejaSincronizada)) {
+                        System.out.println("[Heartbeat] Nuevo secundario detectado -> " + clavePareja + ". Sincronizando...");
+                        servidor.sincronizarEstado();
+                        ultimaParejaSincronizada = clavePareja;
+                    }
+                }
+            } else {
+                ultimaParejaSincronizada = null; // ← cuando no hay pareja, reseteamos
+            }
+        } catch (Exception e) {
+            System.err.println("[Heartbeat] Error al reportar latido al monitor: " + e.getMessage());
+        }
     }
-    
+
+    public void detener() {
+        activo = false;
+    }
 }

@@ -3,11 +3,10 @@
   <parent>
     <artifactId>gestor-filas</artifactId>
     <groupId>com.sgf</groupId>
-    <version>1</version>
+    <version>1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.sgf</groupId>
-  <artifactId>terminal-registro</artifactId>
+  <artifactId>servidor-central</artifactId>
   <version>1.0-SNAPSHOT</version>
   <build>
     <plugins>
@@ -23,12 +22,17 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.sgf.MainTerminal</mainClass>
+                  <mainClass>com.sgf.MainServidor</mainClass>
                 </transformer>
               </transformers>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
       </plugin>
     </plugins>
   </build>
@@ -47,7 +51,7 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
   </properties>
 </project>

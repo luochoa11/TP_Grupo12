@@ -19,3 +19,5 @@ public interface IServicioAnuncio {
      */
     List<Turno> getHistorial();
 }
+
+/*igual, devuelven cache local */

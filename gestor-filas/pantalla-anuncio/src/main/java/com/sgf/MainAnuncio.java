@@ -9,6 +9,10 @@ import com.sgf.presentacion.VentanaAnuncio;
 public class MainAnuncio {
 
     public static void main(String[] args) {
+
+        String directorioIp     = ConfiguracionRed.get("directorio.ip");
+        int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
+
         SwingUtilities.invokeLater(() -> {
             // 1: Iniciamos la ventana
             VentanaAnuncio ventana = new VentanaAnuncio();
@@ -19,10 +23,10 @@ public class MainAnuncio {
             ventana.setVisible(true);
 
             // 3: El Servidor habla con el Controlador
-            ProxyAnuncio cliente = new ProxyAnuncio(Constantes.HOST_SERVIDOR_CENTRAL, Constantes.PUERTO_SERVIDOR_CENTRAL, controlador);
+            ProxyAnuncio cliente = new ProxyAnuncio(directorioIp, directorioPuerto, controlador);
             new Thread(cliente).start();
             
-            System.out.println("Monitor: Sistema ensamblado y listo.");
+            System.out.println("Anuncio: Sistema ensamblado y listo.");
         });
     }
 }

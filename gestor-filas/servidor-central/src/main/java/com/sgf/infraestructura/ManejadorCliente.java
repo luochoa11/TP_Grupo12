@@ -23,6 +23,7 @@ public class ManejadorCliente implements Runnable {
         this.servidor = server;
     }
 
+    @SuppressWarnings("unchecked")
     @Override 
     public void run(){
         try(
@@ -31,6 +32,34 @@ public class ManejadorCliente implements Runnable {
         ){
             String comando = (String) in.readObject();
             
+            if ("PROMOVER".equals(comando)) {
+                System.out.println("[Servidor] Recibido PROMOVER, estado actual: " + (servidor.esPrimario() ? "PRIMARIO" : "SECUNDARIO"));
+                servidor.promoverEstado();
+                out.writeObject("OK");
+                out.flush();
+                return;
+            }
+            
+            // 2. Guarda del Primario CORREGIDA: Bloquea clientes si es secundario,
+            // excepto para el comando SINCRONIZAR_ESTADO enviado por el primario.
+            if (!"SINCRONIZAR_ESTADO".equals(comando) && !servidor.esPrimario()) {
+                out.writeObject("ERROR_SERVIDOR_SECUNDARIO");
+                out.flush();
+                return;
+            }
+
+            if ("SINCRONIZAR_ESTADO".equals(comando)) {
+                List<Turno> cola = (List<Turno>) in.readObject();
+                Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
+                List<Turno> historial = (List<Turno>) in.readObject();
+                Turno ultimo = (Turno) in.readObject();
+                logica.reemplazarEstado(cola, activos, historial, ultimo);
+                System.out.println("[Sync] Estado recibido. Cola: " + cola.size() + " turnos.");
+            return;
+            }
+
+            /*metodos usados por el svprimario */
+
             if(!servidor.esPrimario()){
                 out.writeObject("ERROR_SERVIDOR_SECUNDARIO");
                 out.flush();
@@ -77,23 +106,13 @@ public class ManejadorCliente implements Runnable {
                     int idPuesto2 = (int) in.readObject();
                     out.writeObject(logica.getTurnoPuesto(idPuesto2));
                     break;
-                case "SINCRONIZAR_ESTADO": //usado por el secundario
-                    List<Turno> cola = (List<Turno>) in.readObject();
-                    Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
-                    List<Turno> historial = (List<Turno>) in.readObject();
-                    Turno ultimo = (Turno) in.readObject();
 
-                    logica.reemplazarEstado(cola, activos, historial, ultimo);
-                    break;
-                case "PROMOVER":
-                    servidor.promoverEstado();
-                    break;
                 case "SUSCRIBIR_MONITOR":
                     servidor.agregarMonitor(out);
 
                     while (true) {
-                        Thread.sleep(10000); // mantener viva la conexión
-                    } //en el manejador
+                        Thread.sleep(10000);
+                    }
 
             }
             out.flush();

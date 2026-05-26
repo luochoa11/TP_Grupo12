@@ -13,10 +13,6 @@ public class MainOperador {
     public static void main(String[] args) {
         //por defecto si no se pasa un argumento en puesto id
         int idPuesto = 1;
-
-        // Si pasamos un argumento (ej: java -jar Operador.jar 3), lo tomamos como ID
-        // ej en comandos un operador 2: java -cp "panel-operador/target/classes;common/target/classes" com.sgf.MainOperador 2
-
         if (args.length > 0) {
             try {
                 idPuesto = Integer.parseInt(args[0]);
@@ -25,7 +21,12 @@ public class MainOperador {
             }
         }
 
+        
+        String directorioIp     = ConfiguracionRed.get("directorio.ip");
+        int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
+
         final int idFinal = idPuesto;
+
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -39,7 +40,7 @@ public class MainOperador {
             ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
             // 3. Inicializamos el Controlador y conectamos
-            IServicioOperador servicio = new ProxyOperador(Constantes.HOST_SERVIDOR_CENTRAL,Constantes.PUERTO_SERVIDOR_CENTRAL);
+            IServicioOperador servicio = new ProxyOperador(directorioIp /*IP del dir que mapea a server*/, directorioPuerto);
             ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);
             ventana.setControlador(controlador);
 

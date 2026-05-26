@@ -1,5 +1,6 @@
 package com.sgf.presentacion;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
@@ -24,11 +25,13 @@ public class ControladorOperador {
         try {
             // Intentamos obtener el siguiente (Puede lanzar FilaVaciaException)
             Turno siguiente = servicio.llamarSiguiente(idPuesto);
+            List<Turno> cola = servicio.getCola();
+            if (cola == null) cola = Collections.emptyList();
 
-
+            final List<Turno> colaFinal = cola;
             // actualizamos la vista 
             SwingUtilities.invokeLater(() -> {
-            vista.actualizarVista(siguiente, servicio.getCola()); 
+            vista.actualizarVista(siguiente, colaFinal); 
         });
 
         return siguiente;
