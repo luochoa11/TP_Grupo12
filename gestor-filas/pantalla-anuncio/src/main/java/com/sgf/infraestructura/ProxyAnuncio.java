@@ -101,6 +101,9 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
                         ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                         ObjectInputStream  in  = new ObjectInputStream(s.getInputStream())) {
 
+                        out.writeObject("CLIENTE_ANUNCIO");
+                        out.flush(); 
+
                         out.writeObject("SUSCRIBIR_MONITOR");
                         out.flush();
                         System.out.println("[ProxyAnuncio] Suscripción establecida en: " + ipServidor + ":" + puertoServidor);

@@ -27,7 +27,8 @@
     <module>monitor</module>
     <module>servicio-directorio</module>
     <module>servidor-central</module>
- </modules>
+    <module>panel-administrador</module>
+  </modules>
 
   <dependencies>
     <dependency>

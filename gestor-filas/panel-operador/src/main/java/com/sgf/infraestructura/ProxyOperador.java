@@ -105,6 +105,9 @@ public class ProxyOperador implements IServicioOperador{
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
+
             out.writeObject("LLAMAR_SIGUIENTE");
             out.writeObject(idPuesto);
             out.flush();
@@ -127,6 +130,9 @@ public class ProxyOperador implements IServicioOperador{
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
 
             out.writeObject("REINTENTAR_LLAMADO");
             out.writeObject(idPuesto);
@@ -152,6 +158,9 @@ public class ProxyOperador implements IServicioOperador{
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
+
             out.writeObject("GET_COLA");
             out.flush();
 
@@ -174,6 +183,9 @@ public class ProxyOperador implements IServicioOperador{
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
 
             out.writeObject("GET_TURNO_PUESTO");
             out.writeObject(idPuesto);
