@@ -5,9 +5,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.interfaces.IServicioAnuncio;
 import com.sgf.modelos.Turno;
 import com.sgf.presentacion.ControladorAnuncio;
+import com.sgf.seguridad.EstrategiaCifradoAES;
+import com.sgf.seguridad.IEncriptacionStrategy;
 
 public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
@@ -23,6 +26,11 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
     private volatile boolean activo = true;
 
     private final int MAX_INTENTOS = 3;
+
+    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+
+    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
     public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador) {
         this.directorioIp     = directorioIp;
@@ -112,6 +120,11 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
                         while (activo) {
                             this.actual   = (Turno)       in.readObject();
                             this.historial = (List<Turno>) in.readObject();
+                            
+                            // DESENCRIPTAMOS LO QUE LLEGA DE LA RED
+                            desencriptarTurno(this.actual);
+                            desencriptarLista(this.historial);
+
                             controlador.actualizarDesdeServidor(actual, historial);
                         }
                     }
@@ -131,6 +144,20 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
             }
         }
     }
+    
+    // --- Helpers Privados de Seguridad ---
+    private void desencriptarTurno(Turno t) {
+        if (t != null && t.getDniCliente() != null) {
+            t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+        }
+    }
+
+    private void desencriptarLista(List<Turno> lista) {
+        if (lista != null) {
+            for (Turno t : lista) desencriptarTurno(t);
+        }
+    }
+    // -------------------------------------
     
     public void detener() {
         this.activo = false;

@@ -6,9 +6,12 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.FilaVaciaException;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.modelos.Turno;
+import com.sgf.seguridad.EstrategiaCifradoAES;
+import com.sgf.seguridad.IEncriptacionStrategy;
 
 public class ProxyOperador implements IServicioOperador{
     private final String directorioIp;
@@ -19,6 +22,11 @@ public class ProxyOperador implements IServicioOperador{
     private int puertoServidor;
 
     private final int MAX_INTENTOS = 3;
+
+    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+
+    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
     public ProxyOperador(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
@@ -115,7 +123,10 @@ public class ProxyOperador implements IServicioOperador{
             Object respuesta = in.readObject();
 
             if ("ERROR_FILA_VACIA".equals(respuesta)) throw new FilaVaciaException();
-            return (Turno) respuesta;
+            
+            Turno turnoLlamado = (Turno) respuesta;
+            desencriptarTurno(turnoLlamado);
+            return turnoLlamado;
 
         } catch (FilaVaciaException e) {
             throw e;
@@ -140,7 +151,11 @@ public class ProxyOperador implements IServicioOperador{
 
             Object respuesta = in.readObject();
 
-            if (respuesta instanceof Turno) return (Turno) respuesta;
+            if (respuesta instanceof Turno) {
+                Turno turnoReintento = (Turno) respuesta;
+                desencriptarTurno(turnoReintento);
+                return turnoReintento;
+            }
 
             System.err.println("[ProxyOperador] Respuesta inesperada: " + respuesta);
             return null;
@@ -166,7 +181,11 @@ public class ProxyOperador implements IServicioOperador{
 
             Object respuesta = in.readObject();
 
-            if (respuesta instanceof List)  return (List<Turno>) respuesta;
+            if (respuesta instanceof List) {
+                List<Turno> cola = (List<Turno>) respuesta;
+                desencriptarLista(cola); // Desencriptamos la cola completa
+                return cola;
+            }
             if (respuesta == null)          return Collections.emptyList();
 
             System.err.println("[ProxyOperador] Respuesta inesperada: " + respuesta);
@@ -193,7 +212,11 @@ public class ProxyOperador implements IServicioOperador{
 
             Object respuesta = in.readObject();
 
-            if (respuesta instanceof Turno) return (Turno) respuesta;
+            if (respuesta instanceof Turno) {
+                Turno turnoPuesto = (Turno) respuesta;
+                desencriptarTurno(turnoPuesto); // Desencriptamos
+                return turnoPuesto;
+            }
             if (respuesta == null)          return null;
 
             System.err.println("[ProxyOperador] Respuesta inesperada: " + respuesta);
@@ -204,4 +227,18 @@ public class ProxyOperador implements IServicioOperador{
             return null;
         }
     }
+    
+    // --- Helpers Privados de Seguridad ---
+    private void desencriptarTurno(Turno t) {
+        if (t != null && t.getDniCliente() != null) {
+            t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+        }
+    }
+
+    private void desencriptarLista(List<Turno> lista) {
+        if (lista != null) {
+            for (Turno t : lista) desencriptarTurno(t);
+        }
+    }
+    // -------------------------------------
 }

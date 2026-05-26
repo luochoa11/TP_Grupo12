@@ -12,16 +12,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
+import com.sgf.seguridad.EstrategiaCifradoAES;
+import com.sgf.seguridad.IEncriptacionStrategy;
 import com.sgf.servicios.ServidorCentralFacade;
 
 /**
  * Clase que representa el Servidor Central del sistema. 
  */
-
 public class ServidorCentral implements Runnable {
     private int puerto;
     private String ip;
@@ -33,6 +35,12 @@ public class ServidorCentral implements Runnable {
     
     private IServicioAdministrador fachadaServidor; 
 
+    // Leemos la clave de la configuración. Si no existe, usamos "ADMIN123" como respaldo seguro.
+    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+
+    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
+
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
         this.ip = ip;
@@ -42,6 +50,14 @@ public class ServidorCentral implements Runnable {
 
         // aquí se instancian los subsistemas y se inicializa la fachada
         this.fachadaServidor = new ServidorCentralFacade();
+    }
+
+    public IEncriptacionStrategy getEncriptador() {
+        return encriptador;
+    }
+
+    public void setEncriptador(IEncriptacionStrategy nuevoEncriptador) {
+        this.encriptador = nuevoEncriptador;
     }
 
     @Override
@@ -106,26 +122,38 @@ public class ServidorCentral implements Runnable {
             e.printStackTrace();
         }
     }
+
     public void agregarMonitor(ObjectOutputStream out){
         monitores.add(out);
     }
 
-
     public void notificarMonitores(Turno actual, List<Turno> historial) {
-    synchronized (monitores) {
-        Iterator<ObjectOutputStream> it = monitores.iterator();
+        synchronized (monitores) {
 
-        while (it.hasNext()) {
-            ObjectOutputStream out = it.next();
-            try {
-                out.reset();  // LIMPIA LA CACHE DEL STREAM PARA ENVIAR DATOS NUEVOS
-                out.writeObject(actual);
-                out.writeObject(historial);
-                out.flush();
-            } catch (Exception e) {
-                it.remove(); // cliente muerto
+            if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
+            if (historial != null) {
+                for (Turno t : historial) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
             }
-        }}
+
+            Iterator<ObjectOutputStream> it = monitores.iterator();
+
+            while (it.hasNext()) {
+                ObjectOutputStream out = it.next();
+                try {
+                    out.reset();  // LIMPIA LA CACHE DEL STREAM PARA ENVIAR DATOS NUEVOS
+                    out.writeObject(actual);
+                    out.writeObject(historial);
+                    out.flush();
+                } catch (Exception e) {
+                    it.remove(); // cliente muerto
+                }
+            }
+            
+            if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
+            if (historial != null) {
+                for (Turno t : historial) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+            }
+        }
     }
     
     public void notificarOperadores() { //esto sigue?
@@ -137,9 +165,19 @@ public class ServidorCentral implements Runnable {
                 Turno actual = logica.getTurnoPuesto(id);
                 List<Turno> cola = logica.getCola();
 
+                if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
+                if (cola != null) {
+                    for (Turno t : cola) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
+                }
+
                 out.writeObject(actual);
                 out.writeObject(cola);
                 out.flush();
+
+                if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
+                if (cola != null) {
+                    for (Turno t : cola) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+                }
 
             } catch (Exception e) {
                 operadores.remove(id);
@@ -178,5 +216,4 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = false;
         System.out.println("[Servidor] "+this.ip+":"+this.puerto+" Degradado a SECUNDARIO.");
     }
-
 }

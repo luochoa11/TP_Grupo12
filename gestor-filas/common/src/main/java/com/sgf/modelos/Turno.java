@@ -27,6 +27,10 @@ public class Turno implements Serializable {
     public String getDniCliente() {
         return dniCliente;
     }
+
+    public void setDniCliente(String dniCliente) {
+        this.dniCliente = dniCliente;
+    }
     
     public int getIdPuesto() {
         return idPuesto;

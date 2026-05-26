@@ -3,6 +3,7 @@ package com.sgf.infraestructura;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.excepciones.FilaVaciaException;
@@ -14,7 +15,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorOperador extends ManejadorBase {
 
     public ManejadorOperador(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                            ILogicaFila logica, ServidorCentral servidor) {
+                             ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -28,7 +29,11 @@ public class ManejadorOperador extends ManejadorBase {
                     int idPuesto = (int) in.readObject();
                     try {
                         Turno llamado = logica.llamarSiguiente(idPuesto);
+                        
+                        encriptarTurno(llamado);
                         out.writeObject(llamado);
+                        desencriptarTurno(llamado);
+                        
                         servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                         servidor.sincronizarEstado();
                     } catch (FilaVaciaException e) {
@@ -39,19 +44,30 @@ public class ManejadorOperador extends ManejadorBase {
                 case "REINTENTAR_LLAMADO":
                     int id = (int) in.readObject();
                     Turno reIntento = logica.reintentarLlamado(id);
-                    out.writeObject(reIntento); // null si se eliminó , el op ya lo maneja
+                    
+                    encriptarTurno(reIntento);
+                    out.writeObject(reIntento); // null si se eliminó, el op ya lo maneja
+                    desencriptarTurno(reIntento);
                     
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                     servidor.sincronizarEstado();
                     break;
                     
                 case "GET_COLA":
-                    out.writeObject(logica.getCola());
+                    List<Turno> cola = logica.getCola();
+                    
+                    encriptarLista(cola);
+                    out.writeObject(cola);
+                    desencriptarLista(cola);
                     break;
                     
                 case "GET_TURNO_PUESTO":
                     int idPuesto2 = (int) in.readObject();
-                    out.writeObject(logica.getTurnoPuesto(idPuesto2));
+                    Turno turnoPuesto = logica.getTurnoPuesto(idPuesto2);
+                    
+                    encriptarTurno(turnoPuesto);
+                    out.writeObject(turnoPuesto);
+                    desencriptarTurno(turnoPuesto);
                     break;
             }
             out.flush();

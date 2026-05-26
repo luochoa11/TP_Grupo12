@@ -4,9 +4,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.modelos.Turno;
+import com.sgf.seguridad.EstrategiaCifradoAES;
+import com.sgf.seguridad.IEncriptacionStrategy;
 
 public class ProxyRegistro implements IServicioRegistro {
 
@@ -18,6 +21,10 @@ public class ProxyRegistro implements IServicioRegistro {
 
     private final int MAX_INTENTOS = 3;
 
+    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+
+    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
     public ProxyRegistro(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
@@ -100,6 +107,9 @@ public class ProxyRegistro implements IServicioRegistro {
 
     @Override
     public void agregarTurno(Turno turno) throws DNIRepetidoException {
+        // Guardamos el DNI original para no romper el objeto local de la interfaz gráfica
+        String dniOriginal = turno.getDniCliente();
+
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -108,19 +118,25 @@ public class ProxyRegistro implements IServicioRegistro {
             out.writeObject("CLIENTE_REGISTRO");
             out.flush(); 
 
+            turno.setDniCliente(encriptador.encriptar(dniOriginal));
+
             out.writeObject("NUEVO_TURNO");
             out.writeObject(turno);
             out.flush();
 
+            turno.setDniCliente(dniOriginal);
+
             String respuesta = (String) in.readObject();
 
             if ("ERROR_DNI_REPETIDO".equals(respuesta)) {
-                throw new DNIRepetidoException(turno.getDniCliente());
+                throw new DNIRepetidoException(dniOriginal);
             }
 
         } catch (DNIRepetidoException e) {
+            turno.setDniCliente(dniOriginal);
             throw e;
         } catch (Exception e) {
+            turno.setDniCliente(dniOriginal);
             throw new RuntimeException("Error de conexión con el servidor: " + e.getMessage());
         }
     }
