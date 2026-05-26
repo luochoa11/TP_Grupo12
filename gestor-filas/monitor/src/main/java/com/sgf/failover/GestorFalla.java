@@ -44,6 +44,8 @@ public class GestorFalla {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             
+            out.writeObject("MONITOR_FALLA");
+            out.flush(); 
 
             out.writeObject("PROMOVER");
             out.flush();
