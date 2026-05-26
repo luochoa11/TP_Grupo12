@@ -87,7 +87,6 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
             } else {
                 ultimaParejaSincronizada = null; // ← cuando no hay pareja, reseteamos
             }
-
         } catch (Exception e) {
             System.err.println("[Heartbeat] Error al reportar latido al monitor: " + e.getMessage());
         }
