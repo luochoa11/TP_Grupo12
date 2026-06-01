@@ -12,6 +12,7 @@ import java.util.List;
 import com.sgf.interfaces.IPersistenciaStrategy;
 import com.sgf.modelos.Turno;
 
+@SuppressWarnings("unchecked")
 public class PersistenciaTextoPlano implements IPersistenciaStrategy {
     private final String PATH_FILA = "filaEspera.dat";
     private final String PATH_HISTORIAL = "historial.dat";
@@ -23,7 +24,7 @@ public class PersistenciaTextoPlano implements IPersistenciaStrategy {
         escribirObjeto(PATH_FILA, filaEspera);
     }
 
-    @SuppressWarnings("unchecked")
+    
     @Override
     public List<Turno> recuperarFilaEspera() throws Exception {
         return (List<Turno>) leerObjeto(PATH_FILA);
@@ -34,11 +35,10 @@ public class PersistenciaTextoPlano implements IPersistenciaStrategy {
         escribirObjeto(PATH_HISTORIAL, historial);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<Turno> recuperarHistorial() throws Exception {
         return (List<Turno>) leerObjeto(PATH_HISTORIAL);
-       
+        
     }
 
     @Override
@@ -46,7 +46,6 @@ public class PersistenciaTextoPlano implements IPersistenciaStrategy {
         escribirObjeto(PATH_TURNOS_ACTUALES, turnosActuales);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<Turno> recuperarTurnosActuales() throws Exception {
         return (List<Turno>) leerObjeto(PATH_TURNOS_ACTUALES);
