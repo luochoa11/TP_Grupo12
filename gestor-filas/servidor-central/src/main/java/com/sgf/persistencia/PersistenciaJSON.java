@@ -12,11 +12,11 @@ import com.sgf.interfaces.IPersistenciaStrategy;
 import com.sgf.modelos.Turno;
 
 public class PersistenciaJSON implements IPersistenciaStrategy {
-     private final String PATH_FILA = "filaEspera.json";
-     private final String PATH_HISTORIAL = "historial.json";
+    private final String PATH_FILA = "filaEspera.json";
+    private final String PATH_HISTORIAL = "historial.json";
      //private final String PATH_NOTIFICACIONES = "notificaciones.json";
-     private final String PATH_TURNOS_ACTUALES = "turnosActuales.json";
-     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.json";
+    private final String PATH_TURNOS_ACTUALES = "turnosActuales.json";
+    private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.json";
 
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception  {
@@ -50,7 +50,7 @@ public class PersistenciaJSON implements IPersistenciaStrategy {
 
     @Override
     public void guardarTurnosActuales(List<Turno> turnosActuales) throws Exception {
-       escribirLista(PATH_TURNOS_ACTUALES, turnosActuales);
+        escribirLista(PATH_TURNOS_ACTUALES, turnosActuales);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class PersistenciaJSON implements IPersistenciaStrategy {
 
     @Override
     public Turno recuperarUltimoLlamado() throws Exception {
-       File file = new File(PATH_ULTIMO_LLAMADO);
+        File file = new File(PATH_ULTIMO_LLAMADO);
         if (!file.exists()) return null;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String linea = br.readLine();
@@ -113,13 +113,13 @@ public class PersistenciaJSON implements IPersistenciaStrategy {
         }
         return lista;
     }
-   
+
     private String turnoToJson(Turno t) {
-       return String.format(
+        return String.format(
             "{\"dniCliente\":\"%s\", \"idPuesto\":%d, \"intentos\":%d, \"estado\":\"%s\"}",
             t.getDniCliente(), t.getIdPuesto(), t.getIntentos(), t.getEstado()
         );
-      
+    
     }
     private Turno jsonToTurno(String json) {
         String dni = extraherValorJson(json, "\"dniCliente\":\"");

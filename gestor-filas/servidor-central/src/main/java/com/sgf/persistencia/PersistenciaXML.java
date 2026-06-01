@@ -24,17 +24,17 @@ public class PersistenciaXML implements IPersistenciaStrategy {
 
     @Override
     public List<Turno> recuperarFilaEspera() throws Exception {
-       return leerLista(PATH_FILA);
+        return leerLista(PATH_FILA);
     }
 
     @Override
     public void guardarHistorial(List<Turno> historial) throws Exception {
-       escribirLista(PATH_HISTORIAL, "historial", historial);
+        escribirLista(PATH_HISTORIAL, "historial", historial);
     }
 
     @Override
     public List<Turno> recuperarHistorial() throws Exception {
-       return leerLista(PATH_HISTORIAL);
+        return leerLista(PATH_HISTORIAL);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class PersistenciaXML implements IPersistenciaStrategy {
 
     @Override
     public void guardarUltimoLlamado(Turno ultimoLlamado) throws Exception {
-       try (PrintWriter out = new PrintWriter(new FileWriter(PATH_ULTIMO_LLAMADO))) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(PATH_ULTIMO_LLAMADO))) {
             out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             if (ultimoLlamado != null) {
                 out.println("<ultimoLlamado>");

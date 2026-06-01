@@ -1,6 +1,7 @@
 package com.sgf.interfaces;
 
-import com.sgf.seguridad.IEncriptacionStrategy;
+/* Contrato de fábrica de persistencia.
+ */
 
 public interface IFactoryPersistencia {
     IPersistenciaStrategy crearPersistencia();

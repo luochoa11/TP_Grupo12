@@ -29,7 +29,7 @@ public class  ProxyAdministrador implements IServicioAdministrador{
     }
 
     /**
-     * Consulta al Directorio para conocer la IP y Puerto del Servidor Primario activo (Igual a tu ProxyRegistro)
+     * Consulta al Directorio para conocer la IP y Puerto del Servidor Primario activo
      */
     private void resolverServidor() {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);

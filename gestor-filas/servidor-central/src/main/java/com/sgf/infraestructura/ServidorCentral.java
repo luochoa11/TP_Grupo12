@@ -17,6 +17,7 @@ import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
+import com.sgf.persistencia.GestorPersistencia;
 import com.sgf.seguridad.EstrategiaCifradoAES;
 import com.sgf.seguridad.IEncriptacionStrategy;
 import com.sgf.servicios.ServidorCentralFacade;
@@ -33,11 +34,13 @@ public class ServidorCentral implements Runnable {
     private boolean esPrimario;
     private SincronizadorEstado sincronizador;
     
-    private IServicioAdministrador fachadaServidor; 
+    // Atributos de persistencia y fachada de control administrativo
+    private IServicioAdministrador fachadaServidor;
+    private GestorPersistencia gestorPersistencia;
 
     // Leemos la clave de la configuración. Si no existe, usamos "ADMIN123" como respaldo seguro.
     private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
-                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+                                    ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
 
     private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
@@ -49,7 +52,8 @@ public class ServidorCentral implements Runnable {
         this.sincronizador = sincronizador;
 
         // aquí se instancian los subsistemas y se inicializa la fachada
-        this.fachadaServidor = new ServidorCentralFacade();
+        this.gestorPersistencia = new GestorPersistencia("JSON"); //por defecto
+        this.fachadaServidor = new ServidorCentralFacade(this.gestorPersistencia, this.logica);
     }
 
     public IEncriptacionStrategy getEncriptador() {
