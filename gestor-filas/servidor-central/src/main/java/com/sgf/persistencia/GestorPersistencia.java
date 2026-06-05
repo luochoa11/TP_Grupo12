@@ -2,12 +2,11 @@ package com.sgf.persistencia;
 
 import java.util.List;
 
-import com.sgf.interfaces.IFactoryPersistencia;
-import com.sgf.interfaces.IPersistenciaStrategy;
 import com.sgf.modelos.Turno;
 
 /**
- * Gestor del Servidor Central encargado de encapsular la fábrica activa.
+ * Gestor del Servidor Central encargado de administrar qué familia de 
+ * persistencia se encuentra activa en caliente.
  */
 public class GestorPersistencia {
 
@@ -19,71 +18,68 @@ public class GestorPersistencia {
     }
 
     /**
-     * Intercambia la fábrica concreta en caliente.
+     * Reconfigura la fábrica concreta activa en tiempo de ejecución.
      */
     public synchronized void establecerFormato(String formato) {
         this.formatoActivo = formato.toUpperCase();
         switch (this.formatoActivo) {
             case "XML":
-                this.factoryActiva = new FactoryPersistenciaXML();
+                this.factoryActiva = new FactoryXML();
                 break;
             case "TXT":
-                this.factoryActiva = new FactoryPersistenciaTextoPlano();
+                this.factoryActiva = new FactoryPlain();
                 break;
             case "JSON":
             default:
-                this.factoryActiva = new FactoryPersistenciaJSON();
+                this.factoryActiva = new FactoryJSON();
                 this.formatoActivo = "JSON"; // Sanitizar fallback
                 break;
         }
-        System.out.println("[GestorPersistencia] Abstract Factory configurada con éxito: " + this.formatoActivo);
+        System.out.println("[GestorPersistencia] Fabrica configurada con éxito: " + this.formatoActivo);
     }
 
     public synchronized String getFormatoActivo() {
         return this.formatoActivo;
     }
 
-    /**
-     * Método privado para obtener el producto abstracto creado por la fábrica activa actualmente.
-     */
-    private IPersistenciaStrategy getStrategy() {
-        return factoryActiva.crearPersistencia();
-    }
-
     
     // =========================================================================
-    // Métodos de Delegación del Producto Abstracto
+    // Métodos de Delegación de la Familia Activa
     // =========================================================================
 
-    public synchronized void guardarFilaEspera(List<Turno> filaEspera) throws Exception {
-        getStrategy().guardarFilaEspera(filaEspera);
+    public synchronized void guardarFilaEspera(List<Turno> fila) throws Exception {
+        //Fabricamos el escritor de la familia activa
+        IPersistenciaEscritor escritor = factoryActiva.crearEscritor();
+        //Ejecutamos la persistencia sin saber si es JSON, XML o TXT
+        escritor.guardarFilaEspera(fila);
     }
 
     public synchronized List<Turno> recuperarFilaEspera() throws Exception {
-        return getStrategy().recuperarFilaEspera();
+        IPersistenciaLector lector = factoryActiva.crearLector();
+        return lector.recuperarFilaEspera();
     }
 
     public synchronized void guardarHistorial(List<Turno> historial) throws Exception {
-        getStrategy().guardarHistorial(historial);
+        factoryActiva.crearEscritor().guardarHistorial(historial);
     }
 
     public synchronized List<Turno> recuperarHistorial() throws Exception {
-        return getStrategy().recuperarHistorial();
+        return factoryActiva.crearLector().recuperarHistorial();
     }
 
     public synchronized void guardarTurnosActuales(List<Turno> turnosActuales) throws Exception {
-        getStrategy().guardarTurnosActuales(turnosActuales);
+        factoryActiva.crearEscritor().guardarTurnosActuales(turnosActuales);
     }
 
     public synchronized List<Turno> recuperarTurnosActuales() throws Exception {
-        return getStrategy().recuperarTurnosActuales();
+        return factoryActiva.crearLector().recuperarTurnosActuales();
     }
 
     public synchronized void guardarUltimoLlamado(Turno ultimoLlamado) throws Exception {
-        getStrategy().guardarUltimoLlamado(ultimoLlamado);
+        factoryActiva.crearEscritor().guardarUltimoLlamado(ultimoLlamado);
     }
 
     public synchronized Turno recuperarUltimoLlamado() throws Exception {
-        return getStrategy().recuperarUltimoLlamado();
+        return factoryActiva.crearLector().recuperarUltimoLlamado();
     }
 }

@@ -6,12 +6,9 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.FilaVaciaException;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.modelos.Turno;
-import com.sgf.seguridad.EstrategiaCifradoAES;
-import com.sgf.seguridad.IEncriptacionStrategy;
 
 public class ProxyOperador implements IServicioOperador{
     private final String directorioIp;
@@ -23,10 +20,10 @@ public class ProxyOperador implements IServicioOperador{
 
     private final int MAX_INTENTOS = 3;
 
-    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
-                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+    //private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+    //                                ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
 
-    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
+    //private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
     public ProxyOperador(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
@@ -125,7 +122,7 @@ public class ProxyOperador implements IServicioOperador{
             if ("ERROR_FILA_VACIA".equals(respuesta)) throw new FilaVaciaException();
             
             Turno turnoLlamado = (Turno) respuesta;
-            desencriptarTurno(turnoLlamado);
+            //desencriptarTurno(turnoLlamado);
             return turnoLlamado;
 
         } catch (FilaVaciaException e) {
@@ -153,7 +150,7 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof Turno) {
                 Turno turnoReintento = (Turno) respuesta;
-                desencriptarTurno(turnoReintento);
+                //desencriptarTurno(turnoReintento);
                 return turnoReintento;
             }
 
@@ -183,7 +180,7 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof List) {
                 List<Turno> cola = (List<Turno>) respuesta;
-                desencriptarLista(cola); // Desencriptamos la cola completa
+                //desencriptarLista(cola); // Desencriptamos la cola completa
                 return cola;
             }
             if (respuesta == null)          return Collections.emptyList();
@@ -214,7 +211,7 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof Turno) {
                 Turno turnoPuesto = (Turno) respuesta;
-                desencriptarTurno(turnoPuesto); // Desencriptamos
+                //desencriptarTurno(turnoPuesto); // Desencriptamos
                 return turnoPuesto;
             }
             if (respuesta == null)          return null;
@@ -229,16 +226,16 @@ public class ProxyOperador implements IServicioOperador{
     }
     
     // --- Helpers Privados de Seguridad ---
-    private void desencriptarTurno(Turno t) {
-        if (t != null && t.getDniCliente() != null) {
-            t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-        }
-    }
+    //private void desencriptarTurno(Turno t) {
+    //    if (t != null && t.getDniCliente() != null) {
+    //        t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+    //    }
+    //}
 
-    private void desencriptarLista(List<Turno> lista) {
-        if (lista != null) {
-            for (Turno t : lista) desencriptarTurno(t);
-        }
-    }
+    //private void desencriptarLista(List<Turno> lista) {
+    //    if (lista != null) {
+    //        for (Turno t : lista) desencriptarTurno(t);
+    //    }
+    //}
     // -------------------------------------
 }

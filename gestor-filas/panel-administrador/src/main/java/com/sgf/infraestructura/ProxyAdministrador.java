@@ -179,17 +179,15 @@ public class  ProxyAdministrador implements IServicioAdministrador{
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
             
-            // 1. Handshake ruteador
             out.writeObject("CLIENTE_ADMINISTRADOR");
             out.flush();
 
-            // 2. Consulta única consolidada
             out.writeObject("GET_CONFIG_COMPLETA");
             out.flush();
 
             return (String[]) in.readObject();
         } catch (Exception e) {
-            System.err.println("[ProxyAdministrador] Error en consulta consolidada: " + e.getMessage());
+            System.err.println("[ProxyAdministrador] Error en consulta: " + e.getMessage());
             return new String[] {"JSON", "AES-128", "SeguridadSGF2026"}; // Fallback seguro
         }
     }

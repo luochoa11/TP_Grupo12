@@ -22,7 +22,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     public ServidorCentralFacade(GestorPersistencia gestorPersistencia, ILogicaFila logicaFila) {
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
-        System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada con dependencias reales.");
+        System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada.");
     }
 
     @Override

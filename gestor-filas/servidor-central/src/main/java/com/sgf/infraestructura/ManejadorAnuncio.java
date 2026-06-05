@@ -34,15 +34,15 @@ public class ManejadorAnuncio extends ManejadorBase {
                 Turno ultimo = logica.getUltimoLlamado();
                 List<Turno> historial = logica.getHistorial();
                 
-                encriptarTurno(ultimo);
-                encriptarLista(historial);
+                //encriptarTurno(ultimo);
+                //encriptarLista(historial);
                 
                 out.writeObject(ultimo);
                 out.writeObject(historial);
                 out.flush();
                 
-                desencriptarTurno(ultimo);
-                desencriptarLista(historial);
+                //desencriptarTurno(ultimo);
+                //desencriptarLista(historial);
             }
         } catch (Exception e) {
             System.out.println("[ManejadorMonitor] Pantalla de sala desconectada.");
