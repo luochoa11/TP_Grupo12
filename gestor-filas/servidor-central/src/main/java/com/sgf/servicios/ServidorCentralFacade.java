@@ -3,23 +3,28 @@ package com.sgf.servicios;
 import java.util.ArrayList;
 
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.infraestructura.ServidorCentral;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
+import com.sgf.seguridad.EstrategiaCifradoAES;
+import com.sgf.seguridad.IEncriptacionStrategy;
 
 /**
  * Fachada Concreta que orquesta de forma simplificada los subsistemas del servidor.
  */
 public class ServidorCentralFacade implements IServicioAdministrador {
 
+    private final ServidorCentral servidorCentral;
     private final GestorPersistencia gestorPersistencia;
     private final ILogicaFila logicaFila;
 
-    //simulacion el estado de los subsistemas, modificar cuando se implemente SEGURIDAD
-    private String algoritmoCifrado = "AES-128";
-    private String claveSecreta = "SeguridadSGF2026";
+    //El sistema está bloqueado hasta que el admin aplique la config.
+    private String algoritmoCifrado = null;
+    private String claveSecreta = null;
 
-    public ServidorCentralFacade(GestorPersistencia gestorPersistencia, ILogicaFila logicaFila) {
+    public ServidorCentralFacade(ServidorCentral servidorCentral, GestorPersistencia gestorPersistencia, ILogicaFila logicaFila) {
+        this.servidorCentral = servidorCentral;
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
         System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada.");
@@ -29,11 +34,8 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     public boolean cambiarFormatoPersistencia(String tipoFormato) {
         System.out.println("[FACADE-SERVIDOR] Cambio de formato de persistencia solicitado -> Formato: " + tipoFormato);
         try {
-            // 1. Mutar la fábrica activa
             gestorPersistencia.establecerFormato(tipoFormato);
 
-            // 2. Ejecutar migración en caliente en un solo paso transaccional
-            // Guardamos el estado actual que el servidor tiene en memoria RAM en el nuevo formato físico de archivos
             gestorPersistencia.guardarFilaEspera(logicaFila.getCola());
             gestorPersistencia.guardarHistorial(logicaFila.getHistorial());
 
@@ -60,29 +62,44 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     @Override
     public boolean actualizarConfiguracionSeguridad(String algoritmo, String claveSecreta) {
         System.out.println("[FACADE-SERVIDOR] Configuración de seguridad solicitada -> Algoritmo: " + algoritmo + " | Clave: " + claveSecreta);
-        // Aquí es donde se actualizará el Strategy de encriptado real
-        this.algoritmoCifrado = algoritmo;
-        this.claveSecreta = claveSecreta;
-        return true;
+        try {
+            this.algoritmoCifrado = algoritmo;
+            this.claveSecreta = claveSecreta;
+
+            IEncriptacionStrategy nuevaEstrategia;
+            
+            if ("AES-128".equalsIgnoreCase(algoritmo) || algoritmo.contains("AES")) {
+                nuevaEstrategia = new EstrategiaCifradoAES(claveSecreta);
+            } else {
+                nuevaEstrategia = new EstrategiaCifradoAES(claveSecreta);
+            }
+
+            this.servidorCentral.setEncriptador(nuevaEstrategia);
+            
+            System.out.println("[FACADE-SERVIDOR] Nueva política de encriptación aplicada en memoria activa.");
+            return true;
+        } catch (Exception e) {
+            System.err.println("[FACADE-SERVIDOR] Error al cambiar la estrategia de encriptación: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public String getAlgoritmoCifradoActivo() {
-        return this.algoritmoCifrado;
+        return this.algoritmoCifrado != null ? this.algoritmoCifrado : "SIN_CONFIGURAR";
     }
 
     @Override
     public String getClaveSecretaActiva() {
-        return this.claveSecreta;
+        return this.claveSecreta != null ? this.claveSecreta : "SISTEMA_BLOQUEADO";
     }
 
     @Override
     public String[] obtenerConfiguracionCompleta() {
-        // Retorna los tres valores de configuración en un solo viaje
         return new String[] {
             gestorPersistencia.getFormatoActivo(),
-            this.algoritmoCifrado,
-            this.claveSecreta
+            this.algoritmoCifrado != null ? this.algoritmoCifrado : "SIN_CONFIGURAR",
+            this.claveSecreta != null ? this.claveSecreta : "SISTEMA_BLOQUEADO"
         };
     }
 }

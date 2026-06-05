@@ -17,6 +17,7 @@ import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
+import com.sgf.seguridad.IEncriptacionStrategy;
 import com.sgf.servicios.ServidorCentralFacade;
 
 /**
@@ -35,11 +36,7 @@ public class ServidorCentral implements Runnable {
     private IServicioAdministrador fachadaServidor;
     private GestorPersistencia gestorPersistencia;
 
-    // Leemos la clave de la configuración. Si no existe, usamos "ADMIN123" como respaldo seguro.
-    //private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
-    //                                ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
-
-    //private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
+    private IEncriptacionStrategy encriptador = null;
 
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
@@ -50,16 +47,17 @@ public class ServidorCentral implements Runnable {
 
         // aquí se instancian los subsistemas y se inicializa la fachada
         this.gestorPersistencia = new GestorPersistencia("JSON"); //por defecto
-        this.fachadaServidor = new ServidorCentralFacade(this.gestorPersistencia, this.logica);
+        // IMPORTANTE: Le pasamos 'this' para que la fachada pueda setearle el encriptador después
+        this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
     }
 
-    //public IEncriptacionStrategy getEncriptador() {
-    //    return encriptador;
-    //}
+    public IEncriptacionStrategy getEncriptador() {
+        return encriptador;
+    }
 
-    //public void setEncriptador(IEncriptacionStrategy nuevoEncriptador) {
-    //    this.encriptador = nuevoEncriptador;
-    //}
+    public void setEncriptador(IEncriptacionStrategy nuevoEncriptador) {
+        this.encriptador = nuevoEncriptador;
+    }
 
     @Override
     public void run() {
@@ -130,11 +128,13 @@ public class ServidorCentral implements Runnable {
 
     public void notificarMonitores(Turno actual, List<Turno> historial) {
         synchronized (monitores) {
+            
+            if (encriptador == null) throw new RuntimeException("SISTEMA BLOQUEADO: Seguridad no configurada.");
 
-            //if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
-            //if (historial != null) {
-            //    for (Turno t : historial) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
-            //}
+            if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
+            if (historial != null) {
+                for (Turno t : historial) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
+            }
 
             Iterator<ObjectOutputStream> it = monitores.iterator();
 
@@ -150,10 +150,10 @@ public class ServidorCentral implements Runnable {
                 }
             }
             
-            //if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
-            //if (historial != null) {
-            //    for (Turno t : historial) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-            //}
+            if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
+            if (historial != null) {
+                for (Turno t : historial) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+            }
         }
     }
     
@@ -165,20 +165,22 @@ public class ServidorCentral implements Runnable {
             try {
                 Turno actual = logica.getTurnoPuesto(id);
                 List<Turno> cola = logica.getCola();
+                
+                if (encriptador == null) throw new RuntimeException("SISTEMA BLOQUEADO: Seguridad no configurada.");
 
-                //if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
-                //if (cola != null) {
-                //    for (Turno t : cola) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
-                //}
+                if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
+                if (cola != null) {
+                    for (Turno t : cola) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
+                }
 
                 out.writeObject(actual);
                 out.writeObject(cola);
                 out.flush();
 
-                //if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
-                //if (cola != null) {
-                //    for (Turno t : cola) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-                //}
+                if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
+                if (cola != null) {
+                    for (Turno t : cola) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
+                }
 
             } catch (Exception e) {
                 operadores.remove(id);
