@@ -28,7 +28,7 @@ public class ServidorCentral implements Runnable {
     private String ip;
     private ILogicaFila logica;
     private List<ObjectOutputStream> monitores = Collections.synchronizedList(new ArrayList<>());
-    Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>(); //esto sigue?
+    Map<Integer, ObjectOutputStream> operadores = new ConcurrentHashMap<>(); 
     private boolean esPrimario;
     private SincronizadorEstado sincronizador;
     
@@ -45,9 +45,7 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
 
-        // aquí se instancian los subsistemas y se inicializa la fachada
-        this.gestorPersistencia = new GestorPersistencia("JSON"); //por defecto
-        // IMPORTANTE: Le pasamos 'this' para que la fachada pueda setearle el encriptador después
+        this.gestorPersistencia = new GestorPersistencia("JSON"); 
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
     }
 
@@ -58,6 +56,10 @@ public class ServidorCentral implements Runnable {
     public void setEncriptador(IEncriptacionStrategy nuevoEncriptador) {
         this.encriptador = nuevoEncriptador;
     }
+    
+    public IServicioAdministrador getFachada() {
+        return this.fachadaServidor;
+    }
 
     @Override
     public void run() {
@@ -67,13 +69,11 @@ public class ServidorCentral implements Runnable {
             while (true) {
                 Socket socketCliente = server.accept();
                 
-                // Hilo despachador (Dispatcher) rápido encargado del Handshake
                 new Thread(() -> {
                     try {
                         ObjectOutputStream out = new ObjectOutputStream(socketCliente.getOutputStream());
                         ObjectInputStream in = new ObjectInputStream(socketCliente.getInputStream());
                         
-                        //Leemos el saludo de identificación
                         String saludo = (String) in.readObject();
                         System.out.println("[Servidor] Conexión entrante con saludo: " + saludo);
                         
@@ -85,7 +85,6 @@ public class ServidorCentral implements Runnable {
                             return;
                         }
 
-                        // Despachamos al hilo específico pasándole los streams ya abiertos
                         switch (saludo) {
                             case "CLIENTE_REGISTRO":
                                 new Thread(new ManejadorRegistro(socketCliente, in, out, logica, this)).start();
@@ -116,7 +115,7 @@ public class ServidorCentral implements Runnable {
             }
         }catch(BindException e){
             System.err.println("Error: El puerto " + puerto + " ya está en uso.");
-    }catch(Exception e){
+        }catch(Exception e){
             System.err.println("Error en el Servidor Central: " + e.getMessage());
             e.printStackTrace();
         }
@@ -141,12 +140,12 @@ public class ServidorCentral implements Runnable {
             while (it.hasNext()) {
                 ObjectOutputStream out = it.next();
                 try {
-                    out.reset();  // LIMPIA LA CACHE DEL STREAM PARA ENVIAR DATOS NUEVOS
+                    out.reset();  
                     out.writeObject(actual);
                     out.writeObject(historial);
                     out.flush();
                 } catch (Exception e) {
-                    it.remove(); // cliente muerto
+                    it.remove(); 
                 }
             }
             
@@ -157,7 +156,7 @@ public class ServidorCentral implements Runnable {
         }
     }
     
-    public void notificarOperadores() { //esto sigue?
+    public void notificarOperadores() { 
         for (Map.Entry<Integer, ObjectOutputStream> entry : operadores.entrySet()) {
             int id = entry.getKey();
             ObjectOutputStream out = entry.getValue();
@@ -195,10 +194,14 @@ public class ServidorCentral implements Runnable {
     public void promoverEstado() {
         this.esPrimario = true;
         System.out.println("[Servidor] " + this.ip + ":" + this.puerto + " Promovido a PRIMARIO.");
+        
+        if (this.fachadaServidor instanceof ServidorCentralFacade) {
+            ((ServidorCentralFacade) this.fachadaServidor).cargarSeguridadDesdeDisco();
+        }
     }
 
     public void sincronizarEstado() {
-        if (esPrimario && sincronizador != null) { // el primario le manda la fila al secundario para que se sincronice
+        if (esPrimario && sincronizador != null) { 
             sincronizador.sincronizar();
         }
     }

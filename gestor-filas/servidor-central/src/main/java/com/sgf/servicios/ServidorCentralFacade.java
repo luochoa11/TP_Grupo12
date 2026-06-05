@@ -1,5 +1,9 @@
 package com.sgf.servicios;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import com.sgf.aplicacion.ILogicaFila;
@@ -19,7 +23,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     private final GestorPersistencia gestorPersistencia;
     private final ILogicaFila logicaFila;
 
-    //El sistema está bloqueado hasta que el admin aplique la config.
+    // El sistema está bloqueado hasta que el admin aplique la config.
     private String algoritmoCifrado = null;
     private String claveSecreta = null;
 
@@ -27,7 +31,34 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         this.servidorCentral = servidorCentral;
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
+        
+        // Al arrancar o reiniciar, intentamos recuperar la seguridad guardada.
+        cargarSeguridadDesdeDisco();
+        
         System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada.");
+    }
+
+    public void cargarSeguridadDesdeDisco() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("seguridad.dat"))) {
+            this.algoritmoCifrado = reader.readLine();
+            this.claveSecreta = reader.readLine();
+            
+            if (this.claveSecreta != null && !this.claveSecreta.isEmpty()) {
+                this.servidorCentral.setEncriptador(new EstrategiaCifradoAES(this.claveSecreta));
+                System.out.println("[FACADE-SERVIDOR] Clave de seguridad recuperada exitosamente desde disco.");
+            }
+        } catch (Exception e) {
+            System.out.println("[FACADE-SERVIDOR] No se encontró clave previa. El sistema arranca bloqueado.");
+        }
+    }
+
+    private void persistirSeguridadEnDisco(String algoritmo, String clave) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("seguridad.dat"))) {
+            writer.println(algoritmo);
+            writer.println(clave);
+        } catch (Exception e) {
+            System.err.println("[FACADE-SERVIDOR] Error persistiendo la seguridad en disco.");
+        }
     }
 
     @Override
@@ -76,7 +107,10 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
             this.servidorCentral.setEncriptador(nuevaEstrategia);
             
-            System.out.println("[FACADE-SERVIDOR] Nueva política de encriptación aplicada en memoria activa.");
+            // Guardamos la configuración en disco
+            persistirSeguridadEnDisco(algoritmo, claveSecreta);
+            
+            System.out.println("[FACADE-SERVIDOR] Nueva política de encriptación aplicada en memoria activa y guardada en disco.");
             return true;
         } catch (Exception e) {
             System.err.println("[FACADE-SERVIDOR] Error al cambiar la estrategia de encriptación: " + e.getMessage());
