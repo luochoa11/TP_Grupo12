@@ -4,12 +4,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.modelos.Turno;
-import com.sgf.seguridad.EstrategiaCifradoAES;
-import com.sgf.seguridad.IEncriptacionStrategy;
+//import com.sgf.seguridad.EstrategiaCifradoAES;
+//import com.sgf.seguridad.IEncriptacionStrategy;
 
 public class ProxyRegistro implements IServicioRegistro {
 
@@ -21,10 +20,10 @@ public class ProxyRegistro implements IServicioRegistro {
 
     private final int MAX_INTENTOS = 3;
 
-    private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
-                                     ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
+    //private String clavePorDefecto = ConfiguracionRed.get("seguridad.clave") != null ? 
+    //                                ConfiguracionRed.get("seguridad.clave") : "ADMIN123";
 
-    private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
+    //private IEncriptacionStrategy encriptador = new EstrategiaCifradoAES(clavePorDefecto);
 
     public ProxyRegistro(String directorioIp, int directorioPuerto) {
         this.directorioIp     = directorioIp;
@@ -118,7 +117,7 @@ public class ProxyRegistro implements IServicioRegistro {
             out.writeObject("CLIENTE_REGISTRO");
             out.flush(); 
 
-            turno.setDniCliente(encriptador.encriptar(dniOriginal));
+            //turno.setDniCliente(encriptador.encriptar(dniOriginal));
 
             out.writeObject("NUEVO_TURNO");
             out.writeObject(turno);

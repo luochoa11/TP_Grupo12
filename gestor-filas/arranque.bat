@@ -29,6 +29,13 @@ start "Servidor Secundario " cmd /k "cd /d %ROOT%servidor-central && java -cp ta
 
 timeout /t 2 > nul
 
+
+REM =====================================
+REM Panel Administrador (Vía JAR empaquetado de producción)
+REM =====================================
+start "Panel Administrador" cmd /k "cd /d %ROOT%panel-administrador && java -cp target\classes;..\common\target\classes com.sgf.MainAdministrador"
+timeout /t 1 > nul
+
 REM =====================================
 REM Operador 1
 REM =====================================
