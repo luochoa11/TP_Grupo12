@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.disponibilidad.ActualizacionEstadoDTO;
 import com.sgf.excepciones.FilaVaciaException;
 import com.sgf.modelos.Turno;
 
@@ -15,7 +16,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorOperador extends ManejadorBase {
 
     public ManejadorOperador(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                             ILogicaFila logica, ServidorCentral servidor) {
+                            ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -28,14 +29,23 @@ public class ManejadorOperador extends ManejadorBase {
                 case "LLAMAR_SIGUIENTE":
                     int idPuesto = (int) in.readObject();
                     try {
-                        Turno llamado = logica.llamarSiguiente(idPuesto);
+                        Turno llamado;
+                        synchronized(logica){ //para que la mutación y la persistencia sean una sola operación atómica
+                            llamado = logica.llamarSiguiente(idPuesto);
+                            servidor.persistirEstadoActivo();
+                        }
                         
                         encriptarTurno(llamado);
                         out.writeObject(llamado);
                         desencriptarTurno(llamado);
                         
                         servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
-                        servidor.sincronizarEstado();
+                        
+                        //Envío del cambio a serv secundario
+                        if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                            ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("LLAMAR", llamado, idPuesto);
+                            servidor.getSincronizador().sincronizarDelta(delta);
+                        }
                     } catch (FilaVaciaException e) {
                         out.writeObject("ERROR_FILA_VACIA");
                     }
@@ -43,14 +53,23 @@ public class ManejadorOperador extends ManejadorBase {
                     
                 case "REINTENTAR_LLAMADO":
                     int id = (int) in.readObject();
-                    Turno reIntento = logica.reintentarLlamado(id);
+                    Turno reIntento;
+                    synchronized(logica){
+                        reIntento = logica.reintentarLlamado(id);
+                        servidor.persistirEstadoActivo();
+                    }
                     
                     encriptarTurno(reIntento);
                     out.writeObject(reIntento); // null si se eliminó, el op ya lo maneja
                     desencriptarTurno(reIntento);
                     
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
-                    servidor.sincronizarEstado();
+                    
+                    if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                        ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("REINTENTAR", reIntento, id);
+                        servidor.getSincronizador().sincronizarDelta(delta);
+                    }
+                    
                     break;
                     
                 case "GET_COLA":
