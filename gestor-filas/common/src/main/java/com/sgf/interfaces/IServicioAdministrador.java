@@ -14,5 +14,5 @@ public interface IServicioAdministrador {
     String getAlgoritmoCifradoActivo();
     String getClaveSecretaActiva();
     String[] obtenerConfiguracionCompleta();
-
+    String[] getAlgoritmosDisponibles();
 }

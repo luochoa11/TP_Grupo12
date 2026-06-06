@@ -35,7 +35,7 @@ public class ManejadorOperador extends ManejadorBase {
                             servidor.persistirEstadoActivo();
                         }
                         
-                        out.writeObject(llamado);
+                        out.writeObject(servidor.copiarYEncriptar(llamado));
                         
                         servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                         
@@ -57,7 +57,7 @@ public class ManejadorOperador extends ManejadorBase {
                         servidor.persistirEstadoActivo();
                     }
                     
-                    out.writeObject(reIntento); // null si se eliminó, el op ya lo maneja
+                    out.writeObject(servidor.copiarYEncriptar(reIntento)); // null si se eliminó, el op ya lo maneja
                     
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                     
@@ -69,14 +69,12 @@ public class ManejadorOperador extends ManejadorBase {
                     break;
                     
                 case "GET_COLA":
-                    List<Turno> cola = logica.getCola();
-                    out.writeObject(cola);
+                    out.writeObject(servidor.copiarYEncriptarLista(logica.getCola()));
                     break;
                     
                 case "GET_TURNO_PUESTO":
                     int idPuesto2 = (int) in.readObject();
-                    Turno turnoPuesto = logica.getTurnoPuesto(idPuesto2);
-                    out.writeObject(turnoPuesto);
+                    out.writeObject(servidor.copiarYEncriptar(logica.getTurnoPuesto(idPuesto2)));
                     break;
             }
             out.flush();

@@ -191,4 +191,22 @@ public class  ProxyAdministrador implements IServicioAdministrador{
             return new String[] {"JSON", "AES-128", "SeguridadSGF2026"}; // Fallback seguro
         }
     }
+
+    @Override
+    public String[] getAlgoritmosDisponibles() {
+    try (Socket socket = conectarConFallback();
+        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+        
+        out.writeObject("CLIENTE_ADMINISTRADOR");
+        out.flush();
+        out.writeObject("GET_ALGORITMOS");
+        out.flush();
+
+        return (String[]) in.readObject();
+        } catch (Exception e) {
+        return new String[] { "AES", "DES", "XOR" }; // fallback
+        }
+    }
+
 }

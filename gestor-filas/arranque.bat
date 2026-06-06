@@ -15,12 +15,12 @@ start "Monitor" cmd /k "cd /d %ROOT%monitor && java -cp target\classes;..\common
 timeout /t 2 /nobreak > nul
 
 REM =====================================
-REM Servidores Centrales (CORREGIDO)
+REM Servidores Centrales
 REM =====================================
-start "Servidor Primario" cmd /k "cd /d %ROOT%servidor-central && java -cp target\classes;..\common\target\classes com.sgf.MainServidor 8000"
+start "Servidor A" cmd /k "cd /d %ROOT%servidor-central && java -cp target\classes;..\common\target\classes com.sgf.MainServidor 8000"
 timeout /t 2 /nobreak > nul
 
-start "Servidor Secundario" cmd /k "cd /d %ROOT%servidor-central && java -cp target\classes;..\common\target\classes com.sgf.MainServidor 9000"
+start "Servidor B" cmd /k "cd /d %ROOT%servidor-central && java -cp target\classes;..\common\target\classes com.sgf.MainServidor 9000"
 timeout /t 2 /nobreak > nul
 
 REM =====================================

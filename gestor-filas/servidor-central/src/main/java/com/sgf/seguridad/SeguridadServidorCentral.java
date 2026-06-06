@@ -63,12 +63,15 @@ public class SeguridadServidorCentral {
      */
     private void modificarArchivoProperties(String nuevaClave, String nuevoAlgoritmo) {
         String[] rutas = {
-            "common/src/main/resources/config.properties",
-            "common/target/classes/config.properties"
+            "../common/src/main/resources/config.properties",
+            "../common/target/classes/config.properties"
         };
 
         for (String ruta : rutas) {
             File archivo = new File(ruta);
+
+            System.out.println("[SeguridadServidor] Buscando en: " + archivo.getAbsolutePath() + " -> existe: " + archivo.exists());
+
             if (archivo.exists()) {
                 try {
                     List<String> lineas = Files.readAllLines(archivo.toPath());

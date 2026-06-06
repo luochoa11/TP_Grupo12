@@ -86,4 +86,9 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             this.servidorCentral.getClaveSeguridad()
         };
     }
+
+    @Override
+    public String[] getAlgoritmosDisponibles() {
+        return new String[] { "AES", "DES", "XOR" };
+    }
 }
