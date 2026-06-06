@@ -14,9 +14,10 @@ public class SeguridadOperador {
 
     public SeguridadOperador() {
         String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
         
         if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            this.encriptador = new EstrategiaCifradoAES(claveConfigurada);
+            this.encriptador = ProveedorEstrategiaCifrado.crear(algoritmo, claveConfigurada);
             System.out.println("[SeguridadOperador] Componente inicializado con clave local.");
         } else {
             this.encriptador = null;

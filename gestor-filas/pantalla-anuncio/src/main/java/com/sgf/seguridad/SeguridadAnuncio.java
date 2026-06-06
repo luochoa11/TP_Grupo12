@@ -10,9 +10,10 @@ public class SeguridadAnuncio {
 
     public SeguridadAnuncio() {
         String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
         
         if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            this.encriptador = new EstrategiaCifradoAES(claveConfigurada);
+            this.encriptador = ProveedorEstrategiaCifrado.crear(algoritmo, claveConfigurada);
         } else {
             this.encriptador = null;
         }

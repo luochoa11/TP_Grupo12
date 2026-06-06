@@ -12,9 +12,10 @@ public class SeguridadRegistro {
 
     public SeguridadRegistro() {
         String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
         
         if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            this.encriptador = new EstrategiaCifradoAES(claveConfigurada);
+            this.encriptador = ProveedorEstrategiaCifrado.crear(algoritmo, claveConfigurada);
             System.out.println("[Seguridad] Componente inicializado con clave local.");
         } else {
             this.encriptador = null;

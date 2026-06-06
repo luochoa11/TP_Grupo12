@@ -26,10 +26,12 @@ public class SeguridadServidorCentral {
      */
     public void cargarClaveDesdeProperties() {
         String clave = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
+        this.algoritmoActivo = algoritmo != null ? algoritmo : "AES";
         
         if (clave != null && !clave.isEmpty()) {
             this.claveActiva = clave;
-            this.encriptador = new EstrategiaCifradoAES(clave);
+            this.encriptador = ProveedorEstrategiaCifrado.crear(this.algoritmoActivo, this.claveActiva);
             System.out.println("[SeguridadServidor] Clave local cargada desde config.properties.");
         } else {
             System.err.println("[SeguridadServidor] No se encontró clave. El servidor arranca bloqueado.");
@@ -44,10 +46,10 @@ public class SeguridadServidorCentral {
         try {
             this.algoritmoActivo = algoritmo;
             this.claveActiva = claveSecreta;
-            this.encriptador = new EstrategiaCifradoAES(claveSecreta);
-            
+            this.encriptador = ProveedorEstrategiaCifrado.crear(this.algoritmoActivo, this.claveActiva);
+
             // Magia: Modificamos el archivo físico
-            modificarArchivoProperties(claveSecreta);
+            modificarArchivoProperties(claveSecreta, algoritmo);
             
             return true;
         } catch (Exception e) {
@@ -59,7 +61,7 @@ public class SeguridadServidorCentral {
     /**
      * Busca el archivo config.properties, ubica la línea de la clave y la sobreescribe.
      */
-    private void modificarArchivoProperties(String nuevaClave) {
+    private void modificarArchivoProperties(String nuevaClave, String nuevoAlgoritmo) {
         String[] rutas = {
             "common/src/main/resources/config.properties",
             "common/target/classes/config.properties"
@@ -70,22 +72,32 @@ public class SeguridadServidorCentral {
             if (archivo.exists()) {
                 try {
                     List<String> lineas = Files.readAllLines(archivo.toPath());
-                    boolean modificada = false;
+                    boolean claveModificada = false;
+                    boolean algoritmoModificado = false;
                     
                     for (int i = 0; i < lineas.size(); i++) {
                         if (lineas.get(i).trim().startsWith("seguridad.clave")) {
                             lineas.set(i, "seguridad.clave=" + nuevaClave);
-                            modificada = true;
-                            break;
+                            claveModificada = true;
+                        }
+                        if (lineas.get(i).trim().startsWith("seguridad.algoritmo")) {
+                            lineas.set(i, "seguridad.algoritmo=" + nuevoAlgoritmo);
+                            algoritmoModificado = true;
                         }
                     }
                     
-                    if (!modificada) {
+                    if (!claveModificada) {
                         lineas.add("seguridad.clave=" + nuevaClave);
                     }
                     
+                    if (!algoritmoModificado) {
+                        lineas.add("seguridad.algoritmo=" + nuevoAlgoritmo);
+                    }
+
                     Files.write(archivo.toPath(), lineas);
                     System.out.println("[SeguridadServidor] Archivo de configuración actualizado con éxito en: " + ruta);
+                       
+                    
                     
                 } catch (Exception e) {
                     System.err.println("[SeguridadServidor] Advertencia: No se pudo modificar el archivo en " + ruta);
