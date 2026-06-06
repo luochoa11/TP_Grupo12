@@ -4,12 +4,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.modelos.Turno;
-import com.sgf.seguridad.EstrategiaCifradoAES;
-import com.sgf.seguridad.IEncriptacionStrategy;
+import com.sgf.seguridad.SeguridadRegistro;
 
 public class ProxyRegistro implements IServicioRegistro {
 
@@ -20,13 +18,13 @@ public class ProxyRegistro implements IServicioRegistro {
     private int    puertoServidor;
 
     private final int MAX_INTENTOS = 3;
+    
+    private final SeguridadRegistro seguridad;
 
-    private String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
-    private IEncriptacionStrategy encriptador = claveConfigurada != null ? new EstrategiaCifradoAES(claveConfigurada) : null;
-
-    public ProxyRegistro(String directorioIp, int directorioPuerto) {
+    public ProxyRegistro(String directorioIp, int directorioPuerto, SeguridadRegistro seguridad) {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
+        this.seguridad        = seguridad;
         resolverServidor();
     }
 
@@ -83,35 +81,9 @@ public class ProxyRegistro implements IServicioRegistro {
         }
     }
 
-    private void sincronizarClaveConServidor() {
-        try (Socket socket = conectarConFallback();
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("CLIENTE_ADMINISTRADOR");
-            out.flush();
-
-            out.writeObject("GET_CLAVE");
-            out.flush();
-
-            String claveServidor = (String) in.readObject();
-
-            if (claveServidor != null && !claveServidor.equals("SISTEMA_BLOQUEADO")) {
-                this.encriptador = new EstrategiaCifradoAES(claveServidor);
-                System.out.println("[ProxyRegistro] Clave sincronizada dinámicamente con el servidor.");
-            }
-
-        } catch (Exception e) {
-            System.err.println("[ProxyRegistro] No se pudo sincronizar la clave. Usando la última conocida.");
-        }
-    }
-
     @Override
     public void agregarTurno(Turno turno) throws DNIRepetidoException {
         
-        // ¡Se actualiza solo cada vez que alguien intenta sacar un turno!
-        sincronizarClaveConServidor();
-
         String dniOriginal = turno.getDniCliente();
 
         try (Socket socket = conectarConFallback();
@@ -121,9 +93,7 @@ public class ProxyRegistro implements IServicioRegistro {
             out.writeObject("CLIENTE_REGISTRO");
             out.flush(); 
 
-            if (encriptador != null) {
-                turno.setDniCliente(encriptador.encriptar(dniOriginal));
-            }
+            turno.setDniCliente(seguridad.encriptarDNI(dniOriginal));
 
             out.writeObject("NUEVO_TURNO");
             out.writeObject(turno);
@@ -131,7 +101,12 @@ public class ProxyRegistro implements IServicioRegistro {
 
             turno.setDniCliente(dniOriginal);
 
-            String respuesta = (String) in.readObject();
+            Object respuestaObj = in.readObject();
+            if (respuestaObj == null) {
+                throw new RuntimeException("El servidor rechazó la conexión o está bloqueado.");
+            }
+
+            String respuesta = (String) respuestaObj;
 
             if ("ERROR_DNI_REPETIDO".equals(respuesta)) {
                 throw new DNIRepetidoException(dniOriginal);

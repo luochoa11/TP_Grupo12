@@ -5,12 +5,10 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.interfaces.IServicioAnuncio;
 import com.sgf.modelos.Turno;
 import com.sgf.presentacion.ControladorAnuncio;
-import com.sgf.seguridad.EstrategiaCifradoAES;
-import com.sgf.seguridad.IEncriptacionStrategy;
+import com.sgf.seguridad.SeguridadAnuncio;
 
 public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
@@ -27,13 +25,13 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
     private final int MAX_INTENTOS = 3;
 
-    private String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
-    private IEncriptacionStrategy encriptador = claveConfigurada != null ? new EstrategiaCifradoAES(claveConfigurada) : null;
+    private final SeguridadAnuncio seguridad;
 
-    public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador) {
+    public ProxyAnuncio(String directorioIp, int directorioPuerto, ControladorAnuncio controlador, SeguridadAnuncio seguridad) {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
         this.controlador      = controlador;
+        this.seguridad        = seguridad;
     }
 
     private void resolverServidor() throws Exception {
@@ -54,28 +52,6 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
         }
     }
 
-    //Sincronizar clave dinámicamente
-    private void sincronizarClaveConServidor() {
-        try (Socket socket = new Socket(ipServidor, puertoServidor);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("CLIENTE_ADMINISTRADOR");
-            out.flush();
-            out.writeObject("GET_CLAVE");
-            out.flush();
-
-            String claveServidor = (String) in.readObject();
-
-            if (claveServidor != null && !claveServidor.equals("SISTEMA_BLOQUEADO")) {
-                this.encriptador = new EstrategiaCifradoAES(claveServidor);
-            }
-        } catch (Exception e) {
-            // Falla silenciosa: si falla, usa la última clave conocida.
-        }
-    }
-
-    //Obtener la foto de la fila al arrancar
     @SuppressWarnings("unchecked")
     private void obtenerEstadoInicial() {
         try (Socket socket = new Socket(ipServidor, puertoServidor);
@@ -90,8 +66,8 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
             this.actual    = (Turno) in.readObject();
             this.historial = (List<Turno>) in.readObject();
 
-            desencriptarTurno(this.actual);
-            desencriptarLista(this.historial);
+            seguridad.desencriptarTurno(this.actual);
+            seguridad.desencriptarLista(this.historial);
 
             controlador.actualizarDesdeServidor(actual, historial);
             System.out.println("[ProxyAnuncio] Estado inicial cargado en pantalla.");
@@ -100,7 +76,6 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
             System.err.println("[ProxyAnuncio] No se pudo cargar el estado inicial.");
         }
     }
-    // --------------------------------------------------------
 
     @Override
     public Turno getUltimoLlamado() { return actual; }
@@ -144,13 +119,9 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
                 }
 
                 if (socket != null && activo) {
-                    // 1. Actualizamos la clave criptográfica en caliente
-                    sincronizarClaveConServidor();
                     
-                    // 2. Cargamos los turnos actuales para que la pantalla no esté negra
                     obtenerEstadoInicial();
 
-                    // 3. Establecemos la conexión persistente (Suscripción)
                     try (Socket s = socket;
                         ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                         ObjectInputStream  in  = new ObjectInputStream(s.getInputStream())) {
@@ -166,8 +137,8 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
                             this.actual    = (Turno) in.readObject();
                             this.historial = (List<Turno>) in.readObject();
                             
-                            desencriptarTurno(this.actual);
-                            desencriptarLista(this.historial);
+                            seguridad.desencriptarTurno(this.actual);
+                            seguridad.desencriptarLista(this.historial);
 
                             controlador.actualizarDesdeServidor(actual, historial);
                         }
@@ -176,24 +147,10 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
             } catch (Exception e) {
                 if (activo) {
-                    System.err.println("[ProxyAnuncio] Canal de eventos cerrado por error o cambio de clave.");
-                    //e.printStackTrace(); // <-- Esto nos va a decir exactamente qué cortó la conexión
+                    System.err.println("[ProxyAnuncio] Canal de eventos cerrado por error de red o de seguridad.");
                     try { Thread.sleep(3000); } catch (InterruptedException ie) { break; }
                 }
             }
-        }
-    }
-    
-    // --- Helpers Privados de Seguridad ---
-    private void desencriptarTurno(Turno t) throws Exception {
-        if (t != null && t.getDniCliente() != null && encriptador != null) {
-            t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-        }
-    }
-
-    private void desencriptarLista(List<Turno> lista) throws Exception {
-        if (lista != null) {
-            for (Turno t : lista) desencriptarTurno(t);
         }
     }
     

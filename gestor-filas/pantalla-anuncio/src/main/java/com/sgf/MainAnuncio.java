@@ -2,9 +2,11 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.infraestructura.ProxyAnuncio;
 import com.sgf.presentacion.ControladorAnuncio;
 import com.sgf.presentacion.VentanaAnuncio;
+import com.sgf.seguridad.SeguridadAnuncio;
 
 public class MainAnuncio {
 
@@ -14,16 +16,15 @@ public class MainAnuncio {
         int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
 
         SwingUtilities.invokeLater(() -> {
-            // 1: Iniciamos la ventana
             VentanaAnuncio ventana = new VentanaAnuncio();
             
-            // 2: Creamos el Controlador y le damos la ventana
             ControladorAnuncio controlador = new ControladorAnuncio(ventana);
             
             ventana.setVisible(true);
 
-            // 3: El Servidor habla con el Controlador
-            ProxyAnuncio cliente = new ProxyAnuncio(directorioIp, directorioPuerto, controlador);
+            SeguridadAnuncio componenteSeguridad = new SeguridadAnuncio();
+            ProxyAnuncio cliente = new ProxyAnuncio(directorioIp, directorioPuerto, controlador, componenteSeguridad);
+            
             new Thread(cliente).start();
             
             System.out.println("Anuncio: Sistema ensamblado y listo.");

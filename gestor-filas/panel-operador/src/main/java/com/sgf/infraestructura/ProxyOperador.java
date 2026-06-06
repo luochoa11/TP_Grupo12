@@ -6,12 +6,10 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.excepciones.FilaVaciaException;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.modelos.Turno;
-import com.sgf.seguridad.EstrategiaCifradoAES;
-import com.sgf.seguridad.IEncriptacionStrategy;
+import com.sgf.seguridad.SeguridadOperador;
 
 public class ProxyOperador implements IServicioOperador{
     private final String directorioIp;
@@ -22,19 +20,16 @@ public class ProxyOperador implements IServicioOperador{
     private int puertoServidor;
 
     private final int MAX_INTENTOS = 3;
+    
+    private final SeguridadOperador seguridad;
 
-    private String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
-    private IEncriptacionStrategy encriptador = claveConfigurada != null ? new EstrategiaCifradoAES(claveConfigurada) : null;
-
-    public ProxyOperador(String directorioIp, int directorioPuerto) {
+    public ProxyOperador(String directorioIp, int directorioPuerto, SeguridadOperador seguridad) {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
+        this.seguridad        = seguridad;
         resolverServidor();
     }
 
-    /*
-    * Consulta al Directorio para conocer la IP y Puerto del Servidor Primario activo.
-    */
     private void resolverServidor() {
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -55,19 +50,13 @@ public class ProxyOperador implements IServicioOperador{
         }
     }
 
-    // Abre un socket al Servidor usando el cache de direccionamiento local.
     private Socket conectarServidor() throws Exception {
         return new Socket(ipServidor, puertoServidor);
     }
 
-    /**
-     * Intenta conectar con el servidor actual. Si se agotan los intentos,
-     * realiza el failover consultando la nueva ruta al Directorio y reintenta una vez más.
-     */
     private Socket conectarConFallback() throws Exception {
         int intentoActual = 1;
 
-        //1. Intentamos insistir localmente en la dirección de caché conocida.
         while (intentoActual <= MAX_INTENTOS) {
             try {
                 Socket socket = conectarServidor();
@@ -79,13 +68,13 @@ public class ProxyOperador implements IServicioOperador{
             } catch (Exception e) {
                 if(intentoActual < MAX_INTENTOS){
                     try {
-                        Thread.sleep(500); // Pausa breve entre reintentos de red
+                        Thread.sleep(500); 
                     } catch (InterruptedException ignored) {}    
                 }
                 intentoActual++;
             }
         }
-        //2. Si se agotaron los intentos locales, asumimos caída y consultamos al Directorio.
+        
         System.out.println("[ProxyOperador] Servidor no responde. Consultando al Directorio para obtener el nuevo Primario...");
         try {
             resolverServidor();
@@ -93,7 +82,6 @@ public class ProxyOperador implements IServicioOperador{
             System.out.println("[ProxyOperador] Error crítico al intentar conectar con el directorio.");
         }
 
-        // 3. Intentamos conectar una última vez con la IP fresca recuperada del Directorio
         try {
             return conectarServidor();
         } catch (Exception e) {
@@ -101,31 +89,8 @@ public class ProxyOperador implements IServicioOperador{
         }
     }
 
-    private void sincronizarClaveConServidor() {
-        try (Socket socket = conectarConFallback();
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("CLIENTE_ADMINISTRADOR");
-            out.flush();
-
-            out.writeObject("GET_CLAVE");
-            out.flush();
-
-            String claveServidor = (String) in.readObject();
-
-            if (claveServidor != null && !claveServidor.equals("SISTEMA_BLOQUEADO")) {
-                this.encriptador = new EstrategiaCifradoAES(claveServidor);
-            }
-        } catch (Exception e) {
-        }
-    }
-
     @Override
     public Turno llamarSiguiente(int idPuesto) throws FilaVaciaException {
-        
-        sincronizarClaveConServidor();
-
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -142,7 +107,9 @@ public class ProxyOperador implements IServicioOperador{
             if ("ERROR_FILA_VACIA".equals(respuesta)) throw new FilaVaciaException();
             
             Turno turnoLlamado = (Turno) respuesta;
-            desencriptarTurno(turnoLlamado);
+            
+            seguridad.desencriptarTurno(turnoLlamado);
+            
             return turnoLlamado;
 
         } catch (FilaVaciaException e) {
@@ -155,9 +122,6 @@ public class ProxyOperador implements IServicioOperador{
 
     @Override
     public Turno reintentarLlamado(int idPuesto) {
-        
-        sincronizarClaveConServidor();
-
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -173,7 +137,9 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof Turno) {
                 Turno turnoReintento = (Turno) respuesta;
-                desencriptarTurno(turnoReintento);
+                
+                seguridad.desencriptarTurno(turnoReintento);
+                
                 return turnoReintento;
             }
 
@@ -189,9 +155,6 @@ public class ProxyOperador implements IServicioOperador{
     @SuppressWarnings("unchecked")
     @Override
     public List<Turno> getCola() {
-        
-        sincronizarClaveConServidor();
-
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -206,7 +169,9 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof List) {
                 List<Turno> cola = (List<Turno>) respuesta;
-                desencriptarLista(cola); // Desencriptamos la cola completa
+                
+                seguridad.desencriptarLista(cola); 
+                
                 return cola;
             }
             if (respuesta == null)          return Collections.emptyList();
@@ -222,9 +187,6 @@ public class ProxyOperador implements IServicioOperador{
 
     @Override
     public Turno getTurnoPuesto(int idPuesto) {
-        
-        sincronizarClaveConServidor();
-
         try (Socket socket = conectarConFallback();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -240,7 +202,9 @@ public class ProxyOperador implements IServicioOperador{
 
             if (respuesta instanceof Turno) {
                 Turno turnoPuesto = (Turno) respuesta;
-                desencriptarTurno(turnoPuesto); // Desencriptamos
+                
+                seguridad.desencriptarTurno(turnoPuesto); 
+                
                 return turnoPuesto;
             }
             if (respuesta == null)          return null;
@@ -253,23 +217,4 @@ public class ProxyOperador implements IServicioOperador{
             return null;
         }
     }
-    
-    // --- Helpers Privados de Seguridad ---
-    private void desencriptarTurno(Turno t) {
-        if (t != null && t.getDniCliente() != null && encriptador != null) {
-            try {
-                t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-            } catch (Exception e) {
-                // Si la desencriptación falla, dejamos el DNI como vino (encriptado) o manejamos el error.
-                // En un caso real se podría loguear el error o lanzar una excepción.
-            }
-        }
-    }
-
-    private void desencriptarLista(List<Turno> lista) {
-        if (lista != null) {
-            for (Turno t : lista) desencriptarTurno(t);
-        }
-    }
-    // -------------------------------------
 }

@@ -16,7 +16,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorSincronizacion extends ManejadorBase {
 
     public ManejadorSincronizacion(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                                ILogicaFila logica, ServidorCentral servidor) {
+                                   ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 

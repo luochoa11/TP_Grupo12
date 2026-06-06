@@ -2,10 +2,12 @@ package com.sgf;
 
 import javax.swing.SwingUtilities;
 
+import com.sgf.ConfiguracionRed;
 import com.sgf.infraestructura.ProxyRegistro;
 import com.sgf.interfaces.IServicioRegistro;
 import com.sgf.presentacion.ControladorRegistro;
 import com.sgf.presentacion.VentanaTerminalRegistro;
+import com.sgf.seguridad.SeguridadRegistro;
 
 public class MainRegistro {
     public static void main(String[] args) {
@@ -29,7 +31,8 @@ public class MainRegistro {
             VentanaTerminalRegistro ventana = new VentanaTerminalRegistro();
             ventana.setTitle(tituloFinal);
 
-            IServicioRegistro servicio = new ProxyRegistro(directorioIp, directorioPuerto);
+            SeguridadRegistro componenteSeguridad = new SeguridadRegistro();
+            IServicioRegistro servicio = new ProxyRegistro(directorioIp, directorioPuerto, componenteSeguridad);
 
             ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
             ventana.setControlador(controlador);

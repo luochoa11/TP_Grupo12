@@ -16,7 +16,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorOperador extends ManejadorBase {
 
     public ManejadorOperador(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                            ILogicaFila logica, ServidorCentral servidor) {
+                             ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -30,14 +30,12 @@ public class ManejadorOperador extends ManejadorBase {
                     int idPuesto = (int) in.readObject();
                     try {
                         Turno llamado;
-                        synchronized(logica){ //para que la mutación y la persistencia sean una sola operación atómica
+                        synchronized(logica){ 
                             llamado = logica.llamarSiguiente(idPuesto);
                             servidor.persistirEstadoActivo();
                         }
                         
-                        encriptarTurno(llamado);
                         out.writeObject(llamado);
-                        desencriptarTurno(llamado);
                         
                         servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                         
@@ -59,9 +57,7 @@ public class ManejadorOperador extends ManejadorBase {
                         servidor.persistirEstadoActivo();
                     }
                     
-                    encriptarTurno(reIntento);
                     out.writeObject(reIntento); // null si se eliminó, el op ya lo maneja
-                    desencriptarTurno(reIntento);
                     
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
                     
@@ -74,19 +70,13 @@ public class ManejadorOperador extends ManejadorBase {
                     
                 case "GET_COLA":
                     List<Turno> cola = logica.getCola();
-                    
-                    encriptarLista(cola);
                     out.writeObject(cola);
-                    desencriptarLista(cola);
                     break;
                     
                 case "GET_TURNO_PUESTO":
                     int idPuesto2 = (int) in.readObject();
                     Turno turnoPuesto = logica.getTurnoPuesto(idPuesto2);
-                    
-                    encriptarTurno(turnoPuesto);
                     out.writeObject(turnoPuesto);
-                    desencriptarTurno(turnoPuesto);
                     break;
             }
             out.flush();

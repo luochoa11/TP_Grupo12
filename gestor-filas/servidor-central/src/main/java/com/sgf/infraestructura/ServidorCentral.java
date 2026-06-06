@@ -18,6 +18,7 @@ import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
 import com.sgf.seguridad.IEncriptacionStrategy;
+import com.sgf.seguridad.SeguridadServidorCentral;
 import com.sgf.servicios.ServidorCentralFacade;
 
 /**
@@ -36,7 +37,7 @@ public class ServidorCentral implements Runnable {
     private IServicioAdministrador fachadaServidor;
     private GestorPersistencia gestorPersistencia;
 
-    private IEncriptacionStrategy encriptador = null;
+    private SeguridadServidorCentral seguridad;
 
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
@@ -45,23 +46,54 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
 
-        this.gestorPersistencia = new GestorPersistencia(); //Detección automática de archivos
+        this.seguridad = new SeguridadServidorCentral();
+
+        this.gestorPersistencia = new GestorPersistencia(); 
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
     
-        //Si es primario, recuperamos el estado en frío antes de abrir la red
         if (esPrimario) {
             cargarEstadoPrevioDelDisco();
         }
     }
 
-    public IEncriptacionStrategy getEncriptador() {
-        return encriptador;
+    public void encriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = this.seguridad.getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null) {
+            t.setDniCliente(enc.encriptar(t.getDniCliente()));
+        }
     }
 
-    public void setEncriptador(IEncriptacionStrategy nuevoEncriptador) {
-        this.encriptador = nuevoEncriptador;
+    public void desencriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = this.seguridad.getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null) {
+            t.setDniCliente(enc.desencriptar(t.getDniCliente()));
+        }
     }
-    
+
+    public void encriptarLista(List<Turno> lista) {
+        if (lista != null) {
+            for (Turno t : lista) encriptarTurno(t);
+        }
+    }
+
+    public void desencriptarLista(List<Turno> lista) {
+        if (lista != null) {
+            for (Turno t : lista) desencriptarTurno(t);
+        }
+    }
+
+    public boolean actualizarSeguridad(String algoritmo, String clave) {
+        return this.seguridad.actualizarSeguridad(algoritmo, clave);
+    }
+
+    public String getAlgoritmoSeguridad() {
+        return this.seguridad.getAlgoritmoActivo();
+    }
+
+    public String getClaveSeguridad() {
+        return this.seguridad.getClaveActiva();
+    }
+
     public IServicioAdministrador getFachada() {
         return this.fachadaServidor;
     }
@@ -82,7 +114,6 @@ public class ServidorCentral implements Runnable {
                         String saludo = (String) in.readObject();
                         System.out.println("[Servidor] Conexión entrante con saludo: " + saludo);
                         
-                        // Secundario rechaza todo excepto sincronización y promoción del monitor
                         if (!esPrimario && !"SYNC_SERVER".equals(saludo) && !"MONITOR_FALLA".equals(saludo)) {
                             out.writeObject("ERROR_SERVIDOR_SECUNDARIO");
                             out.flush();
@@ -133,12 +164,8 @@ public class ServidorCentral implements Runnable {
     public void notificarMonitores(Turno actual, List<Turno> historial) {
         synchronized (monitores) {
             
-            if (encriptador == null) throw new RuntimeException("SISTEMA BLOQUEADO: Seguridad no configurada.");
-
-            if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
-            if (historial != null) {
-                for (Turno t : historial) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
-            }
+            encriptarTurno(actual);
+            encriptarLista(historial);
 
             Iterator<ObjectOutputStream> it = monitores.iterator();
 
@@ -154,10 +181,8 @@ public class ServidorCentral implements Runnable {
                 }
             }
             
-            if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
-            if (historial != null) {
-                for (Turno t : historial) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-            }
+            desencriptarTurno(actual);
+            desencriptarLista(historial);
         }
     }
     
@@ -170,21 +195,15 @@ public class ServidorCentral implements Runnable {
                 Turno actual = logica.getTurnoPuesto(id);
                 List<Turno> cola = logica.getCola();
                 
-                if (encriptador == null) throw new RuntimeException("SISTEMA BLOQUEADO: Seguridad no configurada.");
-
-                if (actual != null) actual.setDniCliente(encriptador.encriptar(actual.getDniCliente()));
-                if (cola != null) {
-                    for (Turno t : cola) t.setDniCliente(encriptador.encriptar(t.getDniCliente()));
-                }
+                encriptarTurno(actual);
+                encriptarLista(cola);
 
                 out.writeObject(actual);
                 out.writeObject(cola);
                 out.flush();
 
-                if (actual != null) actual.setDniCliente(encriptador.desencriptar(actual.getDniCliente()));
-                if (cola != null) {
-                    for (Turno t : cola) t.setDniCliente(encriptador.desencriptar(t.getDniCliente()));
-                }
+                desencriptarTurno(actual);
+                desencriptarLista(cola);
 
             } catch (Exception e) {
                 operadores.remove(id);
@@ -200,9 +219,7 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = true;
         System.out.println("[Servidor] " + this.ip + ":" + this.puerto + " Promovido a PRIMARIO.");
         
-        if (this.fachadaServidor instanceof ServidorCentralFacade) {
-            ((ServidorCentralFacade) this.fachadaServidor).cargarSeguridadDesdeDisco();
-        }
+        this.seguridad.cargarClaveDesdeProperties();
     }
 
     public void sincronizarEstado() {
@@ -228,18 +245,9 @@ public class ServidorCentral implements Runnable {
         System.out.println("[Servidor] "+this.ip+":"+this.puerto+" Degradado a SECUNDARIO.");
     }
 
-
-    //---------MÉTODOS PARA PERSISTENCIA---------------------------
-    //---------Tácticas de disponibilidad: busqueda de estado previo y persistencia activa
-    
-    /**
-     * Ofrece a los manejadores de sockets una sola línea de llamada para persistir
-     * el estado actual de la RAM en el disco duro.
-     */
     public synchronized void persistirEstadoActivo() {
         if (this.gestorPersistencia != null && esPrimario) {
             try {
-                // Sincronizamos la RAM actual con los archivos del formato activo
                 gestorPersistencia.guardarFilaEspera(logica.getCola());
                 gestorPersistencia.guardarHistorial(logica.getHistorial());
                 

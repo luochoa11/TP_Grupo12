@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
-
 import com.sgf.aplicacion.ILogicaFila;
-import com.sgf.modelos.Turno;
 
 /**
  * Clase base para todos los manejadores del sistema.
@@ -28,32 +25,6 @@ public abstract class ManejadorBase implements Runnable {
         this.logica = logica;
         this.servidor = servidor;
     }
-
-    // --- Helpers de Seguridad para los Manejadores Hijos ---
-    protected void encriptarTurno(Turno t) {
-        if (t != null && t.getDniCliente() != null) {
-            t.setDniCliente(servidor.getEncriptador().encriptar(t.getDniCliente()));
-        }
-    }
-
-    protected void desencriptarTurno(Turno t) {
-        if (t != null && t.getDniCliente() != null) {
-            t.setDniCliente(servidor.getEncriptador().desencriptar(t.getDniCliente()));
-        }
-    }
-
-    protected void encriptarLista(List<Turno> lista) {
-        if (lista != null) {
-            for (Turno t : lista) encriptarTurno(t);
-        }
-    }
-
-    protected void desencriptarLista(List<Turno> lista) {
-        if (lista != null) {
-            for (Turno t : lista) desencriptarTurno(t);
-        }
-    }
-    // --------------------------------------------------------
 
     /**
      * Cierra de forma segura la conexión y los flujos al terminar la ejecución.
