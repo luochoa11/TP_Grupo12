@@ -1,5 +1,6 @@
 package com.sgf.persistencia;
 
+import java.io.File;
 import java.util.List;
 
 import com.sgf.modelos.Turno;
@@ -7,15 +8,43 @@ import com.sgf.modelos.Turno;
 /**
  * Gestor del Servidor Central encargado de administrar qué familia de 
  * persistencia se encuentra activa en caliente.
+ * Recibe turnos, historiales y filas desde el servidor y delega la persistencia
  */
 public class GestorPersistencia {
 
     private IFactoryPersistencia factoryActiva; 
     private String formatoActivo;
 
-    public GestorPersistencia(String formatoInicial) {
-        establecerFormato(formatoInicial);
+    // Archivos testigos para verificar la última configuración de guardado física
+    private static final String FILE_JSON = "filaEspera.json";
+    private static final String FILE_XML  = "filaEspera.xml";
+    private static final String FILE_DAT  = "filaEspera.dat";
+
+    public GestorPersistencia() {
+        String formatoDetectado = detectarFormatoExistente();
+        System.out.println("[GestorPersistencia] Formato detectado en disco al iniciar: " + formatoDetectado);
+        establecerFormato(formatoDetectado);
     }
+
+    /**
+     * Táctica de Disponibilidad: Resincronización de estado.
+     * Barre la carpeta raíz buscando archivos de datos guardados en ejecuciones previas.
+     * Prioridad de carga: DAT (binario) -> XML -> JSON.
+     */
+    public final String detectarFormatoExistente() {
+        if (new File(FILE_DAT).exists()) {
+            return "TXT";
+        }
+        if (new File(FILE_XML).exists()) {
+            return "XML";
+        }
+        if (new File(FILE_JSON).exists()) {
+            return "JSON";
+        }
+        // Fallback: Si el sistema se ejecuta por primera vez en limpio, inicia con JSON
+        return "JSON";
+    }
+
 
     /**
      * Reconfigura la fábrica concreta activa en tiempo de ejecución.
@@ -32,7 +61,7 @@ public class GestorPersistencia {
             case "JSON":
             default:
                 this.factoryActiva = new FactoryJSON();
-                this.formatoActivo = "JSON"; // Sanitizar fallback
+                this.formatoActivo = "JSON"; 
                 break;
         }
         System.out.println("[GestorPersistencia] Fabrica configurada con éxito: " + this.formatoActivo);
@@ -41,6 +70,7 @@ public class GestorPersistencia {
     public synchronized String getFormatoActivo() {
         return this.formatoActivo;
     }
+
 
     
     // =========================================================================

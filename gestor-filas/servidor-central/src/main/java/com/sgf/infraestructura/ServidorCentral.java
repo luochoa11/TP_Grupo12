@@ -45,8 +45,13 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
 
-        this.gestorPersistencia = new GestorPersistencia("JSON"); 
+        this.gestorPersistencia = new GestorPersistencia(); //Detección automática de archivos
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
+    
+        //Si es primario, recuperamos el estado en frío antes de abrir la red
+        if (esPrimario) {
+            cargarEstadoPrevioDelDisco();
+        }
     }
 
     public IEncriptacionStrategy getEncriptador() {
@@ -221,5 +226,58 @@ public class ServidorCentral implements Runnable {
     public void degradarEstado() {
         this.esPrimario = false;
         System.out.println("[Servidor] "+this.ip+":"+this.puerto+" Degradado a SECUNDARIO.");
+    }
+
+
+    //---------MÉTODOS PARA PERSISTENCIA---------------------------
+    //---------Tácticas de disponibilidad: busqueda de estado previo y persistencia activa
+    
+    /**
+     * Ofrece a los manejadores de sockets una sola línea de llamada para persistir
+     * el estado actual de la RAM en el disco duro.
+     */
+    public synchronized void persistirEstadoActivo() {
+        if (this.gestorPersistencia != null && esPrimario) {
+            try {
+                // Sincronizamos la RAM actual con los archivos del formato activo
+                gestorPersistencia.guardarFilaEspera(logica.getCola());
+                gestorPersistencia.guardarHistorial(logica.getHistorial());
+                
+                ArrayList<Turno> activosPlano = new ArrayList<>(logica.getTurnosActivos().values());
+                gestorPersistencia.guardarTurnosActuales(activosPlano);
+                
+                gestorPersistencia.guardarUltimoLlamado(logica.getUltimoLlamado());
+                System.out.println("[Servidor-Persistencia] RAM y disco sincronizados en: " + gestorPersistencia.getFormatoActivo());
+            } catch (Exception e) {
+                System.err.println("[Servidor-Persistencia] Error: No se pudo persistir el estado activo: " + e.getMessage());
+            }
+        }
+    }
+
+    private void cargarEstadoPrevioDelDisco() {
+        System.out.println("[Servidor-Recuperación de Estado] Resincronizando estado del servidor...");
+        try {
+            List<Turno> colaRecuperada = gestorPersistencia.recuperarFilaEspera();
+            List<Turno> historialRecuperado = gestorPersistencia.recuperarHistorial();
+            List<Turno> activosLista = gestorPersistencia.recuperarTurnosActuales();
+            Turno ultimoRecuperado = gestorPersistencia.recuperarUltimoLlamado();
+
+            Map<Integer, Turno> activosMap = new ConcurrentHashMap<>();
+            if (activosLista != null) {
+                for (Turno t : activosLista) {
+                    activosMap.put(t.getIdPuesto(), t);
+                }
+            }
+
+            logica.reemplazarEstado(colaRecuperada, activosMap, historialRecuperado, ultimoRecuperado);
+            
+            System.out.println("[Servidor-Recuperación de Estado] ¡ESTADO RESTAURADO CON ÉXITO!");
+            System.out.println("  - Formato activo restaurado: " + gestorPersistencia.getFormatoActivo());
+            System.out.println("  - Clientes en cola: " + colaRecuperada.size());
+            System.out.println("  - Puestos restaurados: " + activosMap.size());
+
+        } catch (Exception e) {
+            System.out.println("[Servidor-Recuperación de Estado] No se detectó estado previo o está vacío. Iniciando con base limpia.");
+        }
     }
 }

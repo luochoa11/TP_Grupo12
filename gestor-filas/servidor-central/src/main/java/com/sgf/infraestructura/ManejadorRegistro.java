@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.disponibilidad.ActualizacionEstadoDTO;
 import com.sgf.excepciones.DNIRepetidoException;
 import com.sgf.modelos.Turno;
 
@@ -14,7 +15,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorRegistro extends ManejadorBase {
 
     public ManejadorRegistro(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                             ILogicaFila logica, ServidorCentral servidor) {
+                            ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -29,9 +30,18 @@ public class ManejadorRegistro extends ManejadorBase {
                 desencriptarTurno(t);
                 
                 try {
-                    logica.agregarTurno(t);
-                    servidor.sincronizarEstado();
+                    synchronized(logica){
+                        logica.agregarTurno(t);
+                        servidor.persistirEstadoActivo();
+                    }
+                    
                     out.writeObject("OK");
+                    //Replicamos únicamente el nuevo turno ingresado
+                    if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                        ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("REGISTRAR", t, -1);
+                        servidor.getSincronizador().sincronizarDelta(delta);
+                    }
+
                 } catch (DNIRepetidoException e) {
                     out.writeObject("ERROR_DNI_REPETIDO");
                 }

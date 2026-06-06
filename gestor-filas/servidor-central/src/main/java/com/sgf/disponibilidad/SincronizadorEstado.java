@@ -78,4 +78,36 @@ public class SincronizadorEstado {
             System.err.println("[Sync] Error al sincronizar: " + e.getMessage());
         }
     }
+
+    /**
+     * Sincronización Incremental (Delta Sync)
+     * Envía únicamente la mutación de estado ocurrida para ahorrar ancho de banda.
+     */
+    public void sincronizarDelta(ActualizacionEstadoDTO delta) {
+        String[] secundario = resolverSecundario();
+        if (secundario == null) {
+            System.out.println("[Sync] No hay secundario registrado.");
+            return;
+        }
+
+        String ip     = secundario[0];
+        int    puerto = Integer.parseInt(secundario[1]);
+
+        try (Socket socket = new Socket(ip, puerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("SYNC_SERVER");
+            out.flush(); 
+
+            out.writeObject("NUEVO_DELTA");
+            out.writeObject(delta);
+            out.flush();
+
+            System.out.println("[Sync] Delta enviado con éxito: " + delta);
+
+        } catch (Exception e) {
+            System.err.println("[Sync] Error al replicar delta: " + e.getMessage());
+        }
+    }
 }
