@@ -68,6 +68,14 @@ public class Turno implements Serializable {
         return dniCliente != null ? dniCliente.hashCode() : 0;
     }
 
+    public Turno clonar() {
+    Turno copia = new Turno(this.dniCliente);
+    copia.setIdPuesto(this.idPuesto);
+    copia.setIntentos(this.intentos);
+    copia.setEstado(this.estado);
+    return copia;
+    }
+
     //public LocalDateTime getHorario() {
     //    return horario;
     //}

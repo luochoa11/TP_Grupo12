@@ -161,30 +161,40 @@ public class ServidorCentral implements Runnable {
         monitores.add(out);
     }
 
-    public void notificarMonitores(Turno actual, List<Turno> historial) {
-        synchronized (monitores) {
-            
-            encriptarTurno(actual);
-            encriptarLista(historial);
+public void notificarMonitores(Turno actual, List<Turno> historial) {
+    synchronized (monitores) {
+        // Trabajamos sobre copias para no mutar el estado en RAM
+        Turno actualCopia = copiarYEncriptar(actual);
+        List<Turno> historialCopia = copiarYEncriptarLista(historial);
 
-            Iterator<ObjectOutputStream> it = monitores.iterator();
-
-            while (it.hasNext()) {
-                ObjectOutputStream out = it.next();
-                try {
-                    out.reset();  
-                    out.writeObject(actual);
-                    out.writeObject(historial);
-                    out.flush();
-                } catch (Exception e) {
-                    it.remove(); 
-                }
+        Iterator<ObjectOutputStream> it = monitores.iterator();
+        while (it.hasNext()) {
+            ObjectOutputStream out = it.next();
+            try {
+                out.reset();
+                out.writeObject(actualCopia);
+                out.writeObject(historialCopia);
+                out.flush();
+            } catch (Exception e) {
+                it.remove();
             }
-            
-            desencriptarTurno(actual);
-            desencriptarLista(historial);
         }
     }
+}
+
+public Turno copiarYEncriptar(Turno t) {
+    if (t == null) return null;
+    Turno copia = t.clonar(); 
+    encriptarTurno(copia);
+    return copia;
+}
+
+public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
+    if (lista == null) return null;
+    List<Turno> copia = new ArrayList<>();
+    for (Turno t : lista) copia.add(copiarYEncriptar(t));
+    return copia;
+}
     
     public void notificarOperadores() { 
         for (Map.Entry<Integer, ObjectOutputStream> entry : operadores.entrySet()) {
@@ -192,18 +202,12 @@ public class ServidorCentral implements Runnable {
             ObjectOutputStream out = entry.getValue();
 
             try {
-                Turno actual = logica.getTurnoPuesto(id);
-                List<Turno> cola = logica.getCola();
-                
-                encriptarTurno(actual);
-                encriptarLista(cola);
+                Turno actualCopia = copiarYEncriptar(logica.getTurnoPuesto(id));
+                List<Turno> colaCopia = copiarYEncriptarLista(logica.getCola());
 
-                out.writeObject(actual);
-                out.writeObject(cola);
+                out.writeObject(actualCopia);
+                out.writeObject(colaCopia);
                 out.flush();
-
-                desencriptarTurno(actual);
-                desencriptarLista(cola);
 
             } catch (Exception e) {
                 operadores.remove(id);
@@ -288,4 +292,5 @@ public class ServidorCentral implements Runnable {
             System.out.println("[Servidor-Recuperación de Estado] No se detectó estado previo o está vacío. Iniciando con base limpia.");
         }
     }
+
 }

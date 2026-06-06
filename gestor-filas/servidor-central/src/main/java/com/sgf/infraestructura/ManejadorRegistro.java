@@ -27,7 +27,8 @@ public class ManejadorRegistro extends ManejadorBase {
             if ("NUEVO_TURNO".equals(comando)) {
                 Turno t = (Turno) in.readObject();
                 
-                // El turno se guarda tal como vino por la red (encriptado)
+                 servidor.desencriptarTurno(t);
+
                 try {
                     synchronized(logica){
                         logica.agregarTurno(t);
@@ -36,7 +37,6 @@ public class ManejadorRegistro extends ManejadorBase {
                     
                     out.writeObject("OK");
                     
-                    //Replicamos únicamente el nuevo turno ingresado
                     if (servidor.esPrimario() && servidor.getSincronizador() != null) {
                         ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("REGISTRAR", t, -1);
                         servidor.getSincronizador().sincronizarDelta(delta);

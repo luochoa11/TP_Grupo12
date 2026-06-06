@@ -147,7 +147,7 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
             } catch (Exception e) {
                 if (activo) {
-                    System.err.println("[ProxyAnuncio] Canal de eventos cerrado por error de red o de seguridad.");
+                    System.err.println("[ProxyAnuncio] Canal de eventos cerrado por error de red.");
                     try { Thread.sleep(3000); } catch (InterruptedException ie) { break; }
                 }
             }

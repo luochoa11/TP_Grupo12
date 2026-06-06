@@ -8,9 +8,6 @@ import java.util.List;
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.modelos.Turno;
 
-/**
- * Maneja las suscripciones persistentes de las Pantallas de Anuncios en sala de espera.
- */
 public class ManejadorAnuncio extends ManejadorBase {
 
     public ManejadorAnuncio(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
@@ -26,17 +23,19 @@ public class ManejadorAnuncio extends ManejadorBase {
             if ("SUSCRIBIR_MONITOR".equals(comando)) {
                 servidor.agregarMonitor(this.out);
                 
-                // Mantiene el hilo activo para que el Socket no se cierre de inmediato
                 while (!socket.isClosed()) {
                     Thread.sleep(10000);
                 }
             } else if ("GET_ESTADO_MONITOR".equals(comando)) {
-                Turno ultimo = logica.getUltimoLlamado();
-                List<Turno> historial = logica.getHistorial();
+                Turno actualCopia = servidor.copiarYEncriptar(logica.getUltimoLlamado());
+                List<Turno> historialCopia = servidor.copiarYEncriptarLista(logica.getHistorial());
                 
-                out.writeObject(ultimo);
-                out.writeObject(historial);
+                out.writeObject(actualCopia);
+                out.writeObject(historialCopia);
                 out.flush();
+                
+                servidor.desencriptarTurno(actualCopia);
+                servidor.desencriptarLista(historialCopia);
             }
         } catch (Exception e) {
             System.out.println("[ManejadorMonitor] Pantalla de sala desconectada.");
