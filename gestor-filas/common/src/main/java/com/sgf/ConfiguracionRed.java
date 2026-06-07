@@ -85,39 +85,39 @@ public class ConfiguracionRed {
     // }
     // }
 
-    public static synchronized boolean recargarSiCambio() {
+    // public static synchronized boolean recargarSiCambio() {
 
-        File archivo = new File(
-                "../common/target/classes/config.properties");
+    //     File archivo = new File(
+    //             "../common/target/classes/config.properties");
 
-        if (!archivo.exists()) {
-            return false;
-        }
+    //     if (!archivo.exists()) {
+    //         return false;
+    //     }
 
-        long modificacionActual = archivo.lastModified();
+    //     long modificacionActual = archivo.lastModified();
 
-        if (modificacionActual == ultimaModificacion) {
-            return false;
-        }
+    //     if (modificacionActual == ultimaModificacion) {
+    //         return false;
+    //     }
 
-        ultimaModificacion = modificacionActual;
+    //     ultimaModificacion = modificacionActual;
 
-        try (InputStream input = ConfiguracionRed.class
-                .getClassLoader()
-                .getResourceAsStream("config.properties")) {
+    //     try (InputStream input = ConfiguracionRed.class
+    //             .getClassLoader()
+    //             .getResourceAsStream("config.properties")) {
 
-            props.clear();
-            props.load(input);
+    //         props.clear();
+    //         props.load(input);
 
-            System.out.println(
-                    "[ConfiguracionRed] Configuración recargada.");
+    //         System.out.println(
+    //                 "[ConfiguracionRed] Configuración recargada.");
 
-            return true;
+    //         return true;
 
-        } catch (IOException e) {
-            System.err.println(
-                    "[ConfiguracionRed] Error al recargar configuración.");
-            return false;
-        }
-    }
+    //     } catch (IOException e) {
+    //         System.err.println(
+    //                 "[ConfiguracionRed] Error al recargar configuración.");
+    //         return false;
+    //     }
+    // }
 }
