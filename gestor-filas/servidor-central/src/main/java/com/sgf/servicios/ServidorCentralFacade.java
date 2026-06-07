@@ -53,7 +53,11 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         }
     }
 
-        public void encriptarTurno(Turno t) {
+    public SeguridadServidorCentral getSeguridad() {
+        return this.seguridad;
+    }
+
+    public void encriptarTurno(Turno t) {
         IEncriptacionStrategy enc = seguridad.getEncriptador();
         if (t != null && t.getDniCliente() != null && enc != null)
             t.setDniCliente(enc.encriptar(t.getDniCliente()));

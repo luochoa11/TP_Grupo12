@@ -17,8 +17,6 @@ import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
-import com.sgf.seguridad.IEncriptacionStrategy;
-import com.sgf.seguridad.SeguridadServidorCentral;
 import com.sgf.servicios.ServidorCentralFacade;
 
 /**
@@ -163,7 +161,12 @@ public class ServidorCentral implements Runnable {
     public void promoverEstado() {
         this.esPrimario = true;
         System.out.println("[Servidor] " + this.ip + ":" + this.puerto + " Promovido a PRIMARIO.");
+        
+        //Le pedimos la recarga de llaves simétricas a la fachada
+        if (getFachada() != null && getFachada().getSeguridad() != null) {
+            getFachada().getSeguridad().cargarClaveDesdeProperties();
         }
+    }
 
     public void sincronizarEstado() {
         if (esPrimario && sincronizador != null) { 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.servicios.ServidorCentralFacade;
 
@@ -20,7 +21,7 @@ public abstract class ManejadorBase implements Runnable {
     protected final ServidorCentralFacade fachada;
 
     public ManejadorBase(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                         ILogicaFila logica, ServidorCentral servidor) {
+                        ILogicaFila logica, ServidorCentral servidor) {
         this.socket = socket;
         this.in = in;
         this.out = out;
