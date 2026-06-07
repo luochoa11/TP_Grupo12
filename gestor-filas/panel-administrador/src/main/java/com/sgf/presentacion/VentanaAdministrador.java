@@ -170,7 +170,7 @@ public class VentanaAdministrador extends JFrame {
         lblAlgo.setForeground(COLOR_TEXTO_TITULO);
         lblAlgo.setAlignmentX(LEFT_ALIGNMENT);
 
-        String[] algoritmos = {"AES-128 (Estándar recomendado)", "Blowfish (Robusto / Dinámico)", "TripleDES (Compatibilidad)"};
+        String[] algoritmos = {"AES-128 (Estándar recomendado)", "XOR (Sencillo / Rápido)", "TripleDES (Compatibilidad)"};
         comboAlgoritmo = crearComboboxEstilizado(algoritmos);
         comboAlgoritmo.addActionListener(e -> evaluarCambiosSeguridad());
 
@@ -301,9 +301,9 @@ public class VentanaAdministrador extends JFrame {
     }
 
     private String extraerAlgoAbrev(String item) {
-        if (item.contains("Blowfish")) return "Blowfish";
-        if (item.contains("TripleDES")) return "TripleDES";
-        return "AES-128";
+        if (item.contains("XOR")) return "XOR";
+        if (item.contains("TripleDES")) return "DES";
+        return "AES";
     }
 
     /**

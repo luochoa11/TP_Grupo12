@@ -29,6 +29,7 @@ public class SeguridadOperador {
      * Desencripta el DNI de un Turno individual en el mismo objeto.
      */
     public void desencriptarTurno(Turno t) {
+        this.recargarConfiguracion();
         if (t != null && t.getDniCliente() != null && this.encriptador != null) {
             try {
                 t.setDniCliente(this.encriptador.desencriptar(t.getDniCliente()));
@@ -51,5 +52,16 @@ public class SeguridadOperador {
     
     public boolean estaConfigurado() {
         return this.encriptador != null;
+    }
+
+    public synchronized void recargarConfiguracion() {
+         if (!ConfiguracionRed.recargarSiCambio()) {
+            return;
+        }
+        String clave = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
+        this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
+
+   
     }
 }

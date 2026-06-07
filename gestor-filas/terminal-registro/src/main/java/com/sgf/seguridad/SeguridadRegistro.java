@@ -25,9 +25,9 @@ public class SeguridadRegistro {
 
     /**
      * Encripta un DNI si hay una estrategia de seguridad configurada.
-     * Por ahora usa AES.
      */
     public String encriptarDNI(String dniOriginal) {
+        this.recargarConfiguracion();
         if (this.encriptador != null && dniOriginal != null) {
             return this.encriptador.encriptar(dniOriginal);
         }
@@ -37,4 +37,14 @@ public class SeguridadRegistro {
     public boolean estaConfigurado() {
         return this.encriptador != null;
     }
+
+     public synchronized void recargarConfiguracion() {
+            if (!ConfiguracionRed.recargarSiCambio()) {
+            return;
+        }
+            String clave = ConfiguracionRed.get("seguridad.clave");
+            String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
+            this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
+     }
+
 }

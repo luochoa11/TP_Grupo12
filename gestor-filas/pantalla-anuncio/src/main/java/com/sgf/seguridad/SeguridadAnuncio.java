@@ -20,6 +20,7 @@ public class SeguridadAnuncio {
     }
 
     public void desencriptarTurno(Turno t) {
+        this.recargarConfiguracion();
         if (t != null && t.getDniCliente() != null && this.encriptador != null) {
             try {
                 if (t.getDniCliente().length() > 10) {
@@ -32,8 +33,20 @@ public class SeguridadAnuncio {
     }
 
     public void desencriptarLista(List<Turno> lista) {
+    
         if (lista != null) {
             for (Turno t : lista) desencriptarTurno(t);
         }
+    }
+     public synchronized void recargarConfiguracion() {
+        if (!ConfiguracionRed.recargarSiCambio()) {
+            return;
+        }
+        
+        String clave = ConfiguracionRed.get("seguridad.clave");
+        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
+        this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
+
+  
     }
 }
