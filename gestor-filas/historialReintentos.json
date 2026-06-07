@@ -1,0 +1,5 @@
+[
+  {"dniCliente":"55777777", "idPuesto":1, "intentos":2, "estado":"LLAMADO"},
+  {"dniCliente":"55777777", "idPuesto":1, "intentos":3, "estado":"LLAMADO"},
+  {"dniCliente":"11114477", "idPuesto":1, "intentos":2, "estado":"LLAMADO"}
+]

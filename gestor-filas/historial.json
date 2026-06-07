@@ -1,6 +1,6 @@
 [
+  {"dniCliente":"55777777", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"},
   {"dniCliente":"99999999", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"},
   {"dniCliente":"22222222", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"},
-  {"dniCliente":"77777888", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"},
-  {"dniCliente":"11111111", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"}
+  {"dniCliente":"77777888", "idPuesto":1, "intentos":1, "estado":"ATENDIDO"}
 ]

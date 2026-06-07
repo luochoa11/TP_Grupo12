@@ -27,7 +27,7 @@ public class ManejadorRegistro extends ManejadorBase {
             if ("NUEVO_TURNO".equals(comando)) {
                 Turno t = (Turno) in.readObject();
                 
-                 servidor.desencriptarTurno(t);
+                 fachada.desencriptarTurno(t);
 
                 try {
                     synchronized(logica){

@@ -1,12 +1,15 @@
 package com.sgf.servicios;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.infraestructura.ServidorCentral;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
+import com.sgf.seguridad.IEncriptacionStrategy;
+import com.sgf.seguridad.SeguridadServidorCentral;
 
 /**
  * Fachada Concreta que orquesta de forma simplificada los subsistemas del servidor.
@@ -16,16 +19,15 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     private final ServidorCentral servidorCentral;
     private final GestorPersistencia gestorPersistencia;
     private final ILogicaFila logicaFila;
+    private final SeguridadServidorCentral seguridad;
 
     public ServidorCentralFacade(ServidorCentral servidorCentral, GestorPersistencia gestorPersistencia, ILogicaFila logicaFila) {
         this.servidorCentral = servidorCentral;
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
-        
+        this.seguridad = new SeguridadServidorCentral();
         System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada.");
     }
-
-    // Ya no es necesario cargar/persistir la seguridad desde aquí, la gestiona el componente dedicado
 
     @Override
     public boolean cambiarFormatoPersistencia(String tipoFormato) {
@@ -51,6 +53,36 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         }
     }
 
+        public void encriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = seguridad.getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null)
+            t.setDniCliente(enc.encriptar(t.getDniCliente()));
+    }
+
+    public void desencriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = seguridad.getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null)
+            t.setDniCliente(enc.desencriptar(t.getDniCliente()));
+    }
+
+    public Turno copiarYEncriptar(Turno t) {
+        if (t == null) return null;
+        Turno copia = t.clonar();
+        encriptarTurno(copia);
+        return copia;
+    }
+
+    public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
+        if (lista == null) return null;
+        List<Turno> copia = new ArrayList<>();
+        for (Turno t : lista) copia.add(copiarYEncriptar(t));
+        return copia;
+    }
+
+    public void desencriptarLista(List<Turno> lista) {
+        if (lista != null) for (Turno t : lista) desencriptarTurno(t);
+    }
+
     @Override
     public String getFormatoPersistenciaActivo() {
         return gestorPersistencia.getFormatoActivo();
@@ -60,7 +92,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     public boolean actualizarConfiguracionSeguridad(String algoritmo, String claveSecreta) {
         System.out.println("[FACADE-SERVIDOR] Configuración de seguridad solicitada -> Algoritmo: " + algoritmo + " | Clave: " + claveSecreta);
         
-        boolean exito = this.servidorCentral.actualizarSeguridad(algoritmo, claveSecreta);
+        boolean exito = seguridad.actualizarSeguridad(algoritmo, claveSecreta);
         
         if (exito) {
             System.out.println("[FACADE-SERVIDOR] Nueva política de encriptación aplicada.");
@@ -70,20 +102,20 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
     @Override
     public String getAlgoritmoCifradoActivo() {
-        return this.servidorCentral.getAlgoritmoSeguridad();
+        return seguridad.getAlgoritmoActivo();
     }
 
     @Override
     public String getClaveSecretaActiva() {
-        return this.servidorCentral.getClaveSeguridad();
+        return seguridad.getClaveActiva();
     }
 
     @Override
     public String[] obtenerConfiguracionCompleta() {
         return new String[] {
             gestorPersistencia.getFormatoActivo(),
-            this.servidorCentral.getAlgoritmoSeguridad(),
-            this.servidorCentral.getClaveSeguridad()
+            seguridad.getAlgoritmoActivo(), 
+            seguridad.getClaveActiva()      
         };
     }
 
@@ -91,4 +123,6 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     public String[] getAlgoritmosDisponibles() {
         return new String[] { "AES", "DES", "XOR" };
     }
+
+    
 }

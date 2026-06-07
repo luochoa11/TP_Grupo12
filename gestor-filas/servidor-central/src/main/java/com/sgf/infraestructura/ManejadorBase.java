@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.servicios.ServidorCentralFacade;
 
 /**
  * Clase base para todos los manejadores del sistema.
@@ -16,6 +17,7 @@ public abstract class ManejadorBase implements Runnable {
     protected ObjectOutputStream out;
     protected final ILogicaFila logica;
     protected final ServidorCentral servidor;
+    protected final ServidorCentralFacade fachada;
 
     public ManejadorBase(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
                          ILogicaFila logica, ServidorCentral servidor) {
@@ -24,6 +26,7 @@ public abstract class ManejadorBase implements Runnable {
         this.out = out;
         this.logica = logica;
         this.servidor = servidor;
+        this.fachada = servidor.getFachada();
     }
 
     /**
