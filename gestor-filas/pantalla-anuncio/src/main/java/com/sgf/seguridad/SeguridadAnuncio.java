@@ -13,7 +13,27 @@ public class SeguridadAnuncio {
         String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
         
         if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            this.encriptador = ProveedorEstrategiaCifrado.crear(algoritmo, claveConfigurada);
+            ProveedorEstrategiaCifrado proveedor;
+
+            switch(algoritmo.toUpperCase().trim()) {
+                case "AES":
+                case "AES-128":
+                    proveedor = new ProveedorAES();
+                    break;
+                case "DES":
+                case "TRIPLEDES":
+                    proveedor = new ProveedorDES();
+                    break;
+                case "XOR":
+                case "BLOWFISH":
+                    proveedor = new ProveedorXOR();
+                    break;
+                default:
+                    System.err.println("[SeguridadAnuncio] Algoritmo desconocido en config.properties. Usando AES por defecto.");
+                    proveedor = new ProveedorAES();
+            }
+            this.encriptador = proveedor.crear(claveConfigurada);
+
         } else {
             this.encriptador = null;
         }

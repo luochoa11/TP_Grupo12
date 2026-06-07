@@ -31,7 +31,27 @@ public class SeguridadServidorCentral {
         
         if (clave != null && !clave.isEmpty()) {
             this.claveActiva = clave;
-            this.encriptador = ProveedorEstrategiaCifrado.crear(this.algoritmoActivo, this.claveActiva);
+            
+            ProveedorEstrategiaCifrado proveedor;
+
+            switch(this.algoritmoActivo.toUpperCase().trim()) {
+                case "AES":
+                case "AES-128":
+                    proveedor = new ProveedorAES();
+                    break;
+                case "DES":
+                case "TRIPLEDES":
+                    proveedor = new ProveedorDES();
+                    break;
+                case "XOR":
+                case "BLOWFISH":
+                    proveedor = new ProveedorXOR();
+                    break;
+                default:
+                    System.err.println("[SeguridadServidor] Algoritmo desconocido en config.properties. Usando AES por defecto.");
+                    proveedor = new ProveedorAES();
+            }
+            this.encriptador = proveedor.crear(this.claveActiva);
             System.out.println("[SeguridadServidor] Clave local cargada desde config.properties.");
         } else {
             System.err.println("[SeguridadServidor] No se encontró clave. El servidor arranca bloqueado.");
@@ -46,9 +66,28 @@ public class SeguridadServidorCentral {
         try {
             this.algoritmoActivo = algoritmo;
             this.claveActiva = claveSecreta;
-            this.encriptador = ProveedorEstrategiaCifrado.crear(this.algoritmoActivo, this.claveActiva);
+            
+            ProveedorEstrategiaCifrado proveedor;
+            switch(this.algoritmoActivo.toUpperCase().trim()) {
+                case "AES":
+                case "AES-128":
+                    proveedor = new ProveedorAES();
+                    break;
+                case "DES":
+                case "TRIPLEDES":
+                    proveedor = new ProveedorDES();
+                    break;
+                case "XOR":
+                case "BLOWFISH":
+                    proveedor = new ProveedorXOR();
+                    break;
+                default:
+                    System.err.println("[SeguridadServidor] Algoritmo desconocido en config.properties. Usando AES por defecto.");
+                    proveedor = new ProveedorAES();
+            }
+            this.encriptador = proveedor.crear(this.claveActiva);
 
-            // Magia: Modificamos el archivo físico
+
             modificarArchivoProperties(claveSecreta, algoritmo);
             
             return true;
