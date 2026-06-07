@@ -15,24 +15,8 @@ public class SeguridadRegistro {
         String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
         
         if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            ProveedorEstrategiaCifrado proveedor;
-            switch(algoritmo.toUpperCase().trim()) {
-                case "AES":
-                case "AES-128":
-                    proveedor = new ProveedorAES();
-                    break;
-                case "DES":
-                case "TRIPLEDES":
-                    proveedor = new ProveedorDES();
-                    break;
-                case "XOR":
-                case "BLOWFISH":
-                    proveedor = new ProveedorXOR();
-                    break;
-                default:
-                    System.err.println("[SeguridadRegistro] Algoritmo desconocido en config.properties. Usando AES por defecto.");
-                    proveedor = new ProveedorAES();
-            }
+            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(algoritmo);
+            
             this.encriptador = proveedor.crear(claveConfigurada);
             System.out.println("[Seguridad] Componente inicializado con clave local.");
         } else {

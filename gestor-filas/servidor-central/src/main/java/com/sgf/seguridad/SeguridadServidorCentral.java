@@ -32,25 +32,9 @@ public class SeguridadServidorCentral {
         if (clave != null && !clave.isEmpty()) {
             this.claveActiva = clave;
             
-            ProveedorEstrategiaCifrado proveedor;
+            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(this.algoritmoActivo);
 
-            switch(this.algoritmoActivo.toUpperCase().trim()) {
-                case "AES":
-                case "AES-128":
-                    proveedor = new ProveedorAES();
-                    break;
-                case "DES":
-                case "TRIPLEDES":
-                    proveedor = new ProveedorDES();
-                    break;
-                case "XOR":
-                case "BLOWFISH":
-                    proveedor = new ProveedorXOR();
-                    break;
-                default:
-                    System.err.println("[SeguridadServidor] Algoritmo desconocido en config.properties. Usando AES por defecto.");
-                    proveedor = new ProveedorAES();
-            }
+            
             this.encriptador = proveedor.crear(this.claveActiva);
             System.out.println("[SeguridadServidor] Clave local cargada desde config.properties.");
         } else {
@@ -67,24 +51,7 @@ public class SeguridadServidorCentral {
             this.algoritmoActivo = algoritmo;
             this.claveActiva = claveSecreta;
             
-            ProveedorEstrategiaCifrado proveedor;
-            switch(this.algoritmoActivo.toUpperCase().trim()) {
-                case "AES":
-                case "AES-128":
-                    proveedor = new ProveedorAES();
-                    break;
-                case "DES":
-                case "TRIPLEDES":
-                    proveedor = new ProveedorDES();
-                    break;
-                case "XOR":
-                case "BLOWFISH":
-                    proveedor = new ProveedorXOR();
-                    break;
-                default:
-                    System.err.println("[SeguridadServidor] Algoritmo desconocido en config.properties. Usando AES por defecto.");
-                    proveedor = new ProveedorAES();
-            }
+            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(this.algoritmoActivo);
             this.encriptador = proveedor.crear(this.claveActiva);
 
 
