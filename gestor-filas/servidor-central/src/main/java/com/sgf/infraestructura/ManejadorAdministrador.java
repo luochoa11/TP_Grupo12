@@ -60,6 +60,7 @@ public class ManejadorAdministrador extends ManejadorBase implements Runnable {
                     String[] config = fachadaServidor.obtenerConfiguracionCompleta();
                     out.writeObject(config);
                     break;
+                
                 case "GET_ALGORITMOS":
                 out.writeObject(fachadaServidor.getAlgoritmosDisponibles());
                 break;
