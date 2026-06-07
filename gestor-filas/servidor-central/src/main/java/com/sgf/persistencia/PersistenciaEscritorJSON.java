@@ -11,6 +11,7 @@ public class PersistenciaEscritorJSON implements IPersistenciaEscritor {
     private final String PATH_HISTORIAL = "historial.json";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.json";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.json";
+    private final String PATH_REINTENTOS = "historialReintentos.json";
     
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception  {
@@ -36,6 +37,11 @@ public class PersistenciaEscritorJSON implements IPersistenciaEscritor {
                 out.print("{}");
             }
         }
+    }
+
+    @Override
+    public void guardarHistorialReintentos(List<Turno> historialReintentos) throws Exception {
+        escribirLista(PATH_REINTENTOS, historialReintentos);
     }
 
     private void escribirLista(String path, List<Turno> lista) throws Exception {

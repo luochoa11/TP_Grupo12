@@ -112,4 +112,12 @@ public class GestorPersistencia {
     public synchronized Turno recuperarUltimoLlamado() throws Exception {
         return factoryActiva.crearLector().recuperarUltimoLlamado();
     }
+
+    public synchronized void guardarHistorialReintentos(List<Turno> historialReintentos) throws Exception {
+        factoryActiva.crearEscritor().guardarHistorialReintentos(historialReintentos);
+    }
+
+    public synchronized List<Turno> recuperarHistorialReintentos() throws Exception {
+        return factoryActiva.crearLector().recuperarHistorialReintentos();
+    }
 }

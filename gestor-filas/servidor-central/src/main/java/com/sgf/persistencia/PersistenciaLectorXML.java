@@ -13,6 +13,7 @@ public class PersistenciaLectorXML implements IPersistenciaLector{
     private final String PATH_HISTORIAL = "historial.xml";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.xml";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.xml";
+    private final String PATH_REINTENTOS = "historialReintentos.xml";
 
     @Override
     public List<Turno> recuperarFilaEspera() throws Exception {
@@ -36,6 +37,10 @@ public class PersistenciaLectorXML implements IPersistenciaLector{
         return parsearUnicoTurno(file);
     }
 
+    @Override
+    public List<Turno> recuperarHistorialReintentos() throws Exception {
+        return leerLista(PATH_REINTENTOS);
+    }
     private List<Turno> leerLista(String path) throws Exception {
         List<Turno> lista = new ArrayList<>();
         File file = new File(path);

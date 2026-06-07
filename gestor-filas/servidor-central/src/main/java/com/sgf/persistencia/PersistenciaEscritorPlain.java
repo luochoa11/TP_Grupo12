@@ -11,7 +11,8 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
     private final String PATH_HISTORIAL = "historial.dat";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.dat";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.dat";
-    
+    private final String PATH_REINTENTOS = "historialReintentos.dat";
+
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception  {
         escribirObjeto(PATH_FILA, filaEspera);
@@ -32,6 +33,11 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(PATH_ULTIMO_LLAMADO))) {
             oos.writeObject(ultimoLlamado);
         }
+    }
+
+    @Override
+    public void guardarHistorialReintentos(List<Turno> historialReintentos) throws Exception {
+        escribirObjeto(PATH_REINTENTOS, historialReintentos);
     }
 
     // serializacion

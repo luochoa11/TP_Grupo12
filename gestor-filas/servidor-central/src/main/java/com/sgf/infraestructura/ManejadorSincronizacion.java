@@ -33,8 +33,9 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
                     List<Turno> historial = (List<Turno>) in.readObject();
                     Turno ultimo = (Turno) in.readObject();
+                    List<Turno> historialReintentos = (List<Turno>) in.readObject();
                                 
-                    logica.reemplazarEstado(cola, activos, historial, ultimo);
+                    logica.reemplazarEstado(cola, activos, historial, ultimo, historialReintentos);
                     System.out.println("[Sync] Estado recibido. Cola: " + cola.size() + " turnos.");
                     break;
 
@@ -60,6 +61,7 @@ public class ManejadorSincronizacion extends ManejadorBase {
                         
                         case "REINTENTAR":
                             logica.reintentarLlamado(delta.getIdPuesto());
+                            logica.getHistorialReintentos().add(delta.getTurno().clonar());
                             break;
                     }
                     System.out.println("[Sync] Delta de tipo [" + delta.getTipo() + "] replicado con éxito.");

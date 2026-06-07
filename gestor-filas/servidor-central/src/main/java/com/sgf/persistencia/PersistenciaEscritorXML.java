@@ -11,6 +11,7 @@ public class PersistenciaEscritorXML implements IPersistenciaEscritor{
     private final String PATH_HISTORIAL = "historial.xml";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.xml";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.xml";
+    private final String PATH_REINTENTOS = "historialReintentos.xml";
 
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception {
@@ -41,6 +42,11 @@ public class PersistenciaEscritorXML implements IPersistenciaEscritor{
         }
     }
 
+    @Override
+    public void guardarHistorialReintentos(List<Turno> historialReintentos) throws Exception {
+        escribirLista(PATH_REINTENTOS, "historialReintentos", historialReintentos);
+    }
+    
     private void escribirLista(String path, String rootTag, List<Turno> lista) throws Exception {
         try (PrintWriter out = new PrintWriter(new FileWriter(path))) {
             out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");

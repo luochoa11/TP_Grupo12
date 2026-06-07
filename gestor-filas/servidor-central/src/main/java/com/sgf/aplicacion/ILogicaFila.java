@@ -30,5 +30,7 @@ public interface ILogicaFila extends IServicioRegistro, IServicioOperador, IServ
 
     boolean hasDni(String dni);
 
-    void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo);
+    void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo, List<Turno> nuevoHistorialReintentos);
+
+    public List<Turno> getHistorialReintentos();
 }

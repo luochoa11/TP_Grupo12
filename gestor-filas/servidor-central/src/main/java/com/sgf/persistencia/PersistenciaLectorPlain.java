@@ -15,6 +15,7 @@ public class PersistenciaLectorPlain implements IPersistenciaLector{
     private final String PATH_HISTORIAL = "historial.dat";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.dat";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.dat";
+    private final String PATH_REINTENTOS = "historialReintentos.dat";
 
     @Override
     public List<Turno> recuperarFilaEspera() throws Exception {
@@ -41,6 +42,11 @@ public class PersistenciaLectorPlain implements IPersistenciaLector{
             return null;
         }
     }
+
+    @Override
+    public List<Turno> recuperarHistorialReintentos() throws Exception {
+        return (List<Turno>) leerObjeto(PATH_REINTENTOS);
+     }
 
     // deserializacion
     private Object leerObjeto(String path) throws Exception {

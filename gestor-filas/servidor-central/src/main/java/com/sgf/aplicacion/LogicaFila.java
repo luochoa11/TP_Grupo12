@@ -32,6 +32,8 @@ public class LogicaFila implements ILogicaFila{
 
     private Turno ultimoLlamado = null;
 
+    private List<Turno> historialReintentos = new ArrayList<>();
+
     private LogicaFila() {}
     
     public static synchronized LogicaFila getInstance() {
@@ -97,6 +99,7 @@ public class LogicaFila implements ILogicaFila{
         if (t != null) { //deberia haber una excepcion?
             if(t.getIntentos() < 3) {
                 t.incrementarIntentos();
+                this.historialReintentos.add(t.clonar()); //clon para mantener el historial de reintentos sin afectar el turno activo
 
                 //Si el reintento es de un turno no mostrado en pantalla, se actualiza el historial
                 //antes desaparecía del monitor
@@ -203,7 +206,7 @@ public class LogicaFila implements ILogicaFila{
         return false;
     }
 
-    public synchronized void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo) {
+    public synchronized void reemplazarEstado(List<Turno> nuevaCola, Map<Integer, Turno> nuevosActivos, List<Turno> nuevoHistorial, Turno nuevoUltimo, List<Turno> nuevoHistorialReintentos) {
         this.filaEspera.clear();
         if (nuevaCola != null) {
             this.filaEspera.addAll(nuevaCola);
@@ -219,5 +222,13 @@ public class LogicaFila implements ILogicaFila{
             this.historial.addAll(nuevoHistorial);
         }
         this.ultimoLlamado = nuevoUltimo;
+        this.historialReintentos.clear();
+        if (nuevoHistorialReintentos != null) {
+            this.historialReintentos.addAll(nuevoHistorialReintentos);
+        }
+    }
+
+    public synchronized List<Turno> getHistorialReintentos() {
+        return new ArrayList<>(historialReintentos);
     }
 }

@@ -259,6 +259,7 @@ public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
                 gestorPersistencia.guardarTurnosActuales(activosPlano);
                 
                 gestorPersistencia.guardarUltimoLlamado(logica.getUltimoLlamado());
+                gestorPersistencia.guardarHistorialReintentos(logica.getHistorialReintentos());
                 System.out.println("[Servidor-Persistencia] RAM y disco sincronizados en: " + gestorPersistencia.getFormatoActivo());
             } catch (Exception e) {
                 System.err.println("[Servidor-Persistencia] Error: No se pudo persistir el estado activo: " + e.getMessage());
@@ -273,6 +274,7 @@ public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
             List<Turno> historialRecuperado = gestorPersistencia.recuperarHistorial();
             List<Turno> activosLista = gestorPersistencia.recuperarTurnosActuales();
             Turno ultimoRecuperado = gestorPersistencia.recuperarUltimoLlamado();
+            List<Turno> historialReintentosRecuperado = gestorPersistencia.recuperarHistorialReintentos();
 
             Map<Integer, Turno> activosMap = new ConcurrentHashMap<>();
             if (activosLista != null) {
@@ -281,7 +283,7 @@ public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
                 }
             }
 
-            logica.reemplazarEstado(colaRecuperada, activosMap, historialRecuperado, ultimoRecuperado);
+            logica.reemplazarEstado(colaRecuperada, activosMap, historialRecuperado, ultimoRecuperado, historialReintentosRecuperado);
             
             System.out.println("[Servidor-Recuperación de Estado] ¡ESTADO RESTAURADO CON ÉXITO!");
             System.out.println("  - Formato activo restaurado: " + gestorPersistencia.getFormatoActivo());

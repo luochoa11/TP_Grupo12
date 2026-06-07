@@ -14,4 +14,5 @@ public interface IPersistenciaLector {
     List<Turno> recuperarHistorial() throws Exception;
     List<Turno> recuperarTurnosActuales() throws Exception;
     Turno recuperarUltimoLlamado() throws Exception;
+    List<Turno> recuperarHistorialReintentos() throws Exception;
 }

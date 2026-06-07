@@ -70,6 +70,7 @@ public class SincronizadorEstado {
             out.writeObject(logica.getTurnosActivos());
             out.writeObject(logica.getHistorial());
             out.writeObject(logica.getUltimoLlamado());
+            out.writeObject(logica.getHistorialReintentos());
             out.flush();
 
             System.out.println("[Sync] Estado actual sincronizado -> " + ip + ":" + puerto);

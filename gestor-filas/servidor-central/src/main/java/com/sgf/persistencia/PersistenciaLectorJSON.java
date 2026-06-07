@@ -11,9 +11,9 @@ import com.sgf.modelos.Turno;
 public class PersistenciaLectorJSON implements IPersistenciaLector {
     private final String PATH_FILA = "filaEspera.json";
     private final String PATH_HISTORIAL = "historial.json";
-     //private final String PATH_NOTIFICACIONES = "notificaciones.json";
     private final String PATH_TURNOS_ACTUALES = "turnosActuales.json";
     private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.json";
+    private final String PATH_REINTENTOS = "historialReintentos.json";
 
     @Override
     public List<Turno> recuperarFilaEspera() throws Exception {
@@ -41,6 +41,11 @@ public class PersistenciaLectorJSON implements IPersistenciaLector {
         } catch (Exception e) {
             throw new Exception("Error al leer el archivo " + PATH_ULTIMO_LLAMADO + ": " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<Turno> recuperarHistorialReintentos() throws Exception {
+        return leerLista(PATH_REINTENTOS);
     }
 
     private List<Turno> leerLista(String path) throws Exception {
