@@ -5,7 +5,7 @@ import javax.swing.SwingUtilities;
 import com.sgf.interfaces.IServicioAdministrador;
 
 /**
- * Controlador para la interfaz de administración.
+ * Controlador de la interfaz de administración.
  */
 public class ControladorAdministrador {
 
@@ -18,16 +18,13 @@ public class ControladorAdministrador {
     }
 
     /**
-     * Cambia de forma activa el formato de persistencia del servidor.
-     * Tras realizar el cambio de persistencia en caliente, fuerza un refresco visual
-     * inmediato para actualizar las etiquetas de estado y resetear el botón "Aplicar".
-     * @param nuevoFormato Abreviatura del formato ("JSON", "XML", "TXT")
+     * Ordena cambiar el formato de persistencia y refresca la UI inmediatamente tras finalizar.
      */
     public void modificarPersistencia(String nuevoFormato) {
         try {
             boolean exito = servicio.cambiarFormatoPersistencia(nuevoFormato);
             if (exito) {
-                vista.mostrarMensaje("Forma de almacenamiento cambiado con éxito a: " + nuevoFormato + ".");
+                vista.mostrarMensaje("Motor de almacenamiento cambiado con éxito a: " + nuevoFormato);
                 actualizarEstadoGeneral();
             } else {
                 vista.mostrarMensaje("Error: El servidor no pudo realizar la migración al formato " + nuevoFormato);
@@ -38,10 +35,9 @@ public class ControladorAdministrador {
     }
 
     /**
-     * Cambia la estrategia de encriptación y la clave simétrica del servidor en caliente.
-     * Una vez guardada, fuerza un refresco visual inmediato para restablecer el estado del botón.
-     * @param algoritmo Nombre de la estrategia criptográfica ("AES-128", "Blowfish", "TripleDES")
-     * @param clave Clave secreta compartida editada por el administrador.
+     * Ordena cambiar el protocolo criptográfico en caliente.
+     * Al aplicarse de forma exitosa, emite un aviso crítico al Administrador indicando que
+     * se requiere un reinicio sistémico en frío para evitar la corrupción o pérdida de DNIs.
      */
     public void modificarSeguridad(String algoritmo, String clave) {
         if (clave == null || clave.trim().isEmpty()) {
@@ -51,25 +47,43 @@ public class ControladorAdministrador {
         try {
             boolean exito = servicio.actualizarConfiguracionSeguridad(algoritmo, clave);
             if (exito) {
-                vista.mostrarMensaje("Política de seguridad actualizada con éxito:\n"
+                vista.mostrarMensaje("Configuración de seguridad guardada con éxito en el Servidor:\n"
                         + "- Estrategia: " + algoritmo + "\n"
-                        + "- Clave secreta: " + clave);
+                        + "- Nueva clave secreta: " + clave);
+                
+                vista.mostrarAdvertencia(
+                    "¡ATENCIÓN: REINICIO DEL SISTEMA REQUERIDO!\n\n"
+                    + "Para que la nueva política de encriptación simétrica se aplique de forma consistente\n"
+                    + "y sin pérdidas de DNIs en caliente, debe REINICIAR los siguientes componentes:\n"
+                    + "  1. Servidores Centrales (Primario y Secundario)\n"
+                    + "  2. Terminales de Registro activas\n"
+                    + "  3. Puestos de Operadores conectados\n\n"
+                    + "El sistema continuará operando bajo las credenciales anteriores hasta su próximo arranque."
+                );
+                
+                // Fuerza un refresco de sincronización INMEDIATAMENTE después de la mutación exitosa
                 actualizarEstadoGeneral();
             } else {
-                vista.mostrarMensaje("Error: El servidor central rechazó la configuración criptográfica.");
+                vista.mostrarMensaje("Error: El servidor central rechazó la configuración de seguridad.");
             }
         } catch (Exception e) {
             vista.mostrarMensaje("Error de red al aplicar la política de seguridad: " + e.getMessage());
         }
     }
 
+    /**
+     * Realiza la consulta de configuración al Servidor Central de forma síncrona.
+     */
     public void actualizarEstadoGeneral() {
         try {
+            // Trae formato, algoritmo y clave en un solo viaje de red
             String[] config = servicio.obtenerConfiguracionCompleta();
+            
             String formatoActivo = config[0];
             String algoritmoActivo = config[1];
             String claveActiva = config[2];
 
+            // Sincronizamos en el hilo visual de Swing
             SwingUtilities.invokeLater(() -> {
                 vista.actualizarMonitoreo(
                     formatoActivo, 
@@ -79,7 +93,7 @@ public class ControladorAdministrador {
             });
 
         } catch (Exception e) {
-            System.err.println("[ControladorAdministrador] Error en refresco de configuración: " + e.getMessage());
+            System.err.println("[CONTROLADOR-ADMINISTRADOR] Error al sincronizar configuración con el servidor: " + e.getMessage());
         }
     }
 }

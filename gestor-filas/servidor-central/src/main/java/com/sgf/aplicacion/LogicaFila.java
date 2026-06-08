@@ -21,7 +21,6 @@ import com.sgf.modelos.Turno;
 public class LogicaFila implements ILogicaFila{
     private static LogicaFila instance = null;
     
-    // Cola de espera para los turnos que no fueron llamados aun
     private Queue<Turno> filaEspera =  new LinkedList<>();
     
     // Lista para el historial de los últimos 4 llamados
@@ -50,8 +49,14 @@ public class LogicaFila implements ILogicaFila{
     public synchronized void agregarTurno(Turno t) throws DNIRepetidoException {
 
         String dni = t.getDniCliente().trim();
-        if (hasDni(dni)) throw new DNIRepetidoException(dni);
-        else this.filaEspera.add(t);
+        if (hasDni(dni)) {
+            throw new DNIRepetidoException(dni);
+        }
+        else {
+            if (t.getTiempoCreacion()==0)
+                t.setTiempoCreacion(System.currentTimeMillis());
+            this.filaEspera.add(t);
+        }
 
     }
 
@@ -69,10 +74,14 @@ public class LogicaFila implements ILogicaFila{
         Turno anterior = turnosActuales.get(idPuesto);
         if (anterior != null) {
             anterior.setEstado("ATENDIDO");
+            anterior.setTiempoAtendido(System.currentTimeMillis()); // Setea tiempo finalizado de atención
             actualizarHistorial(anterior);
         }
 
         if (this.ultimoLlamado != null) {
+            if (this.ultimoLlamado.getTiempoAtendido() == 0) {
+                this.ultimoLlamado.setTiempoAtendido(System.currentTimeMillis());
+            }
             actualizarHistorial(this.ultimoLlamado);
         }
 
@@ -82,6 +91,7 @@ public class LogicaFila implements ILogicaFila{
         nuevo.setIdPuesto(idPuesto);
         nuevo.setEstado("LLAMADO");
         nuevo.incrementarIntentos(); //Primer intento
+        nuevo.setTiempoLlamado(System.currentTimeMillis()); // Setea tiempo en que fue llamado a puesto
 
         this.ultimoLlamado = nuevo;
         turnosActuales.put(idPuesto, nuevo);
@@ -104,6 +114,9 @@ public class LogicaFila implements ILogicaFila{
                 //Si el reintento es de un turno no mostrado en pantalla, se actualiza el historial
                 //antes desaparecía del monitor
                 if (this.ultimoLlamado != null && !this.ultimoLlamado.getDniCliente().equals(t.getDniCliente())) {
+                    if (this.ultimoLlamado.getTiempoAtendido() == 0) {
+                        this.ultimoLlamado.setTiempoAtendido(System.currentTimeMillis());
+                    }
                     actualizarHistorial(this.ultimoLlamado);
                 }
 
@@ -115,6 +128,7 @@ public class LogicaFila implements ILogicaFila{
             } else {
                 // Si falla el 3er intento, el puesto queda libre y el turno va al historial
                 t.setEstado("AUSENTE");
+                t.setTiempoAtendido(System.currentTimeMillis()); // Fin del ciclo de vida del turno ausente
                 actualizarHistorial(t);
                 turnosActuales.remove(idPuesto);
                 if (this.ultimoLlamado != null && this.ultimoLlamado.getDniCliente().equals(t.getDniCliente())) {
@@ -156,6 +170,10 @@ public class LogicaFila implements ILogicaFila{
         // Si el DNI ya existe en el historial, no se hace nada (mantiene su posición vieja)
         for (Turno h : historial) {
             if (h.getDniCliente().equals(t.getDniCliente())) {
+                // Actualiza marcas de tiempo si cambiaron
+                h.setTiempoLlamado(t.getTiempoLlamado());
+                h.setTiempoAtendido(t.getTiempoAtendido());
+                h.setEstado(t.getEstado());
                 return;
             }
         }
@@ -221,8 +239,10 @@ public class LogicaFila implements ILogicaFila{
         if (nuevoHistorial != null) {
             this.historial.addAll(nuevoHistorial);
         }
+        
         this.ultimoLlamado = nuevoUltimo;
         this.historialReintentos.clear();
+
         if (nuevoHistorialReintentos != null) {
             this.historialReintentos.addAll(nuevoHistorialReintentos);
         }

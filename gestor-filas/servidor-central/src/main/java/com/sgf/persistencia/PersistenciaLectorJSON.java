@@ -70,11 +70,24 @@ public class PersistenciaLectorJSON implements IPersistenciaLector {
         String dni = extraerValorJson(json, "\"dniCliente\":\"");
         int idPuesto = Integer.parseInt(extraerValorJsonNum(json, "\"idPuesto\":"));
         int intentos = Integer.parseInt(extraerValorJsonNum(json, "\"intentos\":"));
+        
+        // Obtenemos los strings formateados y los transformamos llamando a FechaUtil
+        String strCreacion = extraerValorJson(json, "\"tiempoCreacion\":\"");
+        String strLlamado = extraerValorJson(json, "\"tiempoLlamado\":\"");
+        String strAtendido = extraerValorJson(json, "\"tiempoAtendido\":\"");
+        
+        long tiempoCreacion = FechaUtil.parsearCadenaAMilis(strCreacion);
+        long tiempoLlamado = FechaUtil.parsearCadenaAMilis(strLlamado);
+        long tiempoAtendido = FechaUtil.parsearCadenaAMilis(strAtendido);
+        
         String estado = extraerValorJson(json, "\"estado\":\"");
 
         Turno t = new Turno(dni);
         t.setIdPuesto(idPuesto);
         t.setIntentos(intentos);
+        t.setTiempoCreacion(tiempoCreacion);
+        t.setTiempoLlamado(tiempoLlamado);
+        t.setTiempoAtendido(tiempoAtendido);
         t.setEstado(estado);
         return t;
     }

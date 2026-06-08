@@ -50,11 +50,17 @@ public class PersistenciaLectorXML implements IPersistenciaLector{
             String linea;
             String dni = null, estado = null;
             int idPuesto = -1, intentos = 0;
+            long tiempoCreacion = 0, tiempoLlamado = 0, tiempoAtendido = 0;
 
             while ((linea = br.readLine()) != null) {
                 if (linea.contains("<dniCliente>")) dni = extraerTag(linea, "dniCliente");
                 if (linea.contains("<idPuesto>")) idPuesto = Integer.parseInt(extraerTag(linea, "idPuesto"));
                 if (linea.contains("<intentos>")) intentos = Integer.parseInt(extraerTag(linea, "intentos"));
+                // Parseamos las marcas temporales delegando en FechaUtil
+                if (linea.contains("<tiempoCreacion>")) tiempoCreacion = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoCreacion"));
+                if (linea.contains("<tiempoLlamado>")) tiempoLlamado = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoLlamado"));
+                if (linea.contains("<tiempoAtendido>")) tiempoAtendido = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoAtendido"));
+                
                 if (linea.contains("<estado>")) {
                     estado = extraerTag(linea, "estado");
                     
@@ -62,6 +68,9 @@ public class PersistenciaLectorXML implements IPersistenciaLector{
                     t.setIdPuesto(idPuesto);
                     t.setIntentos(intentos);
                     t.setEstado(estado);
+                    t.setTiempoCreacion(tiempoCreacion);
+                    t.setTiempoLlamado(tiempoLlamado);
+                    t.setTiempoAtendido(tiempoAtendido);
                     lista.add(t);
                 }
             }
@@ -74,18 +83,27 @@ public class PersistenciaLectorXML implements IPersistenciaLector{
             String linea;
             String dni = null, estado = null;
             int idPuesto = -1, intentos = 0;
+            long tiempoCreacion = 0, tiempoLlamado = 0, tiempoAtendido = 0;
             boolean tieneDatos = false;
+
             while ((linea = br.readLine()) != null) {
                 if (linea.contains("<dniCliente>")) { dni = extraerTag(linea, "dniCliente"); tieneDatos = true; }
                 if (linea.contains("<idPuesto>")) idPuesto = Integer.parseInt(extraerTag(linea, "idPuesto"));
                 if (linea.contains("<intentos>")) intentos = Integer.parseInt(extraerTag(linea, "intentos"));
+                if (linea.contains("<tiempoCreacion>")) tiempoCreacion = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoCreacion"));
+                if (linea.contains("<tiempoLlamado>")) tiempoLlamado = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoLlamado"));
+                if (linea.contains("<tiempoAtendido>")) tiempoAtendido = FechaUtil.parsearCadenaAMilis(extraerTag(linea, "tiempoAtendido"));
                 if (linea.contains("<estado>")) estado = extraerTag(linea, "estado");
             }
+            
             if (!tieneDatos) return null;
             Turno t = new Turno(dni);
             t.setIdPuesto(idPuesto);
             t.setIntentos(intentos);
             t.setEstado(estado);
+            t.setTiempoCreacion(tiempoCreacion);
+            t.setTiempoLlamado(tiempoLlamado);
+            t.setTiempoAtendido(tiempoAtendido);
             return t;
         }
     }

@@ -191,8 +191,13 @@ public class ServidorCentral implements Runnable {
         System.out.println("[Servidor] "+this.ip+":"+this.puerto+" Degradado a SECUNDARIO.");
     }
 
+    /**
+     * Táctica de Disponibilidad.
+     * Permite persistencia en ambos servidores (Primario y Secundario)
+     * garantizando copias idénticas y actualizadas en ambos discos duros de forma concurrentes.
+     */
     public synchronized void persistirEstadoActivo() {
-        if (this.gestorPersistencia != null && esPrimario) {
+        if (this.gestorPersistencia != null) {
             try {
                 gestorPersistencia.guardarFilaEspera(logica.getCola());
                 gestorPersistencia.guardarHistorial(logica.getHistorial());
@@ -202,7 +207,7 @@ public class ServidorCentral implements Runnable {
                 
                 gestorPersistencia.guardarUltimoLlamado(logica.getUltimoLlamado());
                 gestorPersistencia.guardarHistorialReintentos(logica.getHistorialReintentos());
-                System.out.println("[Servidor-Persistencia] RAM y disco sincronizados en: " + gestorPersistencia.getFormatoActivo());
+                System.out.println("[Servidor-Persistencia] Estado guardado localmente en formato: " + gestorPersistencia.getFormatoActivo());
             } catch (Exception e) {
                 System.err.println("[Servidor-Persistencia] Error: No se pudo persistir el estado activo: " + e.getMessage());
             }

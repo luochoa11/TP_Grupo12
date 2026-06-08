@@ -65,6 +65,11 @@ public class PersistenciaEscritorXML implements IPersistenciaEscritor{
         sb.append("    <dniCliente>").append(t.getDniCliente()).append("</dniCliente>\n");
         sb.append("    <idPuesto>").append(t.getIdPuesto()).append("</idPuesto>\n");
         sb.append("    <intentos>").append(t.getIntentos()).append("</intentos>\n");
+        // Escribimos marcas estructuradas delegando en FechaUtil
+        sb.append("    <tiempoCreacion>").append(FechaUtil.formatearMilis(t.getTiempoCreacion())).append("</tiempoCreacion>\n");
+        sb.append("    <tiempoLlamado>").append(FechaUtil.formatearMilis(t.getTiempoLlamado())).append("</tiempoLlamado>\n");
+        sb.append("    <tiempoAtendido>").append(FechaUtil.formatearMilis(t.getTiempoAtendido())).append("</tiempoAtendido>\n");
+        
         sb.append("    <estado>").append(t.getEstado()).append("</estado>\n");
         return sb.toString();
     }
