@@ -31,7 +31,21 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
     @Override
     public boolean cambiarFormatoPersistencia(String tipoFormato) {
-        System.out.println("[FACADE-SERVIDOR] Cambio de formato de persistencia solicitado -> Formato: " + tipoFormato);
+        boolean exito = cambiarFormatoPersistenciaSinReplicar(tipoFormato);
+        if (exito) {
+            // REPLICACIÓN EN CALIENTE AL SECUNDARIO (Evita bucles infinitos)
+            if (servidorCentral.esPrimario() && servidorCentral.getSincronizador() != null) {
+                servidorCentral.getSincronizador().sincronizarFormatoPersistencia(tipoFormato);
+            }
+        }
+        return exito;
+    }
+
+    /**
+     * Ejecuta la reconfiguración local de almacenamiento sin disparar otra sincronización de red.
+     */
+    public boolean cambiarFormatoPersistenciaSinReplicar(String tipoFormato) {
+        System.out.println("[FACADE-SERVIDOR] Aplicando formato de persistencia local -> " + tipoFormato);
         try {
             gestorPersistencia.establecerFormato(tipoFormato);
 
@@ -43,14 +57,18 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             
             gestorPersistencia.guardarUltimoLlamado(logicaFila.getUltimoLlamado());
 
-            System.out.println("[FACADE-SERVIDOR] Migración y guardado completados con éxito para: " + tipoFormato);
+            System.out.println("[FACADE-SERVIDOR] Almacenamiento local reconfigurado con éxito.");
             return true;
-
         } catch (Exception e) {
-            System.err.println("[FACADE-SERVIDOR] Error crítico durante la migración en caliente: " + e.getMessage());
+            System.err.println("[FACADE-SERVIDOR] Error durante la reconfiguración local: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public String getFormatoPersistenciaActivo() {
+        return gestorPersistencia.getFormatoActivo();
     }
 
     public SeguridadServidorCentral getSeguridad() {
@@ -85,11 +103,6 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
     public void desencriptarLista(List<Turno> lista) {
         if (lista != null) for (Turno t : lista) desencriptarTurno(t);
-    }
-
-    @Override
-    public String getFormatoPersistenciaActivo() {
-        return gestorPersistencia.getFormatoActivo();
     }
 
     @Override
@@ -128,5 +141,4 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         return new String[] { "AES", "DES", "XOR" };
     }
 
-    
 }

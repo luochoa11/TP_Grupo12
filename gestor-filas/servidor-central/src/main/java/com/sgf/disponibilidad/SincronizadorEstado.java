@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import com.sgf.aplicacion.ILogicaFila;
+import com.sgf.infraestructura.ServidorCentral;
 
 /**
  * Clase que envía datos del servidor primario al servidor secundario para mantenerlos 
@@ -17,11 +18,16 @@ public class SincronizadorEstado {
     private final ILogicaFila logica;
     private final String directorioIp;
     private final int    directorioPuerto;
+    private ServidorCentral servidor;
 
     public SincronizadorEstado(ILogicaFila logica, String directorioIp, int directorioPuerto) {
         this.logica           = logica;
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
+    }
+
+    public void setServidor(ServidorCentral servidor) {
+        this.servidor = servidor;
     }
 
     private String[] resolverSecundario() {
@@ -35,9 +41,7 @@ public class SincronizadorEstado {
             String ip     = (String) in.readObject();
             int    puerto = (int)    in.readObject();
 
-
-            System.out.println("[Sync] Secundario resuelto -> " + ip + ":" + puerto);
-
+            System.out.println("[Sync] Secundario resuelto -> " + ip + ": " + puerto);
 
             if (ip == null) return null;
             return new String[]{ip, String.valueOf(puerto)};
@@ -71,12 +75,20 @@ public class SincronizadorEstado {
             out.writeObject(logica.getHistorial());
             out.writeObject(logica.getUltimoLlamado());
             out.writeObject(logica.getHistorialReintentos());
+            
+            // ENVIAR CONFIGURACIÓN ACTIVA DE LA SESIÓN (Persistencia)
+            if (servidor != null && servidor.getFachada() != null) {
+                out.writeObject(servidor.getFachada().getFormatoPersistenciaActivo());
+            } else {
+                out.writeObject("JSON");
+            }
             out.flush();
 
-            System.out.println("[Sync] Estado actual sincronizado -> " + ip + ":" + puerto);
+            
+            System.out.println("[Sync] Estado actual y formato de persistencia sincronizado -> " + ip + ":" + puerto);
 
         } catch (Exception e) {
-            System.err.println("[Sync] Error al sincronizar: " + e.getMessage());
+            System.err.println("[Sync] Error al sincronizar estado completo: " + e.getMessage());
         }
     }
 
@@ -109,6 +121,33 @@ public class SincronizadorEstado {
 
         } catch (Exception e) {
             System.err.println("[Sync] Error al replicar delta: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Transmite un cambio de formato de persistencia en caliente al secundario.
+     */
+    public void sincronizarFormatoPersistencia(String nuevoFormato) {
+        String[] secundario = resolverSecundario();
+        if (secundario == null) return;
+
+        String ip     = secundario[0];
+        int    puerto = Integer.parseInt(secundario[1]);
+
+        try (Socket socket = new Socket(ip, puerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+            out.writeObject("SYNC_SERVER");
+            out.flush(); 
+
+            out.writeObject("ACTUALIZAR_PERSISTENCIA");
+            out.writeObject(nuevoFormato);
+            out.flush();
+
+            System.out.println("[Sync] Cambio de persistencia (" + nuevoFormato + ") replicado al secundario.");
+
+        } catch (Exception e) {
+            System.err.println("[Sync] Error al replicar cambio de persistencia: " + e.getMessage());
         }
     }
 }

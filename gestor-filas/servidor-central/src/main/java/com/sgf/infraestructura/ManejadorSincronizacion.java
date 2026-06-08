@@ -34,10 +34,21 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     List<Turno> historial = (List<Turno>) in.readObject();
                     Turno ultimo = (Turno) in.readObject();
                     List<Turno> historialReintentos = (List<Turno>) in.readObject();
-                                
+                    
                     logica.reemplazarEstado(cola, activos, historial, ultimo, historialReintentos);
+
+                    String formatoPersistencia = (String) in.readObject();
+                    fachada.cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
+                    
                     servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
-                    System.out.println("[Sync] Estado completo recibido y persistido localmente. Cola: " + cola.size() + " turnos.");
+                    System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
+                    break;
+
+                case "ACTUALIZAR_PERSISTENCIA":
+                    // Cambio de persistencia en caliente replicado desde el administrador a través del primario
+                    String nuevoFormato = (String) in.readObject();
+                    System.out.println("[Sync] Replicación en caliente de formato de persistencia: " + nuevoFormato);
+                    fachada.cambiarFormatoPersistenciaSinReplicar(nuevoFormato);
                     break;
 
                 case "NUEVO_DELTA":

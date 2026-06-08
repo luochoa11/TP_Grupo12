@@ -41,7 +41,10 @@ public class ServidorCentral implements Runnable {
         this.logica = logica;
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
-
+        
+        if (this.sincronizador != null) {
+            this.sincronizador.setServidor(this);
+        }
         this.gestorPersistencia = new GestorPersistencia(puerto); 
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
     
