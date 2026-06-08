@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.FontMetrics;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -21,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.ListCellRenderer;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -54,17 +57,17 @@ public class VentanaAdministrador extends JFrame {
     private String claveActiva = "";
 
     // Paleta de colores de alto contraste: Midnight Navy, Cyber Sky & Bright White
-    private final Color COLOR_FONDO = new Color(11, 15, 26);         
-    private final Color COLOR_TARJETA = new Color(22, 28, 45);        
+    private final Color COLOR_FONDO = new Color(11, 15, 26);           
+    private final Color COLOR_TARJETA = new Color(22, 28, 45);         
     private final Color COLOR_ACCENTO_PERSISTENCIA = new Color(45, 212, 191); 
     private final Color COLOR_ACCENTO_SEGURIDAD = new Color(56, 189, 248);   
-    private final Color COLOR_TEXTO_TITULO = Color.WHITE;              
-    private final Color COLOR_TEXTO_DESCRIP = new Color(226, 232, 240); 
+    private final Color COLOR_TEXTO_TITULO = Color.WHITE;               
+    private final Color COLOR_TEXTO_DESCRIP = new Color(226, 232, 240);  
     private final Color COLOR_TEXTO_MUTED = new Color(148, 163, 184);   
-    private final Color COLOR_BORDE = new Color(51, 65, 85);       
+    private final Color COLOR_BORDE = new Color(51, 65, 85);            
 
     // Colores para estados de botones
-    private final Color COLOR_BTN_DESACTIVADO_BG = new Color(30, 41, 59);   
+    private final Color COLOR_BTN_DESACTIVADO_BG = new Color(30, 41, 59);    
     private final Color COLOR_BTN_DESACTIVADO_FG = new Color(100, 116, 139);  
     private final Color COLOR_BTN_DESACTIVADO_BORDE = new Color(71, 85, 105); 
 
@@ -79,6 +82,9 @@ public class VentanaAdministrador extends JFrame {
         setContentPane(contentPane);
 
         initUI(contentPane);
+
+        // Inicialización preventiva local: evita que el panel aparezca en blanco mientras conecta la red
+        actualizarMonitoreo("JSON", "AES", "SeguridadSGF2026");
     }
 
     private void initUI(JPanel container) {
@@ -92,7 +98,7 @@ public class VentanaAdministrador extends JFrame {
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(COLOR_TEXTO_TITULO);
 
-        JLabel lblSubtitulo = new JLabel("Establecer el formato de almacenamiento del sistema y los protocolo para la protección de los datos.", SwingConstants.LEFT);
+        JLabel lblSubtitulo = new JLabel("Establecer el formato de almacenamiento del sistema y los protocolos para la protección de los datos.", SwingConstants.LEFT);
         lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblSubtitulo.setForeground(COLOR_TEXTO_DESCRIP);
 
@@ -126,7 +132,7 @@ public class VentanaAdministrador extends JFrame {
         desc.setAlignmentX(LEFT_ALIGNMENT);
 
         String[] formatos = {"JSON (Archivo estructurado)", "XML (Esquema definido)", "TXT (Texto Plano / Log)"};
-        comboPersistencia = crearComboboxEstilizado(formatos);
+        comboPersistencia = crearComboboxEstilizado(formatos, COLOR_ACCENTO_PERSISTENCIA);
         comboPersistencia.addActionListener(e -> evaluarCambiosPersistencia());
 
         lblPersistenciaEstadoActual = new JLabel("Formato activo en servidor: ---");
@@ -171,7 +177,7 @@ public class VentanaAdministrador extends JFrame {
         lblAlgo.setAlignmentX(LEFT_ALIGNMENT);
 
         String[] algoritmos = {"AES-128 (Estándar recomendado)", "XOR (Sencillo / Rápido)", "TripleDES (Compatibilidad)"};
-        comboAlgoritmo = crearComboboxEstilizado(algoritmos);
+        comboAlgoritmo = crearComboboxEstilizado(algoritmos, COLOR_ACCENTO_SEGURIDAD);
         comboAlgoritmo.addActionListener(e -> evaluarCambiosSeguridad());
 
         JLabel lblClave = new JLabel("Clave Secreta Compartida:");
@@ -225,30 +231,79 @@ public class VentanaAdministrador extends JFrame {
         return p;
     }
 
-    private JComboBox<String> crearComboboxEstilizado(String[] items) {
+    private JComboBox<String> crearComboboxEstilizado(String[] items, Color accentColor) {
         JComboBox<String> combo = new JComboBox<>(items);
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        combo.setBackground(COLOR_FONDO);
+        combo.setBackground(COLOR_TARJETA);
         combo.setForeground(COLOR_TEXTO_TITULO);
         combo.setBorder(new LineBorder(COLOR_BORDE, 1));
         combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         combo.setAlignmentX(LEFT_ALIGNMENT);
+        combo.setFocusable(false); // Quita el molesto reborde de foco azul nativo de la caja
 
-        combo.setRenderer(new DefaultListCellRenderer() {
-            private static final long serialVersionUID = 1L;
+        combo.setUI(new javax.swing.plaf.basic.BasicComboBoxUI() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (isSelected) {
-                    c.setBackground(COLOR_TARJETA);
-                    c.setForeground(Color.WHITE);
-                } else {
-                    c.setBackground(COLOR_FONDO);
-                    c.setForeground(COLOR_TEXTO_DESCRIP);
-                }
-                return c;
+            protected JButton createArrowButton() {
+                JButton button = new JButton("▼") {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public void paint(Graphics g) {
+                        g.setColor(COLOR_TARJETA);
+                        g.fillRect(0, 0, getWidth(), getHeight());
+                        g.setColor(accentColor);
+                        g.setFont(new Font("Segoe UI", Font.BOLD, 10));
+                        FontMetrics fm = g.getFontMetrics();
+                        int x = (getWidth() - fm.stringWidth("▼")) / 2;
+                        int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                        g.drawString("▼", x, y);
+                    }
+                };
+                button.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, COLOR_BORDE));
+                button.setContentAreaFilled(false);
+                button.setFocusPainted(false);
+                return button;
+            }
+
+            @Override
+            public void paintCurrentValueBackground(Graphics g, Rectangle bounds, boolean hasFocus) {
+                g.setColor(COLOR_TARJETA);
+                g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             }
         });
+
+        combo.setRenderer(new ListCellRenderer<String>() {
+            private final JLabel label = new JLabel();
+            {
+                label.setOpaque(true);
+                label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            }
+
+            @Override
+            public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+                label.setText(value);
+                label.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
+                if (index == -1) {
+                    label.setBackground(COLOR_TARJETA);
+                    label.setForeground(COLOR_TEXTO_TITULO);
+                } else {
+                    if (isSelected) {
+                        label.setBackground(new Color(
+                            accentColor.getRed(),
+                            accentColor.getGreen(),
+                            accentColor.getBlue(),
+                            40 // Alpha de 40 sobre 255 (Aproximadamente 15% opacidad)
+                        ));
+                        label.setForeground(accentColor);
+                    } else {
+                        label.setBackground(COLOR_TARJETA);
+                        label.setForeground(COLOR_TEXTO_DESCRIP);
+                    }
+                }
+                return label;
+            }
+        });
+
         return combo;
     }
 
@@ -277,6 +332,7 @@ public class VentanaAdministrador extends JFrame {
 
     private void evaluarCambiosPersistencia() {
         String seleccionado = (String) comboPersistencia.getSelectedItem();
+        if (seleccionado == null) return;
         String seleccionadoAbrev = extraerFormatoAbrev(seleccionado);
 
         boolean cambioDetectado = !seleccionadoAbrev.equalsIgnoreCase(persistenciaActiva);
@@ -285,6 +341,7 @@ public class VentanaAdministrador extends JFrame {
 
     private void evaluarCambiosSeguridad() {
         String seleccionadoAlgo = (String) comboAlgoritmo.getSelectedItem();
+        if (seleccionadoAlgo == null) return;
         String seleccionadoAlgoAbrev = extraerAlgoAbrev(seleccionadoAlgo);
         String claveEscrita = txtClaveSecreta.getText();
 
@@ -328,12 +385,17 @@ public class VentanaAdministrador extends JFrame {
                 txtClaveSecreta.setText(clave);
             }
 
-            evaluarCambiosPersistencia();
-            evaluarCambiosSeguridad();
+            evaluarChangesAdicionales();
         });
     }
 
+    private void evaluarChangesAdicionales() {
+        evaluarCambiosPersistencia();
+        evaluarCambiosSeguridad();
+    }
+
     private void seleccionarComboPersistencia(String formato) {
+        if (comboPersistencia == null) return;
         for (int i = 0; i < comboPersistencia.getItemCount(); i++) {
             String item = comboPersistencia.getItemAt(i);
             if (item.toUpperCase().contains(formato.toUpperCase())) {
@@ -344,6 +406,7 @@ public class VentanaAdministrador extends JFrame {
     }
 
     private void seleccionarComboAlgoritmo(String algoritmo) {
+        if (comboAlgoritmo == null) return;
         for (int i = 0; i < comboAlgoritmo.getItemCount(); i++) {
             String item = comboAlgoritmo.getItemAt(i);
             if (item.toUpperCase().contains(algoritmo.toUpperCase())) {
