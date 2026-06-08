@@ -220,6 +220,22 @@ public class ServidorCentral implements Runnable {
         }
     }
 
+    /**
+     * Táctica de Disponibilidad y Robustez (Registro Histórico en Frío).
+     * Registra un turno cerrado en el disco de forma segura.
+     */
+    public synchronized void registrarTurnoFinalizado(Turno t) {
+        if (this.gestorPersistencia != null && t != null) {
+            try {
+                this.gestorPersistencia.registrarTurnoFinalizado(t);
+                System.out.println("[Servidor-Persistencia] Auditoría fría registrada con éxito para el DNI: " + t.getDniCliente());
+            } catch (Exception e) {
+                System.err.println("[Servidor-Persistencia] ADVERTENCIA: Falló el guardado en el log de auditoría fría: " + e.getMessage());
+                // El error queda registrado en consola del servidor, pero no interrumpe el flujo operativo.
+            }
+        }
+    }
+
     private void cargarEstadoPrevioDelDisco() {
         System.out.println("[Servidor-Recuperación de Estado] Resincronizando estado del servidor...");
         try {

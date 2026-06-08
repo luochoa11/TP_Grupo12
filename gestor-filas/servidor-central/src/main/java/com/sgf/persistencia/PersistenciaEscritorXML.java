@@ -1,7 +1,10 @@
 package com.sgf.persistencia;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.sgf.modelos.Turno;
@@ -12,13 +15,20 @@ public class PersistenciaEscritorXML implements IPersistenciaEscritor{
     private final String PATH_TURNOS_ACTUALES;
     private final String PATH_ULTIMO_LLAMADO;
     private final String PATH_REINTENTOS;
+    private final String rutaBase;
 
     public PersistenciaEscritorXML(String rutaBase) {
+        this.rutaBase = (rutaBase == null || rutaBase.trim().isEmpty()) ? "" : (rutaBase + File.separator);
         this.PATH_FILA = rutaBase + "filaEspera.xml";
         this.PATH_HISTORIAL = rutaBase + "historial.xml";
         this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.xml";
         this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.xml";
         this.PATH_REINTENTOS = rutaBase + "historialReintentos.xml";
+
+        File dirHistorico = new File(this.rutaBase + "historico");
+        if (!dirHistorico.exists()) {
+            dirHistorico.mkdirs();
+        }
     }
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception {
@@ -54,6 +64,24 @@ public class PersistenciaEscritorXML implements IPersistenciaEscritor{
         escribirLista(PATH_REINTENTOS, "historialReintentos", historialReintentos);
     }
     
+    //-------guardado en frío---------------------
+    @Override
+    public synchronized void registrarTurnoFinalizado(Turno turno) throws Exception {
+        if (turno == null) return;
+        
+        String mesAnio = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
+        String pathHistorico = this.rutaBase + "historico" + File.separator + "auditoria_" + mesAnio + ".xml";
+        
+        try (PrintWriter out = new PrintWriter(new FileWriter(pathHistorico, true))) {
+            out.println("<turno>");
+            out.print(turnoToXmlTags(turno));
+            out.println("</turno>");
+        } catch (Exception e) {
+            throw new Exception("Error al escribir log de auditoría XML: " + e.getMessage());
+        }
+    }
+    //-----------------------
+
     private void escribirLista(String path, String rootTag, List<Turno> lista) throws Exception {
         try (PrintWriter out = new PrintWriter(new FileWriter(path))) {
             out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
