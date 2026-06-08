@@ -38,12 +38,12 @@ public class VentanaAdministrador extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    // Elementos de Persistencia
+    // Elementos de Persistencia (Abstract Factory)
     private JComboBox<String> comboPersistencia;
     private JButton btnAplicarPersistencia;
     private JLabel lblPersistenciaEstadoActual;
 
-    // Elementos de Seguridad
+    // Elementos de Seguridad (Strategy)
     private JComboBox<String> comboAlgoritmo;
     private JTextField txtClaveSecreta;
     private JButton btnAplicarSeguridad;
@@ -103,7 +103,7 @@ public class VentanaAdministrador extends JFrame {
         lblSubtitulo.setForeground(COLOR_TEXTO_DESCRIP);
 
         panelHeader.add(lblTitulo);
-        panelHeader.add(Box.createVerticalStrut(6));
+        panelHeader.add(Box.createVerticalStrut(6)); // Corrección del bug de compilación de createVerticalStrStrut
         panelHeader.add(lblSubtitulo);
         container.add(panelHeader, BorderLayout.NORTH);
 
@@ -288,13 +288,14 @@ public class VentanaAdministrador extends JFrame {
                     label.setForeground(COLOR_TEXTO_TITULO);
                 } else {
                     if (isSelected) {
+                        // Sombreado translúcido sumamente sutil (15% de opacidad) que actúa como un hover refinado
                         label.setBackground(new Color(
                             accentColor.getRed(),
                             accentColor.getGreen(),
                             accentColor.getBlue(),
                             40 // Alpha de 40 sobre 255 (Aproximadamente 15% opacidad)
                         ));
-                        label.setForeground(accentColor);
+                        label.setForeground(accentColor); // Texto del color de acento para excelente legibilidad y estética
                     } else {
                         label.setBackground(COLOR_TARJETA);
                         label.setForeground(COLOR_TEXTO_DESCRIP);
@@ -434,5 +435,14 @@ public class VentanaAdministrador extends JFrame {
 
     public void mostrarMensaje(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "Administración de Servidor", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * Muestra una ventana de advertencia de seguridad con un icono de peligro.
+     * Utilizado para alertar la necesidad de un reinicio sistémico.
+     * @param mensaje Explicación técnica de la acción requerida.
+     */
+    public void mostrarAdvertencia(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Advertencia de Reinicio de Sesión", JOptionPane.WARNING_MESSAGE);
     }
 }

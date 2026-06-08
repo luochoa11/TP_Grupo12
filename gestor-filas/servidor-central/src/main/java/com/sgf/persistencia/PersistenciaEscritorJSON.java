@@ -60,9 +60,12 @@ public class PersistenciaEscritorJSON implements IPersistenciaEscritor {
 
     private String turnoToJson(Turno t) {
         return String.format(
-            "{\"dniCliente\":\"%s\", \"idPuesto\":%d, \"intentos\":%d, \"estado\":\"%s\"}",
-            t.getDniCliente(), t.getIdPuesto(), t.getIntentos(), t.getEstado()
+            "{\"dniCliente\":\"%s\", \"idPuesto\":%d, \"intentos\":%d, \"tiempoCreacion\":\"%s\", \"tiempoLlamado\":\"%s\", \"tiempoAtendido\":\"%s\", \"estado\":\"%s\"}",
+            t.getDniCliente(), t.getIdPuesto(), t.getIntentos(), 
+            FechaUtil.formatearMilis(t.getTiempoCreacion()), 
+            FechaUtil.formatearMilis(t.getTiempoLlamado()), 
+            FechaUtil.formatearMilis(t.getTiempoAtendido()), 
+            t.getEstado()
         );
-    
     }
 }

@@ -3,7 +3,6 @@ package com.sgf.infraestructura;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.disponibilidad.ActualizacionEstadoDTO;
@@ -16,7 +15,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorOperador extends ManejadorBase {
 
     public ManejadorOperador(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                             ILogicaFila logica, ServidorCentral servidor) {
+                            ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 

@@ -16,7 +16,7 @@ import com.sgf.modelos.Turno;
 public class ManejadorSincronizacion extends ManejadorBase {
 
     public ManejadorSincronizacion(Socket socket, ObjectInputStream in, ObjectOutputStream out, 
-                                   ILogicaFila logica, ServidorCentral servidor) {
+                                ILogicaFila logica, ServidorCentral servidor) {
         super(socket, in, out, logica, servidor);
     }
 
@@ -36,7 +36,8 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     List<Turno> historialReintentos = (List<Turno>) in.readObject();
                                 
                     logica.reemplazarEstado(cola, activos, historial, ultimo, historialReintentos);
-                    System.out.println("[Sync] Estado recibido. Cola: " + cola.size() + " turnos.");
+                    servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
+                    System.out.println("[Sync] Estado completo recibido y persistido localmente. Cola: " + cola.size() + " turnos.");
                     break;
 
                 case "NUEVO_DELTA":
@@ -64,6 +65,7 @@ public class ManejadorSincronizacion extends ManejadorBase {
                             logica.getHistorialReintentos().add(delta.getTurno().clonar());
                             break;
                     }
+                    servidor.persistirEstadoActivo(); // Guardar después de cada delta para minimizar pérdida de datos
                     System.out.println("[Sync] Delta de tipo [" + delta.getTipo() + "] replicado con éxito.");
                         break;
             }
