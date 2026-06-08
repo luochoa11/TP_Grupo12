@@ -42,7 +42,7 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
 
-        this.gestorPersistencia = new GestorPersistencia(); 
+        this.gestorPersistencia = new GestorPersistencia(puerto); 
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
     
         if (esPrimario) {

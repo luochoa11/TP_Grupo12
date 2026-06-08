@@ -7,11 +7,19 @@ import java.util.List;
 import com.sgf.modelos.Turno;
 
 public class PersistenciaEscritorJSON implements IPersistenciaEscritor {
-    private final String PATH_FILA = "filaEspera.json";
-    private final String PATH_HISTORIAL = "historial.json";
-    private final String PATH_TURNOS_ACTUALES = "turnosActuales.json";
-    private final String PATH_ULTIMO_LLAMADO = "ultimoLlamado.json";
-    private final String PATH_REINTENTOS = "historialReintentos.json";
+    private final String PATH_FILA;
+    private final String PATH_HISTORIAL;
+    private final String PATH_TURNOS_ACTUALES;
+    private final String PATH_ULTIMO_LLAMADO;
+    private final String PATH_REINTENTOS;
+    
+    public PersistenciaEscritorJSON(String rutaBase) {
+        this.PATH_FILA = rutaBase + "filaEspera.json";
+        this.PATH_HISTORIAL = rutaBase + "historial.json";
+        this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.json";
+        this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.json";
+        this.PATH_REINTENTOS = rutaBase + "historialReintentos.json";
+    }
     
     @Override
     public void guardarFilaEspera(List<Turno> filaEspera) throws Exception  {
