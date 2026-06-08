@@ -17,6 +17,7 @@ import com.sgf.disponibilidad.SincronizadorEstado;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
+import com.sgf.seguridad.IEncriptacionStrategy;
 import com.sgf.servicios.ServidorCentralFacade;
 
 /**
@@ -42,6 +43,7 @@ public class ServidorCentral implements Runnable {
         this.esPrimario = esPrimario;
         this.sincronizador = sincronizador;
         
+        // VINCULACIÓN BIDIRECCIONAL: Permite que el sincronizador de red consulte la configuración en vivo
         if (this.sincronizador != null) {
             this.sincronizador.setServidor(this);
         }
@@ -57,6 +59,9 @@ public class ServidorCentral implements Runnable {
         return (ServidorCentralFacade) this.fachadaServidor;
     }
 
+    // =========================================================================
+    // Lógica de Red y Notificaciones
+    // =========================================================================
     @Override
     public void run() {
         try(ServerSocket server = new ServerSocket(puerto)){
@@ -121,40 +126,38 @@ public class ServidorCentral implements Runnable {
     }
 
     public void notificarMonitores(Turno actual, List<Turno> historial) {
-    ServidorCentralFacade facade = (ServidorCentralFacade) fachadaServidor;
-    synchronized (monitores) {
-        Turno actualCopia = facade.copiarYEncriptar(actual);
-        List<Turno> historialCopia = facade.copiarYEncriptarLista(historial);
-        Iterator<ObjectOutputStream> it = monitores.iterator();
-        while (it.hasNext()) {
-            ObjectOutputStream out = it.next();
-            try {
-                out.reset();
-                out.writeObject(actualCopia);
-                out.writeObject(historialCopia);
-                out.flush();
-            } catch (Exception e) {
-                it.remove();
+        synchronized (monitores) {
+            Turno actualCopia = copiarYEncriptar(actual);
+            List<Turno> historialCopia = copiarYEncriptarLista(historial);
+            Iterator<ObjectOutputStream> it = monitores.iterator();
+            while (it.hasNext()) {
+                ObjectOutputStream out = it.next();
+                try {
+                    out.reset();
+                    out.writeObject(actualCopia);
+                    out.writeObject(historialCopia);
+                    out.flush();
+                } catch (Exception e) {
+                    it.remove();
+                }
             }
         }
     }
-    }
     
     public void notificarOperadores() { 
-    ServidorCentralFacade facade = (ServidorCentralFacade) fachadaServidor;
-    for (Map.Entry<Integer, ObjectOutputStream> entry : operadores.entrySet()) {
-        int id = entry.getKey();
-        ObjectOutputStream out = entry.getValue();
-        try {
-            Turno actualCopia = facade.copiarYEncriptar(logica.getTurnoPuesto(id));
-            List<Turno> colaCopia = facade.copiarYEncriptarLista(logica.getCola());
-            out.writeObject(actualCopia);
-            out.writeObject(colaCopia);
-            out.flush();
-        } catch (Exception e) {
-            operadores.remove(id);
+        for (Map.Entry<Integer, ObjectOutputStream> entry : operadores.entrySet()) {
+            int id = entry.getKey();
+            ObjectOutputStream out = entry.getValue();
+            try {
+                Turno actualCopia = copiarYEncriptar(logica.getTurnoPuesto(id));
+                List<Turno> colaCopia = copiarYEncriptarLista(logica.getCola());
+                out.writeObject(actualCopia);
+                out.writeObject(colaCopia);
+                out.flush();
+            } catch (Exception e) {
+                operadores.remove(id);
+            }
         }
-    }
     }
 
     public boolean esPrimario() {
@@ -163,7 +166,7 @@ public class ServidorCentral implements Runnable {
 
     public void promoverEstado() {
         this.esPrimario = true;
-        System.out.println("[Servidor] " + this.ip + ":" + this.puerto + " Promovido a PRIMARIO.");
+        System.out.println("[Servidor] " + this.ip + ": " + this.puerto + " Promovido a PRIMARIO.");
         
         //Le pedimos la recarga de llaves simétricas a la fachada
         if (getFachada() != null && getFachada().getSeguridad() != null) {
@@ -191,7 +194,7 @@ public class ServidorCentral implements Runnable {
 
     public void degradarEstado() {
         this.esPrimario = false;
-        System.out.println("[Servidor] "+this.ip+":"+this.puerto+" Degradado a SECUNDARIO.");
+        System.out.println("[Servidor] "+this.ip+": "+this.puerto+" Degradado a SECUNDARIO.");
     }
 
     /**
@@ -243,6 +246,51 @@ public class ServidorCentral implements Runnable {
         } catch (Exception e) {
             System.out.println("[Servidor-Recuperación de Estado] No se detectó estado previo o está vacío. Iniciando con base limpia.");
         }
+    }
+
+    // =========================================================================
+    // Métodos Operativos de Cifrado 
+    // =========================================================================
+    public IEncriptacionStrategy getEncriptador() {
+        ServidorCentralFacade fac = getFachada();
+        if (fac != null && fac.getSeguridad() != null) {
+            return fac.getSeguridad().getEncriptador();
+        }
+        return null;
+    }
+
+    public void encriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null) {
+            t.setDniCliente(enc.encriptar(t.getDniCliente()));
+        }
+    }
+
+    public void desencriptarTurno(Turno t) {
+        IEncriptacionStrategy enc = getEncriptador();
+        if (t != null && t.getDniCliente() != null && enc != null) {
+            t.setDniCliente(enc.desencriptar(t.getDniCliente()));
+        }
+    }
+
+    public Turno copiarYEncriptar(Turno t) {
+        if (t == null) return null;
+        Turno copia = t.clonar();
+        encriptarTurno(copia);
+        return copia;
+    }
+
+    public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
+        if (lista == null) return null;
+        List<Turno> copia = new ArrayList<>();
+        for (Turno t : lista) {
+            copia.add(copiarYEncriptar(t));
+        }
+        return copia;
+    }
+
+    public void desencriptarLista(List<Turno> lista) {
+        if (lista != null) for (Turno t : lista) desencriptarTurno(t);
     }
 
 }

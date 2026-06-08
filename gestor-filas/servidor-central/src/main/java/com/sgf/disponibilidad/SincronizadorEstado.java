@@ -11,8 +11,6 @@ import com.sgf.infraestructura.ServidorCentral;
  * Clase que envía datos del servidor primario al servidor secundario para mantenerlos 
  * sincronizados en caso de falla del primario.
  */
-
-
 public class SincronizadorEstado {
 
     private final ILogicaFila logica;
@@ -77,6 +75,7 @@ public class SincronizadorEstado {
             out.writeObject(logica.getHistorialReintentos());
             
             // ENVIAR CONFIGURACIÓN ACTIVA DE LA SESIÓN (Persistencia)
+            //------se podría agregar sincronizacion de seguridad-----------
             if (servidor != null && servidor.getFachada() != null) {
                 out.writeObject(servidor.getFachada().getFormatoPersistenciaActivo());
             } else {
@@ -127,7 +126,8 @@ public class SincronizadorEstado {
     /**
      * Transmite un cambio de formato de persistencia en caliente al secundario.
      */
-    public void sincronizarFormatoPersistencia(String nuevoFormato) {
+    public void sincronizarFormatoPersistencia(String nuevoFormato) { 
+        //----de la misma manera se podría para seguridad, agregando case en manejadorAdmin----
         String[] secundario = resolverSecundario();
         if (secundario == null) return;
 

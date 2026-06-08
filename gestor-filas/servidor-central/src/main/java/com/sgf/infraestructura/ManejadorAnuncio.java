@@ -27,8 +27,8 @@ public class ManejadorAnuncio extends ManejadorBase {
                     Thread.sleep(10000);
                 }
             } else if ("GET_ESTADO_MONITOR".equals(comando)) {
-                Turno actualCopia = fachada.copiarYEncriptar(logica.getUltimoLlamado());
-                List<Turno> historialCopia = fachada.copiarYEncriptarLista(logica.getHistorial());
+                Turno actualCopia = servidor.copiarYEncriptar(logica.getUltimoLlamado());
+                List<Turno> historialCopia = servidor.copiarYEncriptarLista(logica.getHistorial());
                 
                 out.writeObject(actualCopia);
                 out.writeObject(historialCopia);

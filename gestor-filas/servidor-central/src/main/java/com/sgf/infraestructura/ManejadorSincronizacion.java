@@ -28,17 +28,18 @@ public class ManejadorSincronizacion extends ManejadorBase {
             
             switch (comando){
                 case "SINCRONIZAR_ESTADO":
-                    // Sincronización completa al levantar
+                    // Sincronización completa al levantar servidor secundario o tras recuperación de fallo
                     List<Turno> cola = (List<Turno>) in.readObject();
                     Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
                     List<Turno> historial = (List<Turno>) in.readObject();
                     Turno ultimo = (Turno) in.readObject();
                     List<Turno> historialReintentos = (List<Turno>) in.readObject();
                     
+                    // sincronizamos los datos en la ram de la réplica
                     logica.reemplazarEstado(cola, activos, historial, ultimo, historialReintentos);
 
                     String formatoPersistencia = (String) in.readObject();
-                    fachada.cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
+                    servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
                     
                     servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
                     System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
@@ -48,7 +49,7 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     // Cambio de persistencia en caliente replicado desde el administrador a través del primario
                     String nuevoFormato = (String) in.readObject();
                     System.out.println("[Sync] Replicación en caliente de formato de persistencia: " + nuevoFormato);
-                    fachada.cambiarFormatoPersistenciaSinReplicar(nuevoFormato);
+                    servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(nuevoFormato);
                     break;
 
                 case "NUEVO_DELTA":

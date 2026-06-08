@@ -1,18 +1,16 @@
 package com.sgf.servicios;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.infraestructura.ServidorCentral;
 import com.sgf.interfaces.IServicioAdministrador;
 import com.sgf.modelos.Turno;
 import com.sgf.persistencia.GestorPersistencia;
-import com.sgf.seguridad.IEncriptacionStrategy;
 import com.sgf.seguridad.SeguridadServidorCentral;
 
 /**
- * Fachada Concreta que orquesta de forma simplificada los subsistemas del servidor.
+ * Fachada Concreta que solo gestiona y configura las políticas de persistencia y seguridad.
  */
 public class ServidorCentralFacade implements IServicioAdministrador {
 
@@ -26,14 +24,18 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
         this.seguridad = new SeguridadServidorCentral();
-        System.out.println("[FACADE-SERVIDOR] Fachada del Servidor Central inicializada.");
+        System.out.println("[FACADE-SERVIDOR] Fachada administrativa inicializada.");
     }
 
+
+    // =========================================================================
+    // ADMINISTRACIÓN DE PERSISTENCIA
+    // =========================================================================
     @Override
     public boolean cambiarFormatoPersistencia(String tipoFormato) {
         boolean exito = cambiarFormatoPersistenciaSinReplicar(tipoFormato);
         if (exito) {
-            // REPLICACIÓN EN CALIENTE AL SECUNDARIO (Evita bucles infinitos)
+            // Replicación en caliente al Servidor Secundario si somos primario activo
             if (servidorCentral.esPrimario() && servidorCentral.getSincronizador() != null) {
                 servidorCentral.getSincronizador().sincronizarFormatoPersistencia(tipoFormato);
             }
@@ -45,7 +47,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
      * Ejecuta la reconfiguración local de almacenamiento sin disparar otra sincronización de red.
      */
     public boolean cambiarFormatoPersistenciaSinReplicar(String tipoFormato) {
-        System.out.println("[FACADE-SERVIDOR] Aplicando formato de persistencia local -> " + tipoFormato);
+        System.out.println("[FACADE-SERVIDOR] Cambio de formato local solicitado -> Formato: " + tipoFormato);
         try {
             gestorPersistencia.establecerFormato(tipoFormato);
 
@@ -57,7 +59,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             
             gestorPersistencia.guardarUltimoLlamado(logicaFila.getUltimoLlamado());
 
-            System.out.println("[FACADE-SERVIDOR] Almacenamiento local reconfigurado con éxito.");
+            System.out.println("[FACADE-SERVIDOR] Migración y guardado local completado.");
             return true;
         } catch (Exception e) {
             System.err.println("[FACADE-SERVIDOR] Error durante la reconfiguración local: " + e.getMessage());
@@ -71,46 +73,17 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         return gestorPersistencia.getFormatoActivo();
     }
 
+    // =========================================================================
+    // ADMINISTRACIÓN DE SEGURIDAD
+    // =========================================================================
     public SeguridadServidorCentral getSeguridad() {
         return this.seguridad;
     }
 
-    public void encriptarTurno(Turno t) {
-        IEncriptacionStrategy enc = seguridad.getEncriptador();
-        if (t != null && t.getDniCliente() != null && enc != null)
-            t.setDniCliente(enc.encriptar(t.getDniCliente()));
-    }
-
-    public void desencriptarTurno(Turno t) {
-        IEncriptacionStrategy enc = seguridad.getEncriptador();
-        if (t != null && t.getDniCliente() != null && enc != null)
-            t.setDniCliente(enc.desencriptar(t.getDniCliente()));
-    }
-
-    public Turno copiarYEncriptar(Turno t) {
-        if (t == null) return null;
-        Turno copia = t.clonar();
-        encriptarTurno(copia);
-        return copia;
-    }
-
-    public List<Turno> copiarYEncriptarLista(List<Turno> lista) {
-        if (lista == null) return null;
-        List<Turno> copia = new ArrayList<>();
-        for (Turno t : lista) copia.add(copiarYEncriptar(t));
-        return copia;
-    }
-
-    public void desencriptarLista(List<Turno> lista) {
-        if (lista != null) for (Turno t : lista) desencriptarTurno(t);
-    }
-
     @Override
     public boolean actualizarConfiguracionSeguridad(String algoritmo, String claveSecreta) {
-        System.out.println("[FACADE-SERVIDOR] Configuración de seguridad solicitada -> Algoritmo: " + algoritmo + " | Clave: " + claveSecreta);
-        
+        System.out.println("[FACADE-SERVIDOR] Configuración de seguridad local solicitada -> Algoritmo: " + algoritmo);
         boolean exito = seguridad.actualizarSeguridad(algoritmo, claveSecreta);
-        
         if (exito) {
             System.out.println("[FACADE-SERVIDOR] Nueva política de encriptación aplicada.");
         }
@@ -127,6 +100,9 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         return seguridad.getClaveActiva();
     }
 
+    // =========================================================================
+    // CONSULTAS CONSOLIDADAS (Optimización de red)
+    // =========================================================================
     @Override
     public String[] obtenerConfiguracionCompleta() {
         return new String[] {
