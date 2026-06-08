@@ -5,16 +5,21 @@ package com.sgf.persistencia;
  */
 
 public class FactoryPlain implements IFactoryPersistencia{
+    private final String rutaBase;
+
+    public FactoryPlain(String rutaBase) {
+        this.rutaBase = rutaBase;
+    }
 
     @Override
     public IPersistenciaLector crearLector() {
         System.out.println("[FactoryTextoPlano] Creando Lector de archivos de texto plano.");
-        return new PersistenciaLectorPlain();
+        return new PersistenciaLectorPlain(this.rutaBase);
     }
 
     @Override
     public IPersistenciaEscritor crearEscritor() {
         System.out.println("[FactoryTextoPlano] Creando Escritor de archivos de texto plano.");
-        return new PersistenciaEscritorPlain();
+        return new PersistenciaEscritorPlain(this.rutaBase);
     }
 }

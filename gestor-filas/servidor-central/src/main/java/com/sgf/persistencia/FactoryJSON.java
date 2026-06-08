@@ -5,16 +5,21 @@ package com.sgf.persistencia;
  */
 
 public class FactoryJSON implements IFactoryPersistencia {
+    private final String rutaBase;
+
+    public FactoryJSON(String rutaBase) {
+        this.rutaBase = rutaBase;
+    }
 
     @Override
     public IPersistenciaLector crearLector() {
         System.out.println("[FactoryJSON] Creando Lector de archivos JSON.");
-        return new PersistenciaLectorJSON();
+        return new PersistenciaLectorJSON(this.rutaBase);
     }
 
     @Override
     public IPersistenciaEscritor crearEscritor() {
         System.out.println("[FactoryJSON] Creando Escritor de archivos JSON.");
-        return new PersistenciaEscritorJSON();
+        return new PersistenciaEscritorJSON(this.rutaBase);
     }
 }

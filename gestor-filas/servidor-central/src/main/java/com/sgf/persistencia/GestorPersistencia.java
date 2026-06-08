@@ -14,37 +14,36 @@ public class GestorPersistencia {
 
     private IFactoryPersistencia factoryActiva; 
     private String formatoActivo;
+    private final String rutaBase;
 
-    // Archivos testigos para verificar la última configuración de guardado física
-    private static final String FILE_JSON = "filaEspera.json";
-    private static final String FILE_XML  = "filaEspera.xml";
-    private static final String FILE_DAT  = "filaEspera.dat";
-
-    public GestorPersistencia() {
+    public GestorPersistencia(int puerto) {
+        this.rutaBase = "servidor_" + puerto + File.separator;
+        File carpetaNodo = new File(this.rutaBase);
+        if(!carpetaNodo.exists()){
+            carpetaNodo.mkdirs();
+        }
         String formatoDetectado = detectarFormatoExistente();
-        System.out.println("[GestorPersistencia] Formato detectado en disco al iniciar: " + formatoDetectado);
+        System.out.println("[GestorPersistencia] Formato detectado en disco al iniciar en: " + this.rutaBase + ": "+ formatoDetectado);
         establecerFormato(formatoDetectado);
     }
 
     /**
      * Táctica de Disponibilidad: Resincronización de estado.
-     * Barre la carpeta raíz buscando archivos de datos guardados en ejecuciones previas.
+     * Busca los archivos de datos en el directorio aislado de este nodo.
      * Prioridad de carga: DAT (binario) -> XML -> JSON.
      */
-    public final String detectarFormatoExistente() {
-        if (new File(FILE_DAT).exists()) {
+    public final String detectarFormatoExistente(){
+        if (new File(this.rutaBase + "filaEspera.dat").exists()) {
             return "TXT";
         }
-        if (new File(FILE_XML).exists()) {
+        if (new File(this.rutaBase + "filaEspera.xml").exists()) {
             return "XML";
         }
-        if (new File(FILE_JSON).exists()) {
+        if (new File(this.rutaBase + "filaEspera.json").exists()) {
             return "JSON";
         }
-        // Fallback: Si el sistema se ejecuta por primera vez en limpio, inicia con JSON
         return "JSON";
     }
-
 
     /**
      * Reconfigura la fábrica concreta activa en tiempo de ejecución.
@@ -53,14 +52,14 @@ public class GestorPersistencia {
         this.formatoActivo = formato.toUpperCase();
         switch (this.formatoActivo) {
             case "XML":
-                this.factoryActiva = new FactoryXML();
+                this.factoryActiva = new FactoryXML(this.rutaBase);
                 break;
             case "TXT":
-                this.factoryActiva = new FactoryPlain();
+                this.factoryActiva = new FactoryPlain(this.rutaBase);
                 break;
             case "JSON":
             default:
-                this.factoryActiva = new FactoryJSON();
+                this.factoryActiva = new FactoryJSON(this.rutaBase);
                 this.formatoActivo = "JSON"; 
                 break;
         }
@@ -70,7 +69,6 @@ public class GestorPersistencia {
     public synchronized String getFormatoActivo() {
         return this.formatoActivo;
     }
-
 
     
     // =========================================================================
@@ -119,5 +117,11 @@ public class GestorPersistencia {
 
     public synchronized List<Turno> recuperarHistorialReintentos() throws Exception {
         return factoryActiva.crearLector().recuperarHistorialReintentos();
+    }
+
+    public synchronized void registrarTurnoFinalizado(Turno turno) throws Exception {
+        if (turno != null) {
+            factoryActiva.crearEscritor().registrarTurnoFinalizado(turno);
+        }
     }
 }

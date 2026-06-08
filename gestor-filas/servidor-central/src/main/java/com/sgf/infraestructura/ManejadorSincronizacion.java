@@ -28,16 +28,28 @@ public class ManejadorSincronizacion extends ManejadorBase {
             
             switch (comando){
                 case "SINCRONIZAR_ESTADO":
-                    // Sincronización completa al levantar
+                    // Sincronización completa al levantar servidor secundario o tras recuperación de fallo
                     List<Turno> cola = (List<Turno>) in.readObject();
                     Map<Integer, Turno> activos = (Map<Integer, Turno>) in.readObject();
                     List<Turno> historial = (List<Turno>) in.readObject();
                     Turno ultimo = (Turno) in.readObject();
                     List<Turno> historialReintentos = (List<Turno>) in.readObject();
-                                
+                    
+                    // sincronizamos los datos en la ram de la réplica
                     logica.reemplazarEstado(cola, activos, historial, ultimo, historialReintentos);
+
+                    String formatoPersistencia = (String) in.readObject();
+                    servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
+                    
                     servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
-                    System.out.println("[Sync] Estado completo recibido y persistido localmente. Cola: " + cola.size() + " turnos.");
+                    System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
+                    break;
+
+                case "ACTUALIZAR_PERSISTENCIA":
+                    // Cambio de persistencia en caliente replicado desde el administrador a través del primario
+                    String nuevoFormato = (String) in.readObject();
+                    System.out.println("[Sync] Replicación en caliente de formato de persistencia: " + nuevoFormato);
+                    servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(nuevoFormato);
                     break;
 
                 case "NUEVO_DELTA":
@@ -54,18 +66,33 @@ public class ManejadorSincronizacion extends ManejadorBase {
                         
                         case "LLAMAR":
                             try {
+                                Turno turnoPrevio = logica.getTurnoPuesto(delta.getIdPuesto());
                                 logica.llamarSiguiente(delta.getIdPuesto());
+                                if (turnoPrevio != null) {
+                                    servidor.registrarTurnoFinalizado(turnoPrevio);
+                                }
                             } catch (Exception e) {
                                 System.out.println("[Sync] Error al sincronizar llamado: Fila vacía en réplica.");
                             }
                             break;
                         
                         case "REINTENTAR":
-                            logica.reintentarLlamado(delta.getIdPuesto());
-                            logica.getHistorialReintentos().add(delta.getTurno().clonar());
-                            break;
+                            try {
+                                Turno turnoParaReintentar = logica.getTurnoPuesto(delta.getIdPuesto());
+                                Turno reIntento = logica.reintentarLlamado(delta.getIdPuesto());
+                                
+                                if (reIntento == null && turnoParaReintentar != null) {
+                                    servidor.registrarTurnoFinalizado(turnoParaReintentar);
+                                }
+
+                                if (delta.getTurno() != null) {
+                                    logica.getHistorialReintentos().add(delta.getTurno().clonar());
+                                }
+                            } catch (Exception e) {
+                                System.out.println("[Sync] Error al sincronizar reintento: " + e.getMessage());
+                            }
                     }
-                    servidor.persistirEstadoActivo(); // Guardar después de cada delta para minimizar pérdida de datos
+                    servidor.persistirEstadoActivo(); // Guardar en caliente después de cada delta para minimizar pérdida de datos
                     System.out.println("[Sync] Delta de tipo [" + delta.getTipo() + "] replicado con éxito.");
                         break;
             }

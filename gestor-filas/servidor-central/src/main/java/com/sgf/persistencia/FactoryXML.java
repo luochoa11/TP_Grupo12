@@ -5,16 +5,21 @@ package com.sgf.persistencia;
  */
 
 public class FactoryXML implements IFactoryPersistencia{
+    private final String rutaBase;
+
+    public FactoryXML(String rutaBase) {
+        this.rutaBase = rutaBase;
+    }
 
     @Override
     public IPersistenciaLector crearLector() {
         System.out.println("[FactoryXML] Creando Lector de archivos XML.");
-        return new PersistenciaLectorXML();
+        return new PersistenciaLectorXML(this.rutaBase);
     }
 
     @Override
     public IPersistenciaEscritor crearEscritor() {
         System.out.println("[FactoryXML] Creando Escritor de archivos XML.");
-        return new PersistenciaEscritorXML();
+        return new PersistenciaEscritorXML(this.rutaBase);
     }
 }

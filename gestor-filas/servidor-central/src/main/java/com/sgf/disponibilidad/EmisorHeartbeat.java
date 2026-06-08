@@ -48,7 +48,6 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
 
     @Override
     public void enviarLatido() {
-        System.out.println("[EmisorHeartbeat] Intentando conectar a " + monitorIp + ":" + monitorPuerto);
         try (Socket socket = new Socket(monitorIp, monitorPuerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
