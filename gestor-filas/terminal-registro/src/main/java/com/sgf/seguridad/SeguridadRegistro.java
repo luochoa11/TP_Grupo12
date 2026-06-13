@@ -10,18 +10,14 @@ public class SeguridadRegistro {
 
     private IEncriptacionStrategy encriptador;
 
-    public SeguridadRegistro() {
-        String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
-        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-        
-        if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
-            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(algoritmo);
-            
-            this.encriptador = proveedor.crear(claveConfigurada);
-            System.out.println("[Seguridad] Componente inicializado con clave local.");
+    public SeguridadRegistro(String algoritmo, String clave) {
+        if (clave != null && !clave.isEmpty()) {
+            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+            this.encriptador = proveedor.crear(clave);
+            System.out.println("[SeguridadRegistro] Componente inicializado con config del directorio.");
         } else {
             this.encriptador = null;
-            System.err.println("[Seguridad] ADVERTENCIA: No se encontró clave local. El cliente arranca desprotegido.");
+            System.err.println("[SeguridadRegistro] ADVERTENCIA: Sin clave. Cliente arranca desprotegido.");
         }
     }
 

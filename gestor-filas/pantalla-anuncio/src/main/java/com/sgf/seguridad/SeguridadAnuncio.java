@@ -8,18 +8,14 @@ public class SeguridadAnuncio {
 
     private IEncriptacionStrategy encriptador;
 
-    public SeguridadAnuncio() {
-        String claveConfigurada = ConfiguracionRed.get("seguridad.clave");
-        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-        
-        if (claveConfigurada != null && !claveConfigurada.isEmpty()) {
+    public SeguridadAnuncio(String algoritmo, String clave) {
+        if (clave != null && !clave.isEmpty()) {
             ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-
-        
-            this.encriptador = proveedor.crear(claveConfigurada);
-
+            this.encriptador = proveedor.crear(clave);
+            System.out.println("[SeguridadAnuncio] Componente inicializado con config del directorio.");
         } else {
             this.encriptador = null;
+            System.err.println("[SeguridadAnuncio] ADVERTENCIA: Sin clave. Cliente arranca desprotegido.");
         }
     }
 

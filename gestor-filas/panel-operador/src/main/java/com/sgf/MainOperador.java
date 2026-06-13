@@ -1,5 +1,9 @@
 package com.sgf;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -33,17 +37,31 @@ public class MainOperador {
 
         SwingUtilities.invokeLater(() -> {
 
-            VentanaOperador ventana = new VentanaOperador();
-            ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
+        VentanaOperador ventana = new VentanaOperador();
+        ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
-            SeguridadOperador componenteSeguridad = new SeguridadOperador();
-            IServicioOperador servicio = new ProxyOperador(directorioIp, directorioPuerto, componenteSeguridad);
-            
-            ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);
-            ventana.setControlador(controlador);
+        String algoritmo = "AES";
+        String clave = "";
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
-            ventana.setVisible(true);
-            System.out.println("SGF Operador: Iniciado en Puesto #" + idFinal + " y listo.");
+            out.writeObject("GET_CONFIG_SEGURIDAD");
+            out.flush();
+            algoritmo = (String) in.readObject();
+            clave     = (String) in.readObject();
+            System.out.println("[Operador] Config de seguridad recibida: " + algoritmo);
+        } catch (Exception e) {
+            System.err.println("[Operador] No se pudo obtener config de seguridad: " + e.getMessage());
+        }
+
+        SeguridadOperador componenteSeguridad = new SeguridadOperador(algoritmo, clave);
+        IServicioOperador servicio = new ProxyOperador(directorioIp, directorioPuerto, componenteSeguridad);
+
+        ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);
+        ventana.setControlador(controlador);
+        ventana.setVisible(true);
+        System.out.println("SGF Operador: Iniciado en Puesto #" + idFinal + " y listo.");
 
         });
     }

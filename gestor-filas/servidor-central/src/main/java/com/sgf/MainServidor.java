@@ -19,7 +19,7 @@ public class MainServidor {
             System.exit(1);
         }
 
-        boolean esPrimario;
+        boolean esPrimario = false;
         int     puerto        = Integer.parseInt(args[0]);
         String  ip            = InetAddress.getLocalHost().getHostAddress();
 
@@ -28,7 +28,7 @@ public class MainServidor {
         String monitorIp        = ConfiguracionRed.get("monitor.ip");
         int    monitorPuerto    = ConfiguracionRed.getInt("monitor.puerto");
 
-        // Registrarse en el Directorio
+        // 1. Registrarse en el Directorio y obtener rol
         try (Socket socket = new Socket(directorioIp, directorioPuerto);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
@@ -37,21 +37,36 @@ public class MainServidor {
             out.writeObject(ip);
             out.writeObject(puerto);
             out.flush();
-            String rol = (String) in.readObject(); //devuelve el rol
+            String rol = (String) in.readObject();
             esPrimario = "Primario".equalsIgnoreCase(rol);
         }
 
-        // Arrancar servidor
-        
+        // 2. Pedir config de seguridad al directorio
+        String algoritmoSeguridad;
+        String claveSeguridad;
+
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("GET_CONFIG_SEGURIDAD");
+            out.flush();
+            algoritmoSeguridad = (String) in.readObject();
+            claveSeguridad     = (String) in.readObject();
+            System.out.println("[Servidor] Config de seguridad recibida del directorio: " + algoritmoSeguridad);
+        }
+
+        // 3. Arrancar servidor con la config recibida
         ILogicaFila logica = LogicaFila.getInstance();
         SincronizadorEstado sincronizador = new SincronizadorEstado(logica, directorioIp, directorioPuerto);
-        ServidorCentral servidor = new ServidorCentral(puerto, ip, logica, esPrimario, sincronizador);
+        ServidorCentral servidor = new ServidorCentral(puerto, ip, logica, esPrimario, sincronizador, algoritmoSeguridad, claveSeguridad);
         new Thread(servidor, "hilo-servidor").start();
 
-        // Arrancar heartbeat hacia el Monitor
-        EmisorHeartbeat heartbeat = new EmisorHeartbeat(monitorIp, monitorPuerto, ip, puerto, esPrimario,servidor);
+        // 4. Arrancar heartbeat hacia el Monitor
+        EmisorHeartbeat heartbeat = new EmisorHeartbeat(monitorIp, monitorPuerto, ip, puerto, esPrimario, servidor);
         new Thread(heartbeat, "hilo-heartbeat").start();
-        // Desregistrarse al bajar
+
+        // 5. Desregistrarse al bajar
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             heartbeat.detener();
             System.out.println("[Servidor] Apagando...");

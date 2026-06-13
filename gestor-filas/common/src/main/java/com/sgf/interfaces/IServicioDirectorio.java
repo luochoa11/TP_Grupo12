@@ -5,10 +5,10 @@ package com.sgf.interfaces;
  */
 
 public interface IServicioDirectorio {
-    //o ServerRegister? en este me mareé
-    //para consulta de IPs, se implementa en Directorio
-
-    public String getIPPrimario();
-    public int getPuertoPrimario();
-   // public void actualizarPrimario(String ip, int puerto);
+    String getIPPrimario();
+    int getPuertoPrimario();
+    String getIPSecundario();
+    int getPuertoSecundario();
+    String getAlgoritmoSeguridad();
+    String getClaveSeguridad();
 }

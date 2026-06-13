@@ -1,5 +1,9 @@
 package com.sgf;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import javax.swing.SwingUtilities;
 
 import com.sgf.ConfiguracionRed;
@@ -27,18 +31,34 @@ public class MainRegistro {
             e.printStackTrace();
         }
 
-        SwingUtilities.invokeLater(() -> {
-            VentanaTerminalRegistro ventana = new VentanaTerminalRegistro();
-            ventana.setTitle(tituloFinal);
+    SwingUtilities.invokeLater(() -> {
+        VentanaTerminalRegistro ventana = new VentanaTerminalRegistro();
+        ventana.setTitle(tituloFinal);
 
-            SeguridadRegistro componenteSeguridad = new SeguridadRegistro();
-            IServicioRegistro servicio = new ProxyRegistro(directorioIp, directorioPuerto, componenteSeguridad);
+        // Pedir config de seguridad al directorio
+        String algoritmo = "AES";
+        String clave = "";
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
-            ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
-            ventana.setControlador(controlador);
-            ventana.setVisible(true);
+            out.writeObject("GET_CONFIG_SEGURIDAD");
+            out.flush();
+            algoritmo = (String) in.readObject();
+            clave     = (String) in.readObject();
+            System.out.println("[Registro] Config de seguridad recibida: " + algoritmo);
+        } catch (Exception e) {
+            System.err.println("[Registro] No se pudo obtener config de seguridad: " + e.getMessage());
+        }
 
-            System.out.println("Ventana creada: " + tituloFinal);
-        });
+        SeguridadRegistro componenteSeguridad = new SeguridadRegistro(algoritmo, clave);
+        IServicioRegistro servicio = new ProxyRegistro(directorioIp, directorioPuerto, componenteSeguridad);
+
+        ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
+        ventana.setControlador(controlador);
+        ventana.setVisible(true);
+
+        System.out.println("Ventana creada: " + tituloFinal);
+    });
     }
 }

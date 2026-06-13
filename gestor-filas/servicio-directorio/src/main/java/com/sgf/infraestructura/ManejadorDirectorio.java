@@ -48,6 +48,10 @@ public class ManejadorDirectorio implements Runnable {
                 case "GET_RUTA_SECUNDARIA":
                     out.writeObject(gestorRutas.getIPSecundario());
                     out.writeObject(gestorRutas.getPuertoSecundario());
+                    break;
+                case "GET_CONFIG_SEGURIDAD":
+                    out.writeObject(gestorRutas.getAlgoritmoSeguridad());
+                    out.writeObject(gestorRutas.getClaveSeguridad());
                 break;
 
                 default:
