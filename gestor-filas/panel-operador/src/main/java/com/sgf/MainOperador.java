@@ -40,7 +40,7 @@ public class MainOperador {
         VentanaOperador ventana = new VentanaOperador();
         ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
-        SeguridadOperador componenteSeguridad = new SeguridadOperador();
+        SeguridadOperador componenteSeguridad = new SeguridadOperador(idFinal);
         IServicioOperador servicio = new ProxyOperador(directorioIp, directorioPuerto, componenteSeguridad);
 
         ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);

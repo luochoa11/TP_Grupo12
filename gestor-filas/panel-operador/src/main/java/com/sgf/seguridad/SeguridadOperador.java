@@ -11,27 +11,22 @@ import com.sgf.modelos.Turno;
 public class SeguridadOperador {
 
     private IEncriptacionStrategy encriptador;
+    private final int idTerminal;
 
-    public SeguridadOperador() {
-        String algoritmo = "AES"; // Algoritmo por defecto
-        String clave = ""; // Clave vacía por defecto
+    public SeguridadOperador(int idTerminal) {
+       this.idTerminal=idTerminal;
 
-        try{
-            algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-            clave = ConfiguracionRed.get("seguridad.clave");
+       String algoritmo = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.algoritmo");
+       String clave = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.clave");
 
-            if (clave != null && !clave.isEmpty()) {
-                ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-                this.encriptador = proveedor.crear(clave);
-                System.out.println("[SeguridadOperador] Inicializado con el config.properties local.");
-            } else {
-                this.encriptador = null;
-                System.err.println("[SeguridadOperador] Sin clave en config.properties local. Usando valores x defecto.");
-            }
-        } catch (IllegalArgumentException e) {
+       if (algoritmo != null && clave != null && !clave.isEmpty()) {
+            inicializarEstrategia(algoritmo, clave);
+            System.out.println("[SeguridadOperador] Inicializado desde archivo local (" + algoritmo + ") para ID " + idTerminal);
+        } else {
             this.encriptador = null;
-            System.err.println("[SeguridadOperador] No se encontraron llaves locales. Usando valores x defecto.");
+            System.out.println("[SeguridadOperador] Sin configuración local previa para ID " + idTerminal + ". Esperando sincronización.");
         }
+
     }
 
     /**
@@ -64,26 +59,20 @@ public class SeguridadOperador {
     }
 
     public void actualizarConfiguracion(String algoritmo, String clave) {
+        ConfiguracionRed.guardarConfigLocal("operador", this.idTerminal, algoritmo, clave);
+        inicializarEstrategia(algoritmo, clave);
+    }
+
+    private void inicializarEstrategia(String algoritmo, String clave){
         if (clave != null && !clave.isEmpty()) {
             ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
             this.encriptador = proveedor.crear(clave);
-            System.out.println("[SeguridadOperador] Configuración de seguridad actualizada.");
+            System.out.println("[SeguridadOperador] Estrategia de cifrado actualizada en RAM.");
         } else {
             this.encriptador = null;
-            System.err.println("[SeguridadOperador] ADVERTENCIA: Clave vacía");
+            System.err.println("[SeguridadOperador] ADVERTENCIA: Clave vacía. Operador sin protección.");
         }
-
-        this.modificarArchivoLocal(algoritmo, clave);
     }
-
-    public void modificarArchivoLocal(String algoritmo, String clave) {
-       String[] rutas={
-         ".panel-operador/src/main/resources/config.properties",
-            ".panel-operador/target/classes/config.properties"
-       };
-         ConfiguracionRed.guardarConfigLocal(algoritmo, clave, rutas);
-    }
-
 
     // public synchronized void recargarConfiguracion() {
     //      if (!ConfiguracionRed.recargarSiCambio()) {
