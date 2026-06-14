@@ -1,9 +1,5 @@
 package com.sgf;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-
 import javax.swing.SwingUtilities;
 
 import com.sgf.ConfiguracionRed;
@@ -24,22 +20,7 @@ public class MainAnuncio {
         ControladorAnuncio controlador = new ControladorAnuncio(ventana);
         ventana.setVisible(true);
 
-        String algoritmo = "AES";
-        String clave = "";
-        try (Socket socket = new Socket(directorioIp, directorioPuerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("GET_CONFIG_SEGURIDAD");
-            out.flush();
-            algoritmo = (String) in.readObject();
-            clave     = (String) in.readObject();
-            System.out.println("[Anuncio] Config de seguridad recibida: " + algoritmo);
-        } catch (Exception e) {
-            System.err.println("[Anuncio] No se pudo obtener config de seguridad: " + e.getMessage());
-        }
-
-        SeguridadAnuncio componenteSeguridad = new SeguridadAnuncio(algoritmo, clave);
+        SeguridadAnuncio componenteSeguridad = new SeguridadAnuncio();
         ProxyAnuncio cliente = new ProxyAnuncio(directorioIp, directorioPuerto, controlador, componenteSeguridad);
 
         new Thread(cliente).start();

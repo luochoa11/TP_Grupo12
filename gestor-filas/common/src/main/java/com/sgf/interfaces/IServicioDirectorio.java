@@ -9,6 +9,4 @@ public interface IServicioDirectorio {
     int getPuertoPrimario();
     String getIPSecundario();
     int getPuertoSecundario();
-    String getAlgoritmoSeguridad();
-    String getClaveSeguridad();
 }

@@ -1,8 +1,12 @@
 package com.sgf.seguridad;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Properties;
 
 import com.sgf.ConfiguracionRed;
 
@@ -14,104 +18,81 @@ import com.sgf.ConfiguracionRed;
 public class SeguridadServidorCentral {
 
     private IEncriptacionStrategy encriptador = null;
-    private String algoritmoActivo = null;
-    private String claveActiva = null;
+    private String algoritmoActivo = "AES";// Valor por defecto, se actualizará al cargar la clave desde properties
+    private String claveActiva = "";// Valor por defecto, se actualizará al cargar la clave desde properties
 
-    public SeguridadServidorCentral() {
+    private final String rutaBase;
+    private final String rutaArchivoConfig;
+
+    public SeguridadServidorCentral(int puerto) {
+        this.rutaBase = "servidor_" + puerto+File.separator;
+        this.rutaArchivoConfig = rutaBase + "config.properties";
+
+        File carpetaNodo = new File(this.rutaBase);
+
+        if(!carpetaNodo.exists()){
+            carpetaNodo.mkdirs();
+        }
         cargarClaveDesdeProperties();
     }
 
     /**
-     * Todos leen del mismo lugar: la fuente de la verdad (config.properties)
+     * Intenta leer el archivo de seguridad específico de este nodo.
+     * Si no existe, arranca con los valores por defecto (AES y vacío).
      */
     public void cargarClaveDesdeProperties() {
-        String clave = ConfiguracionRed.get("seguridad.clave");
-        String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-        this.algoritmoActivo = algoritmo != null ? algoritmo : "AES";
-        
-        if (clave != null && !clave.isEmpty()) {
-            this.claveActiva = clave;
-            
-            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(this.algoritmoActivo);
+        Properties props = new Properties();
+        File archivo = new File(this.rutaArchivoConfig);
 
-            
-            this.encriptador = proveedor.crear(this.claveActiva);
-            System.out.println("[SeguridadServidor] Clave local cargada desde config.properties.");
-        } else {
-            System.err.println("[SeguridadServidor] No se encontró clave. El servidor arranca bloqueado.");
-            this.encriptador = null;
+        if (archivo.exists()) {
+            try (FileInputStream in = new FileInputStream(archivo)) {
+                props.load(in);
+                this.algoritmoActivo = props.getProperty("seguridad.algoritmo", "AES");
+                this.claveActiva = props.getProperty("seguridad.clave", "");
+                System.out.println("[SeguridadServidor] Configuración recuperada del nodo en: " + this.rutaArchivoConfig);
+            } catch (IOException e) {
+                System.err.println("[SeguridadServidor] Error al leer configuración local, usando valores base.");
+            }
         }
-    }
 
-    /**
-     * Actualiza la política de seguridad en la RAM y reescribe el archivo properties.
+        inicializarEstrategia(this.algoritmoActivo, this.claveActiva);
+    }
+   /**
+     * Cambia la estrategia en caliente y la persiste en el properties del nodo.
      */
     public boolean actualizarSeguridad(String algoritmo, String claveSecreta) {
         try {
             this.algoritmoActivo = algoritmo;
             this.claveActiva = claveSecreta;
             
-            ProveedorEstrategiaCifrado proveedor= SelectorProveedores.obtenerProveedor(this.algoritmoActivo);
-            this.encriptador = proveedor.crear(this.claveActiva);
-
-
-            modificarArchivoProperties(claveSecreta, algoritmo);
-            
+            inicializarEstrategia(algoritmo, claveSecreta);
+            guardarEnArchivoLocal(algoritmo, claveSecreta);
             return true;
         } catch (Exception e) {
-            System.err.println("[SeguridadServidor] Error al aplicar la estrategia de encriptación: " + e.getMessage());
+            System.err.println("[SeguridadServidor] Error al actualizar la seguridad: " + e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Busca el archivo config.properties, ubica la línea de la clave y la sobreescribe.
-     */
-    private void modificarArchivoProperties(String nuevaClave, String nuevoAlgoritmo) {
-        String[] rutas = {
-            "../common/src/main/resources/config.properties",
-            "../common/target/classes/config.properties"
-        };
+   private void inicializarEstrategia(String algoritmo, String clave) {
+        if (clave != null && !clave.isEmpty()) {
+            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+            this.encriptador = proveedor.crear(clave);
+        } else {
+            this.encriptador = null;
+        }
+    }
 
-        for (String ruta : rutas) {
-            File archivo = new File(ruta);
+    private void guardarEnArchivoLocal(String algoritmo, String clave) {
+        Properties props = new Properties();
+        props.setProperty("seguridad.algoritmo", algoritmo);
+        props.setProperty("seguridad.clave", clave);
 
-            System.out.println("[SeguridadServidor] Buscando en: " + archivo.getAbsolutePath() + " -> existe: " + archivo.exists());
-
-            if (archivo.exists()) {
-                try {
-                    List<String> lineas = Files.readAllLines(archivo.toPath());
-                    boolean claveModificada = false;
-                    boolean algoritmoModificado = false;
-                    
-                    for (int i = 0; i < lineas.size(); i++) {
-                        if (lineas.get(i).trim().startsWith("seguridad.clave")) {
-                            lineas.set(i, "seguridad.clave=" + nuevaClave);
-                            claveModificada = true;
-                        }
-                        if (lineas.get(i).trim().startsWith("seguridad.algoritmo")) {
-                            lineas.set(i, "seguridad.algoritmo=" + nuevoAlgoritmo);
-                            algoritmoModificado = true;
-                        }
-                    }
-                    
-                    if (!claveModificada) {
-                        lineas.add("seguridad.clave=" + nuevaClave);
-                    }
-                    
-                    if (!algoritmoModificado) {
-                        lineas.add("seguridad.algoritmo=" + nuevoAlgoritmo);
-                    }
-
-                    Files.write(archivo.toPath(), lineas);
-                    System.out.println("[SeguridadServidor] Archivo de configuración actualizado con éxito en: " + ruta);
-                       
-                    
-                    
-                } catch (Exception e) {
-                    System.err.println("[SeguridadServidor] Advertencia: No se pudo modificar el archivo en " + ruta);
-                }
-            }
+        try (FileOutputStream out = new FileOutputStream(this.rutaArchivoConfig)) {
+            props.store(out, "Configuración de seguridad del Servidor Central - SGF");
+            System.out.println("[SeguridadServidor] Configuración guardada con éxito en: " + this.rutaArchivoConfig);
+        } catch (IOException e) {
+            System.err.println("[SeguridadServidor] No se pudo persistir la seguridad del nodo: " + e.getMessage());
         }
     }
 

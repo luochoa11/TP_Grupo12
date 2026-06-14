@@ -1,7 +1,7 @@
 package com.sgf.infraestructura;
 
 import com.sgf.interfaces.IServicioDirectorio;
-import com.sgf.seguridad.SeguridadDirectorio;
+
 
 /**
  * Implementación del Servicio de Directorio.
@@ -15,15 +15,14 @@ public class GestorRutas implements IServicioDirectorio{
     private int puertoPrimario;
     private String ipSecundario;
     private int puertoSecundario;
-    private final SeguridadDirectorio seguridad;
+
 
     //Los servidores se registran
-    public GestorRutas(SeguridadDirectorio seguridad) {
+    public GestorRutas() {
         this.ipPrimario = null;
         this.puertoPrimario = -1;
         this.ipSecundario = null;
         this.puertoSecundario = -1;
-        this.seguridad = seguridad;
     }
     
     public synchronized String registrar(String ip, int puerto) {
@@ -66,11 +65,5 @@ public class GestorRutas implements IServicioDirectorio{
 
     @Override
     public int getPuertoSecundario() { return puertoSecundario; }
-
-    @Override
-    public String getAlgoritmoSeguridad() { return seguridad.getAlgoritmo(); }
-
-    @Override
-    public String getClaveSeguridad() { return seguridad.getClave(); }
 
 }

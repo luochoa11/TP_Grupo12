@@ -41,25 +41,14 @@ public class MainServidor {
             esPrimario = "Primario".equalsIgnoreCase(rol);
         }
 
-        // 2. Pedir config de seguridad al directorio
-        String algoritmoSeguridad;
-        String claveSeguridad;
-
-        try (Socket socket = new Socket(directorioIp, directorioPuerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("GET_CONFIG_SEGURIDAD");
-            out.flush();
-            algoritmoSeguridad = (String) in.readObject();
-            claveSeguridad     = (String) in.readObject();
-            System.out.println("[Servidor] Config de seguridad recibida del directorio: " + algoritmoSeguridad);
-        }
+      
 
         // 3. Arrancar servidor con la config recibida
         ILogicaFila logica = LogicaFila.getInstance();
         SincronizadorEstado sincronizador = new SincronizadorEstado(logica, directorioIp, directorioPuerto);
-        ServidorCentral servidor = new ServidorCentral(puerto, ip, logica, esPrimario, sincronizador, algoritmoSeguridad, claveSeguridad);
+
+
+        ServidorCentral servidor = new ServidorCentral(puerto, ip, logica, esPrimario, sincronizador);
         new Thread(servidor, "hilo-servidor").start();
 
         // 4. Arrancar heartbeat hacia el Monitor

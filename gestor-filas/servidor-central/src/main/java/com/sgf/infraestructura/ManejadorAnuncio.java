@@ -33,6 +33,12 @@ public class ManejadorAnuncio extends ManejadorBase {
                 out.writeObject(actualCopia);
                 out.writeObject(historialCopia);
                 out.flush();
+            } else if ("GET_CONFIG_SEGURIDAD".equals(comando)) {
+                String algoritmoActivo = servidor.getFachada().getAlgoritmoCifradoActivo();
+                String claveActiva = servidor.getFachada().getClaveSecretaActiva();
+                out.writeObject(algoritmoActivo);
+                out.writeObject(claveActiva);
+                out.flush();
             }
         } catch (Exception e) {
             System.out.println("[ManejadorMonitor] Pantalla de sala desconectada.");

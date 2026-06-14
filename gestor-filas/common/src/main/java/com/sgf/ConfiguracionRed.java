@@ -3,6 +3,8 @@ package com.sgf;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Properties;
 
 public class ConfiguracionRed {
@@ -60,6 +62,51 @@ public class ConfiguracionRed {
 
     public static int getInt(String clave) {
         return Integer.parseInt(get(clave));
+    }
+
+    public static synchronized void guardarConfigLocal(String algoritmo, String clave, String[] rutas) {
+        props.setProperty("seguridad.algoritmo", algoritmo);
+        props.setProperty("seguridad.clave", clave);
+  
+        for(String ruta:rutas){
+            File archivo = new File(ruta);
+
+            if(archivo.exists()){
+                try{
+                    List<String> lineas = Files.readAllLines(archivo.toPath());
+                    boolean claveModificada = false;
+                    boolean algoritmoModificado = false;
+
+                    for (int i = 0; i < lineas.size(); i++) {
+                        if (lineas.get(i).trim().startsWith("seguridad.algoritmo=")) {
+                            lineas.set(i, "seguridad.algoritmo=" + algoritmo);
+                            algoritmoModificado = true;
+                        } 
+                        
+                        if (lineas.get(i).trim().startsWith("seguridad.clave=")) {
+                            lineas.set(i, "seguridad.clave=" + clave);
+                            claveModificada = true;
+                        }
+                    }
+
+                    if (!algoritmoModificado) {
+                        lineas.add("seguridad.algoritmo=" + algoritmo);
+                    }
+                    if (!claveModificada) {
+                        lineas.add("seguridad.clave=" + clave);
+                    }
+
+                    Files.write(archivo.toPath(), lineas);
+                    System.out.println("[ConfiguracionRed] Archivo de configuración local actualizado: " + ruta);
+
+
+                }catch(Exception e){
+                    System.err.println("[ConfiguracionRed] Error al guardar configuración local en " + ruta);
+                }
+            }
+        }
+      
+
     }
 
     // public static synchronized void recargar() {

@@ -49,10 +49,6 @@ public class ManejadorDirectorio implements Runnable {
                     out.writeObject(gestorRutas.getIPSecundario());
                     out.writeObject(gestorRutas.getPuertoSecundario());
                     break;
-                case "GET_CONFIG_SEGURIDAD":
-                    out.writeObject(gestorRutas.getAlgoritmoSeguridad());
-                    out.writeObject(gestorRutas.getClaveSeguridad());
-                break;
 
                 default:
                     System.out.println("[Directorio] Comando desconocido recibido: " + comando);

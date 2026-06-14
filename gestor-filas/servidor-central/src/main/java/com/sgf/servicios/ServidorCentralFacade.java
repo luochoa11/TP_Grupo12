@@ -23,7 +23,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
         this.servidorCentral = servidorCentral;
         this.gestorPersistencia = gestorPersistencia;
         this.logicaFila = logicaFila;
-        this.seguridad = new SeguridadServidorCentral();
+        this.seguridad = new SeguridadServidorCentral(this.servidorCentral.getPuerto());
         System.out.println("[FACADE-SERVIDOR] Fachada administrativa inicializada.");
     }
 

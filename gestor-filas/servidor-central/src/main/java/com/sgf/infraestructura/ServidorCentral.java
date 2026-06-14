@@ -36,7 +36,7 @@ public class ServidorCentral implements Runnable {
     private IServicioAdministrador fachadaServidor;
     private GestorPersistencia gestorPersistencia;
 
-    public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador,String algoritmo,String clave) {
+    public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
         this.ip = ip;
         this.logica = logica;
@@ -49,8 +49,6 @@ public class ServidorCentral implements Runnable {
         }
         this.gestorPersistencia = new GestorPersistencia(puerto); 
         this.fachadaServidor = new ServidorCentralFacade(this, this.gestorPersistencia, this.logica);
-    
-        getFachada().actualizarConfiguracionSeguridad(algoritmo, clave);
 
         if (esPrimario) {
             cargarEstadoPrevioDelDisco();

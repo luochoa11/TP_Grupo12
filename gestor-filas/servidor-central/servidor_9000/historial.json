@@ -1,4 +1,4 @@
 [
-  {"dniCliente":"22222222", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-13 12:03:41", "tiempoLlamado":"2026-06-13 12:04:43", "tiempoAtendido":"2026-06-13 12:05:42", "estado":"ATENDIDO"},
-  {"dniCliente":"11111111", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-13 12:03:28", "tiempoLlamado":"2026-06-13 12:03:36", "tiempoAtendido":"2026-06-13 12:04:43", "estado":"LLAMADO"}
+  {"dniCliente":"22444111", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-14 05:39:59", "tiempoLlamado":"2026-06-14 05:51:35", "tiempoAtendido":"2026-06-14 05:51:36", "estado":"ATENDIDO"},
+  {"dniCliente":"11444777", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-14 05:34:52", "tiempoLlamado":"2026-06-14 05:51:34", "tiempoAtendido":"2026-06-14 05:51:35", "estado":"ATENDIDO"}
 ]

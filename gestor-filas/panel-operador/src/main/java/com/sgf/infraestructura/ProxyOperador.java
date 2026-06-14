@@ -28,6 +28,28 @@ public class ProxyOperador implements IServicioOperador{
         this.directorioPuerto = directorioPuerto;
         this.seguridad        = seguridad;
         resolverServidor();
+        inicializarSeguridad();
+    }
+
+    private void inicializarSeguridad(){
+        try(Socket socket = new Socket(ipServidor, puertoServidor);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
+
+            out.writeObject("GET_CONFIG_SEGURIDAD");
+            out.flush();
+
+            String algoritmo = (String) in.readObject();
+            String clave     = (String) in.readObject();
+
+            seguridad.actualizarConfiguracion(algoritmo, clave);
+
+        } catch (Exception e) {
+            throw new RuntimeException("[ProxyOperador] No se pudo inicializar la seguridad: " + e.getMessage());
+        }
     }
 
     private void resolverServidor() {

@@ -12,15 +12,26 @@ public class SeguridadOperador {
 
     private IEncriptacionStrategy encriptador;
 
-    public SeguridadOperador(String algoritmo, String clave) {
-    if (clave != null && !clave.isEmpty()) {
-        ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-        this.encriptador = proveedor.crear(clave);
-        System.out.println("[SeguridadOperador] Componente inicializado con config del directorio.");
-    } else {
-        this.encriptador = null;
-        System.err.println("[SeguridadOperador] ADVERTENCIA: Sin clave. Cliente arranca desprotegido.");
-    }
+    public SeguridadOperador() {
+        String algoritmo = "AES"; // Algoritmo por defecto
+        String clave = ""; // Clave vacía por defecto
+
+        try{
+            algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
+            clave = ConfiguracionRed.get("seguridad.clave");
+
+            if (clave != null && !clave.isEmpty()) {
+                ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+                this.encriptador = proveedor.crear(clave);
+                System.out.println("[SeguridadOperador] Inicializado con el config.properties local.");
+            } else {
+                this.encriptador = null;
+                System.err.println("[SeguridadOperador] Sin clave en config.properties local. Usando valores x defecto.");
+            }
+        } catch (IllegalArgumentException e) {
+            this.encriptador = null;
+            System.err.println("[SeguridadOperador] No se encontraron llaves locales. Usando valores x defecto.");
+        }
     }
 
     /**
@@ -51,6 +62,28 @@ public class SeguridadOperador {
     public boolean estaConfigurado() {
         return this.encriptador != null;
     }
+
+    public void actualizarConfiguracion(String algoritmo, String clave) {
+        if (clave != null && !clave.isEmpty()) {
+            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+            this.encriptador = proveedor.crear(clave);
+            System.out.println("[SeguridadOperador] Configuración de seguridad actualizada.");
+        } else {
+            this.encriptador = null;
+            System.err.println("[SeguridadOperador] ADVERTENCIA: Clave vacía");
+        }
+
+        this.modificarArchivoLocal(algoritmo, clave);
+    }
+
+    public void modificarArchivoLocal(String algoritmo, String clave) {
+       String[] rutas={
+         ".panel-operador/src/main/resources/config.properties",
+            ".panel-operador/target/classes/config.properties"
+       };
+         ConfiguracionRed.guardarConfigLocal(algoritmo, clave, rutas);
+    }
+
 
     // public synchronized void recargarConfiguracion() {
     //      if (!ConfiguracionRed.recargarSiCambio()) {

@@ -40,22 +40,7 @@ public class MainOperador {
         VentanaOperador ventana = new VentanaOperador();
         ventana.setTitle("Panel de Operador - Puesto #" + idFinal);
 
-        String algoritmo = "AES";
-        String clave = "";
-        try (Socket socket = new Socket(directorioIp, directorioPuerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
-
-            out.writeObject("GET_CONFIG_SEGURIDAD");
-            out.flush();
-            algoritmo = (String) in.readObject();
-            clave     = (String) in.readObject();
-            System.out.println("[Operador] Config de seguridad recibida: " + algoritmo);
-        } catch (Exception e) {
-            System.err.println("[Operador] No se pudo obtener config de seguridad: " + e.getMessage());
-        }
-
-        SeguridadOperador componenteSeguridad = new SeguridadOperador(algoritmo, clave);
+        SeguridadOperador componenteSeguridad = new SeguridadOperador();
         IServicioOperador servicio = new ProxyOperador(directorioIp, directorioPuerto, componenteSeguridad);
 
         ControladorOperador controlador = new ControladorOperador(ventana, servicio, idFinal);

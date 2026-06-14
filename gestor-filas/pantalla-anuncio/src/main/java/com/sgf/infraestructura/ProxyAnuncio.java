@@ -60,6 +60,14 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
             out.writeObject("CLIENTE_ANUNCIO");
             out.flush();
+
+            out.writeObject("GET_CONFIG_SEGURIDAD");
+            out.flush();
+
+            String algoritmo = (String) in.readObject();
+            String clave     = (String) in.readObject();
+            seguridad.actualizarConfiguracion(algoritmo, clave);
+
             out.writeObject("GET_ESTADO_MONITOR");
             out.flush();
 

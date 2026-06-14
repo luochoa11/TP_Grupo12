@@ -1,48 +1,38 @@
 package com.sgf.seguridad;
 
-import com.sgf.ConfiguracionRed;
-
-/**
- * Componente dedicado a manejar la seguridad de la Terminal de Registro.
- * Lee la clave desde la configuración estática al inicializarse.
- */
 public class SeguridadRegistro {
 
-    private IEncriptacionStrategy encriptador;
+    private IEncriptacionStrategy encriptador = null; // En memoria, arranca limpio
+    private String algoritmoActual = null;
 
-    public SeguridadRegistro(String algoritmo, String clave) {
-        if (clave != null && !clave.isEmpty()) {
-            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-            this.encriptador = proveedor.crear(clave);
-            System.out.println("[SeguridadRegistro] Componente inicializado con config del directorio.");
-        } else {
-            this.encriptador = null;
-            System.err.println("[SeguridadRegistro] ADVERTENCIA: Sin clave. Cliente arranca desprotegido.");
-        }
+    public SeguridadRegistro() {
+        // CONSTRUCTOR VACÍO: No lee archivos, no asume rutas. 
+        // Es un componente puro que espera órdenes de la red.
     }
 
-    /**
-     * Encripta un DNI si hay una estrategia de seguridad configurada.
-     */
     public String encriptarDNI(String dniOriginal) {
-        // this.recargarConfiguracion();
+        // Si todavía no se sincronizó o el servidor opera sin seguridad, 
+        // el DNI pasa en texto plano de forma transparente.
         if (this.encriptador != null && dniOriginal != null) {
             return this.encriptador.encriptar(dniOriginal);
         }
         return dniOriginal;
     }
 
-    public boolean estaConfigurado() {
-        return this.encriptador != null;
+    /**
+     * Este método es el que invoca el ProxyRegistro al hacer la primera conexión.
+     */
+    public void actualizarConfiguracion(String algoritmo, String clave) {
+        if (clave != null && !clave.isEmpty()) {
+            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+            this.encriptador = proveedor.crear(clave);
+            this.algoritmoActual = algoritmo;
+            System.out.println("[SeguridadCliente] Memoria RAM Sincronizada. Cifrado activo: " + algoritmo);
+        } else {
+            // Si el servidor responde vacío, el cliente sabe explícitamente que no hay cifrado
+            this.encriptador = null;
+            this.algoritmoActual = null;
+            System.out.println("[SeguridadCliente] El servidor opera sin cifrado. Modo protegido desactivado.");
+        }
     }
-
-    //  public synchronized void recargarConfiguracion() {
-    //         if (!ConfiguracionRed.recargarSiCambio()) {
-    //         return;
-    //     }
-    //         String clave = ConfiguracionRed.get("seguridad.clave");
-    //         String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-    //         this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
-    //  }
-
 }
