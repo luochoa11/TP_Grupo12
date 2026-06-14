@@ -1,6 +1,8 @@
 package com.sgf;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,7 +27,7 @@ public class ConfiguracionRed {
      * existe se lanzará IllegalArgumentException.
      */
 
-    private static final Properties props = new Properties();
+    private static final Properties propsGlobales = new Properties();
     private static long ultimaModificacion = -1;
 
     static {
@@ -37,7 +39,7 @@ public class ConfiguracionRed {
                 throw new ExceptionInInitializerError(
                         "No se encontró config.properties en el classpath");
             }
-            props.load(input);
+            propsGlobales.load(input);
 
         } catch (IOException e) {
             throw new ExceptionInInitializerError(e);
@@ -52,7 +54,7 @@ public class ConfiguracionRed {
         if (valorEnv != null)
             return valorEnv;
 
-        String valor = props.getProperty(clave);
+        String valor = propsGlobales.getProperty(clave);
         if (valor == null) {
             throw new IllegalArgumentException(
                     "Clave no encontrada: " + clave);
@@ -64,49 +66,59 @@ public class ConfiguracionRed {
         return Integer.parseInt(get(clave));
     }
 
-    public static synchronized void guardarConfigLocal(String algoritmo, String clave, String[] rutas) {
-        props.setProperty("seguridad.algoritmo", algoritmo);
-        props.setProperty("seguridad.clave", clave);
+    // ======================== LOGICA DE CONFIGURACION LOCAL=========================
   
-        for(String ruta:rutas){
-            File archivo = new File(ruta);
 
-            if(archivo.exists()){
-                try{
-                    List<String> lineas = Files.readAllLines(archivo.toPath());
-                    boolean claveModificada = false;
-                    boolean algoritmoModificado = false;
+    public static synchronized void guardarConfigLocal(String nodo, int puerto, String algoritmo, String clave) {
+       String rutaCarpeta = nodo+"_"+puerto+File.separator;
+       File carpeta = new File(rutaCarpeta);
 
-                    for (int i = 0; i < lineas.size(); i++) {
-                        if (lineas.get(i).trim().startsWith("seguridad.algoritmo=")) {
-                            lineas.set(i, "seguridad.algoritmo=" + algoritmo);
-                            algoritmoModificado = true;
-                        } 
-                        
-                        if (lineas.get(i).trim().startsWith("seguridad.clave=")) {
-                            lineas.set(i, "seguridad.clave=" + clave);
-                            claveModificada = true;
-                        }
-                    }
+         if (!carpeta.exists()) {
+              carpeta.mkdirs();
+         }
 
-                    if (!algoritmoModificado) {
-                        lineas.add("seguridad.algoritmo=" + algoritmo);
-                    }
-                    if (!claveModificada) {
-                        lineas.add("seguridad.clave=" + clave);
-                    }
+        File archivoConfig = new File(carpeta, "config.properties");
+        Properties propsNodo = new Properties();
 
-                    Files.write(archivo.toPath(), lineas);
-                    System.out.println("[ConfiguracionRed] Archivo de configuración local actualizado: " + ruta);
-
-
-                }catch(Exception e){
-                    System.err.println("[ConfiguracionRed] Error al guardar configuración local en " + ruta);
-                }
+        if(archivoConfig.exists()) {
+            try (InputStream input = Files.newInputStream(archivoConfig.toPath())) {
+                propsNodo.load(input);
+            } catch (IOException e) {
+                System.err.println("[ConfiguracionRed] Error al cargar configuración local: " + e.getMessage());
             }
         }
-      
 
+        propsNodo.setProperty("seguridad.algoritmo", algoritmo != null ? algoritmo : "AES");
+        propsNodo.setProperty("seguridad.clave", clave!= null ? clave:"");
+
+        try(FileOutputStream out = new FileOutputStream(archivoConfig)) {
+            propsNodo.store(out, "Configuración de seguridad para " + nodo + ":" + puerto);
+            System.out.println("[ConfiguracionRed] Configuración local guardada en " + archivoConfig.getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("[ConfiguracionRed] Error al guardar configuración local: " + e.getMessage());
+        }
+
+
+    }
+
+    public static String getPropLocal(String nodo, int puerto, String clave) {
+        String rutaCarpeta = nodo+"_"+puerto+File.separator;
+        File archivoConfig = new File(rutaCarpeta, "config.properties");
+
+        if (!archivoConfig.exists()) {
+            return null;// agregar valor por defecto?
+        }
+
+        Properties propsNodo = new Properties();
+    
+        try(FileInputStream in = new FileInputStream(archivoConfig)) {
+            propsNodo.load(in);
+            return propsNodo.getProperty(clave);
+        } catch (IOException e) {
+            System.err.println("[ConfiguracionRed] Error al leer configuración local: " + e.getMessage());
+            return null;
+
+        }
     }
 
     // public static synchronized void recargar() {
