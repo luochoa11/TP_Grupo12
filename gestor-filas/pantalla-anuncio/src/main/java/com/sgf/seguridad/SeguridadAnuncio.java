@@ -7,25 +7,21 @@ import com.sgf.modelos.Turno;
 public class SeguridadAnuncio {
 
     private IEncriptacionStrategy encriptador;
+    private final int idTerminal;
 
-    public SeguridadAnuncio() {
-        String algoritmo = "AES"; // Algoritmo por defecto
-        String clave = ""; // Clave vacía por defecto
-        try {
-            algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
-            clave = ConfiguracionRed.get("seguridad.clave");
 
-            if (clave != null && !clave.isEmpty()) {
-                ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-                this.encriptador = proveedor.crear(clave);
-                System.out.println("[SeguridadAnuncio] Componente inicializado con config local.");
-            } else {
-                this.encriptador = null;
-                System.err.println("[SeguridadAnuncio] Sin clave en config.properties local. Usando valores x defecto.");
-            }
-        } catch (IllegalArgumentException e) {
+    public SeguridadAnuncio(int idTerminal) {
+        this.idTerminal = idTerminal;
+        
+        String algoritmo = ConfiguracionRed.getPropLocal("anuncio", idTerminal, "seguridad.algoritmo");
+        String clave     = ConfiguracionRed.getPropLocal("anuncio", idTerminal, "seguridad.clave");
+
+        if (algoritmo != null && clave != null) {
+            inicializarEstrategia(algoritmo,clave);
+            System.out.println("[SeguridadAnuncio] Encriptador inicializado con algoritmo: " + algoritmo);
+        } else {
             this.encriptador = null;
-            System.err.println("[SeguridadAnuncio] No se encontraron llaves locales en el primer arranque. Usando valores x defecto.");
+            System.err.println("[SeguridadAnuncio] Configuración de seguridad incompleta. Cliente sin protección.");
         }
     }
 
@@ -50,24 +46,27 @@ public class SeguridadAnuncio {
     }
 
     public void actualizarConfiguracion(String algoritmo, String clave) {
-        if (clave != null && !clave.isEmpty()) {
-            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-            this.encriptador = proveedor.crear(clave);
-            System.out.println("[SeguridadAnuncio] Configuración de seguridad actualizada.");
-        } else {
-            this.encriptador = null;
-            System.err.println("[SeguridadAnuncio] ADVERTENCIA: Clave vacía. Cliente ahora sin protección.");
-        }
-        modificarArchivoLocal(algoritmo, clave);
+        ConfiguracionRed.guardarConfigLocal("anuncio", idTerminal, algoritmo, clave);
+
+        this.inicializarEstrategia(algoritmo, clave);
+        System.out.println("[SeguridadAnuncio] Configuración actualizada. Nuevo algoritmo: "+algoritmo);
     }
 
-    private void modificarArchivoLocal(String algoritmo, String clave) {
-         String[] rutas = {
-            ".pantalla-anuncio/src/main/resources/config.properties",
-            ".pantalla-anuncio/target/classes/config.properties"
-        };
-        ConfiguracionRed.guardarConfigLocal(algoritmo, clave, rutas);
+    private void inicializarEstrategia(String algorimo, String clave){
+        if(clave!=null && !clave.isEmpty()){
+            ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algorimo);
+            this.encriptador= proveedor.crear(clave);
+            System.out.println("[SeguridadAnuncio] Configuración de seguridad actualizada en RAM.");
+        } else {
+            this.encriptador=null;
+            System.out.println("[SeguridadAnuncio] ADVERTENCIA: Clave vacía. Cliente ahora sin protección.");
+
+        }
+
     }
+
+   
+
     //  public synchronized void recargarConfiguracion() {
     //     if (!ConfiguracionRed.recargarSiCambio()) {
     //         return;

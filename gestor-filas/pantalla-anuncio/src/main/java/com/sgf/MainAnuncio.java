@@ -12,6 +12,8 @@ public class MainAnuncio {
 
     public static void main(String[] args) {
 
+        int idTerminal = (args.length > 0) ? Integer.parseInt(args[0]) : 1; //actualmente es siempre 1
+
         String directorioIp     = ConfiguracionRed.get("directorio.ip");
         int    directorioPuerto = ConfiguracionRed.getInt("directorio.puerto");
 
@@ -20,7 +22,7 @@ public class MainAnuncio {
         ControladorAnuncio controlador = new ControladorAnuncio(ventana);
         ventana.setVisible(true);
 
-        SeguridadAnuncio componenteSeguridad = new SeguridadAnuncio();
+        SeguridadAnuncio componenteSeguridad = new SeguridadAnuncio(idTerminal);
         ProxyAnuncio cliente = new ProxyAnuncio(directorioIp, directorioPuerto, controlador, componenteSeguridad);
 
         new Thread(cliente).start();

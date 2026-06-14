@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.Properties;
 
 public class ConfiguracionRed {
@@ -28,7 +27,6 @@ public class ConfiguracionRed {
      */
 
     private static final Properties propsGlobales = new Properties();
-    private static long ultimaModificacion = -1;
 
     static {
         try (InputStream input = ConfiguracionRed.class
@@ -69,8 +67,8 @@ public class ConfiguracionRed {
     // ======================== LOGICA DE CONFIGURACION LOCAL=========================
   
 
-    public static synchronized void guardarConfigLocal(String nodo, int puerto, String algoritmo, String clave) {
-       String rutaCarpeta = nodo+"_"+puerto+File.separator;
+    public static synchronized void guardarConfigLocal(String nodo, int id, String algoritmo, String clave) {
+       String rutaCarpeta = nodo+"_"+id+File.separator;
        File carpeta = new File(rutaCarpeta);
 
          if (!carpeta.exists()) {
@@ -92,7 +90,7 @@ public class ConfiguracionRed {
         propsNodo.setProperty("seguridad.clave", clave!= null ? clave:"");
 
         try(FileOutputStream out = new FileOutputStream(archivoConfig)) {
-            propsNodo.store(out, "Configuración de seguridad para " + nodo + ":" + puerto);
+            propsNodo.store(out, "Configuración de seguridad para " + nodo + ":" + id);
             System.out.println("[ConfiguracionRed] Configuración local guardada en " + archivoConfig.getAbsolutePath());
         } catch (IOException e) {
             System.err.println("[ConfiguracionRed] Error al guardar configuración local: " + e.getMessage());
@@ -101,8 +99,8 @@ public class ConfiguracionRed {
 
     }
 
-    public static String getPropLocal(String nodo, int puerto, String clave) {
-        String rutaCarpeta = nodo+"_"+puerto+File.separator;
+    public static String getPropLocal(String nodo, int id, String clave) {
+        String rutaCarpeta = nodo+"_"+id+File.separator;
         File archivoConfig = new File(rutaCarpeta, "config.properties");
 
         if (!archivoConfig.exists()) {

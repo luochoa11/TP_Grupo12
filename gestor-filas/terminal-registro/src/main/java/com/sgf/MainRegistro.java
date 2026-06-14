@@ -17,7 +17,7 @@ public class MainRegistro {
     public static void main(String[] args) {
         System.out.println("Arrancando...");
 
-        String idTerminal = (args.length > 0) ? " #" + args[0] : "";
+        int idTerminal = (args.length > 0) ? Integer.parseInt(args[0]) : 1;
         final String tituloFinal = "Terminal de Registro" + idTerminal;
 
         String directorioIp     = ConfiguracionRed.get("directorio.ip");
@@ -37,7 +37,7 @@ public class MainRegistro {
 
     
 
-        SeguridadRegistro componenteSeguridad = new SeguridadRegistro();
+        SeguridadRegistro componenteSeguridad = new SeguridadRegistro(idTerminal);
         IServicioRegistro servicio = new ProxyRegistro(directorioIp, directorioPuerto, componenteSeguridad);
 
         ControladorRegistro controlador = new ControladorRegistro(ventana, servicio);
