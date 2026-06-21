@@ -3,9 +3,12 @@ package com.sgf.disponibilidad;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sgf.aplicacion.ILogicaFila;
 import com.sgf.infraestructura.ServidorCentral;
+import com.sgf.modelos.Turno;
 
 /**
  * Clase que envía datos del servidor primario al servidor secundario para mantenerlos 
@@ -88,7 +91,7 @@ public class SincronizadorEstado {
             out.flush();
 
             
-            System.out.println("[Sync] Estado actual y formato de persistencia sincronizado -> " + ip + ":" + puerto);
+            System.out.println("[Sync] Estado actual, formato de persistencia y seguridad sincronizado -> " + ip + ":" + puerto);
 
         } catch (Exception e) {
             System.err.println("[Sync] Error al sincronizar estado completo: " + e.getMessage());
@@ -129,7 +132,7 @@ public class SincronizadorEstado {
 
     /**
      * Transmite un cambio de formato de persistencia en caliente al secundario.
-     */
+    */
     public void sincronizarFormatoPersistencia(String nuevoFormato) { 
         //----de la misma manera se podría para seguridad, agregando case en manejadorAdmin----
         String[] secundario = resolverSecundario();
@@ -155,9 +158,38 @@ public class SincronizadorEstado {
         }
     }
 
+    public void sincronizarHistoricoDelta() {
+        if (servidor == null) return;
+        List<Turno> pendientes = servidor.getHistoricoPendienteSync();
+        if (pendientes.isEmpty()) return;
+
+        String[] secundario = resolverSecundario();
+        if (secundario == null) return;
+
+        String ip     = secundario[0];
+        int    puerto = Integer.parseInt(secundario[1]);
+
+        try (Socket socket = new Socket(ip, puerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+            out.writeObject("SYNC_SERVER");
+            out.flush();
+
+            out.writeObject("SINCRONIZAR_HISTORICO_DELTA");
+            out.writeObject(new ArrayList<>(pendientes));
+            out.flush();
+
+            System.out.println("[Sync] " + pendientes.size() + " turnos históricos pendientes replicados al secundario.");
+            servidor.limpiarHistoricoPendiente();
+
+        } catch (Exception e) {
+            System.err.println("[Sync] Error al replicar histórico pendiente: " + e.getMessage());
+        }
+    }
+
     /**
- * Transmite un cambio de configuración de seguridad en caliente al secundario.
- */
+    * Transmite un cambio de configuración de seguridad en caliente al secundario.
+    */
     public void sincronizarSeguridad(String algoritmo, String clave) {
         String[] secundario = resolverSecundario();
         if (secundario == null) return;

@@ -36,6 +36,10 @@ public class ServidorCentral implements Runnable {
     private IServicioAdministrador fachadaServidor;
     private GestorPersistencia gestorPersistencia;
 
+    // === guardo turnos terminados pendientes de sincronización para enviarlos al srv secundario cuando vuelva a estar disponible
+    private List<Turno> historicoPendienteSync = Collections.synchronizedList(new ArrayList<>());
+
+
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
         this.ip = ip;
@@ -167,7 +171,8 @@ public class ServidorCentral implements Runnable {
     public void promoverEstado() {
         this.esPrimario = true;
         System.out.println("[Servidor] " + this.ip + ": " + this.puerto + " Promovido a PRIMARIO.");
-        
+        historicoPendienteSync.clear(); // arranca limpio
+
         //Le pedimos la recarga de llaves simétricas a la fachada
         if (getFachada() != null && getFachada().getSeguridad() != null) {
             getFachada().getSeguridad().cargarClaveDesdeProperties();
@@ -228,12 +233,21 @@ public class ServidorCentral implements Runnable {
         if (this.gestorPersistencia != null && t != null) {
             try {
                 this.gestorPersistencia.registrarTurnoFinalizado(t);
+                historicoPendienteSync.add(t.clonar());
                 System.out.println("[Servidor-Persistencia] Auditoría fría registrada con éxito para el DNI: " + t.getDniCliente());
             } catch (Exception e) {
                 System.err.println("[Servidor-Persistencia] ADVERTENCIA: Falló el guardado en el log de auditoría fría: " + e.getMessage());
                 // El error queda registrado en consola del servidor, pero no interrumpe el flujo operativo.
             }
         }
+    }
+
+    public List<Turno> getHistoricoPendienteSync() {
+        return historicoPendienteSync;
+    }
+
+    public void limpiarHistoricoPendiente() {
+        historicoPendienteSync.clear();
     }
 
     private void cargarEstadoPrevioDelDisco() {

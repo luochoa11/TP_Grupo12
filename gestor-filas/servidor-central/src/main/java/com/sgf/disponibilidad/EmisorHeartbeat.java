@@ -74,12 +74,14 @@ public class EmisorHeartbeat implements Runnable,IServicioHeartbeat {
                 if (pareja.isEsPrimario() && servidor.esPrimario()) {
                     // Conflicto: dos primarios → este se degrada
                     servidor.degradarEstado();
+
                 } else if (!pareja.isEsPrimario() && servidor.esPrimario()) {
                     // Soy primario y detecto un secundario
                     String clavePareja = pareja.getIp() + ":" + pareja.getPuerto();
                     if (!clavePareja.equals(ultimaParejaSincronizada)) {
                         System.out.println("[Heartbeat] Nuevo secundario detectado -> " + clavePareja + ". Sincronizando...");
                         servidor.sincronizarEstado();
+                        servidor.getSincronizador().sincronizarHistoricoDelta();
                         ultimaParejaSincronizada = clavePareja;
                     }
                 }

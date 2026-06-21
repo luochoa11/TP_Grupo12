@@ -49,6 +49,13 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
                     break;
 
+                case "SINCRONIZAR_HISTORICO_DELTA":
+                    List<Turno> turnosHistoricos = (List<Turno>) in.readObject();
+                    for (Turno t : turnosHistoricos) {
+                        servidor.registrarTurnoFinalizado(t);
+                    }
+                    System.out.println("[Sync] " + turnosHistoricos.size() + " turnos históricos delta aplicados.");
+                    break;
 
                 case "ACTUALIZAR_SEGURIDAD":
                     String nuevoAlgoritmo = (String) in.readObject();
