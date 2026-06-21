@@ -1,4 +1,2 @@
 [
-  {"dniCliente":"77774444", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-21 00:39:17", "tiempoLlamado":"2026-06-21 00:39:40", "tiempoAtendido":"2026-06-21 00:40:11", "estado":"LLAMADO"},
-  {"dniCliente":"66666666", "idPuesto":2, "intentos":1, "tiempoCreacion":"2026-06-21 00:39:27", "tiempoLlamado":"2026-06-21 00:40:11", "tiempoAtendido":"", "estado":"LLAMADO"}
 ]

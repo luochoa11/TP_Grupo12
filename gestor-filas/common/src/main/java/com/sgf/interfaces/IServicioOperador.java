@@ -14,4 +14,5 @@ public interface IServicioOperador {
     Turno reintentarLlamado(int idPuesto);
     List<Turno> getCola();
     Turno getTurnoPuesto(int idPuesto);
+    public void finalizarAtencion(int idPuesto) throws Exception;
 }

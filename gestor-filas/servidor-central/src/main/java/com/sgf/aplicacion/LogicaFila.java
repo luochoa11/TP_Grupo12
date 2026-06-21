@@ -57,7 +57,6 @@ public class LogicaFila implements ILogicaFila{
                 t.setTiempoCreacion(System.currentTimeMillis());
             this.filaEspera.add(t);
         }
-
     }
 
     /**
@@ -84,8 +83,6 @@ public class LogicaFila implements ILogicaFila{
             }
             actualizarHistorial(this.ultimoLlamado);
         }
-
-
         //el nuevo turno sale de la cola 
         Turno nuevo = this.filaEspera.poll();
         nuevo.setIdPuesto(idPuesto);
@@ -111,6 +108,7 @@ public class LogicaFila implements ILogicaFila{
                 t.incrementarIntentos();
                 this.historialReintentos.add(t.clonar()); //clon para mantener el historial de reintentos sin afectar el turno activo
 
+                quitarDelHistorial(t.getDniCliente());
                 //Si el reintento es de un turno no mostrado en pantalla, se actualiza el historial
                 //antes desaparecía del monitor
                 if (this.ultimoLlamado != null && !this.ultimoLlamado.getDniCliente().equals(t.getDniCliente())) {
@@ -119,9 +117,6 @@ public class LogicaFila implements ILogicaFila{
                     }
                     actualizarHistorial(this.ultimoLlamado);
                 }
-
-                // Si el turno que estamos re-llamando estaba en el historial, lo sacamos de ahí
-                quitarDelHistorial(t.getDniCliente());
 
                 this.ultimoLlamado = t;
                 return t;
@@ -138,6 +133,21 @@ public class LogicaFila implements ILogicaFila{
             }
         }
         return null;
+    }
+    
+    @Override
+    public synchronized void finalizarAtencion(int idPuesto) throws Exception {
+        Turno t = this.turnosActuales.remove(idPuesto);
+        if (t == null) {
+            throw new Exception("No hay un turno activo en el puesto #" + idPuesto);
+        }
+        t.setEstado("ATENDIDO");
+        t.setTiempoAtendido(System.currentTimeMillis());
+        actualizarHistorial(t);
+        
+        if (this.ultimoLlamado != null && this.ultimoLlamado.getDniCliente().equals(t.getDniCliente())) {
+            this.ultimoLlamado = null;
+        }
     }
 
     @Override
@@ -177,7 +187,6 @@ public class LogicaFila implements ILogicaFila{
                 return;
             }
         }
-
         this.historial.add(0, t);//Si no estaba, lo agregamos al inicio
 
         if (this.historial.size() > 4) {

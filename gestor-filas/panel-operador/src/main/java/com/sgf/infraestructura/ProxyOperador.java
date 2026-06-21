@@ -239,4 +239,33 @@ public class ProxyOperador implements IServicioOperador{
             return null;
         }
     }
+
+    @Override
+    public synchronized void finalizarAtencion(int idPuesto) throws Exception {
+        try (Socket socket = conectarConFallback();
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("CLIENTE_OPERADOR");
+            out.flush(); 
+
+            out.writeObject("FINALIZAR_ATENCION");
+            out.writeObject(idPuesto);
+            out.flush();
+
+            Object respuesta = in.readObject();
+
+            if ("OK".equals(respuesta)) {
+                return;
+            } else if (respuesta instanceof String) {
+                throw new Exception((String) respuesta);
+            } else {
+                throw new Exception("Respuesta inesperada del servidor: " + respuesta);
+            }
+
+        } catch (Exception e) {
+            System.err.println("[ProxyOperador] Error en finalizarAtencion: " + e.getMessage());
+            throw new Exception("No se pudo finalizar la atención: " + e.getMessage());
+        }
+    }
 }

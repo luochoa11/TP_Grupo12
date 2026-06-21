@@ -225,19 +225,30 @@ public class ServidorCentral implements Runnable {
         }
     }
 
+    // Para uso normal del primario (marca para réplica futura)
+    public void registrarTurnoFinalizado(Turno t) {
+        registrarTurnoFinalizado(t, true);
+    }
+
+    // Para uso al aplicar deltas recibidos (NO marca para réplica)
+    public void registrarTurnoFinalizadoSinReplicar(Turno t) {
+        registrarTurnoFinalizado(t, false);
+    }
+    
     /**
      * Táctica de Disponibilidad y Robustez (Registro Histórico en Frío).
      * Registra un turno cerrado en el disco de forma segura.
      */
-    public synchronized void registrarTurnoFinalizado(Turno t) {
+    public synchronized void registrarTurnoFinalizado(Turno t, boolean marcarParaReplica) {
         if (this.gestorPersistencia != null && t != null) {
             try {
                 this.gestorPersistencia.registrarTurnoFinalizado(t);
-                historicoPendienteSync.add(t.clonar());
+                if (marcarParaReplica) {
+                    historicoPendienteSync.add(t.clonar());
+                }
                 System.out.println("[Servidor-Persistencia] Auditoría fría registrada con éxito para el DNI: " + t.getDniCliente());
             } catch (Exception e) {
                 System.err.println("[Servidor-Persistencia] ADVERTENCIA: Falló el guardado en el log de auditoría fría: " + e.getMessage());
-                // El error queda registrado en consola del servidor, pero no interrumpe el flujo operativo.
             }
         }
     }

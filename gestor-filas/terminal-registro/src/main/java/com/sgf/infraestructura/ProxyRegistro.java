@@ -87,7 +87,7 @@ public class ProxyRegistro implements IServicioRegistro {
                 
             } catch (Exception e) {
                 if (intentoActual < MAX_INTENTOS) {
-                    try { Thread.sleep(250); } catch (InterruptedException ignored) {}
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
                 }
                 intentoActual++;
             }
