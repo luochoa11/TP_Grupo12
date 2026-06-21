@@ -1,6 +1,7 @@
 package com.sgf.seguridad;
 
 import java.util.List;
+
 import com.sgf.ConfiguracionRed;
 import com.sgf.modelos.Turno;
 
@@ -65,8 +66,6 @@ public class SeguridadAnuncio {
 
     }
 
-   
-
     //  public synchronized void recargarConfiguracion() {
     //     if (!ConfiguracionRed.recargarSiCambio()) {
     //         return;
@@ -75,7 +74,5 @@ public class SeguridadAnuncio {
     //     String clave = ConfiguracionRed.get("seguridad.clave");
     //     String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
     //     this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
-
-  
     // }
 }

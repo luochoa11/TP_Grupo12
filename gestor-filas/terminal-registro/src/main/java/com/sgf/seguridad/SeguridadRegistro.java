@@ -9,16 +9,16 @@ public class SeguridadRegistro {
     private final int puerto;
 
     public SeguridadRegistro(int puerto) {
-       this.puerto = puerto;
-       String algoritmo = ConfiguracionRed.getPropLocal("registro", puerto, "seguridad.algoritmo");
-       String clave     = ConfiguracionRed.getPropLocal("registro", puerto, "seguridad.clave");
+        this.puerto = puerto;
+        String algoritmo = ConfiguracionRed.getPropLocal("registro", puerto, "seguridad.algoritmo");
+        String clave     = ConfiguracionRed.getPropLocal("registro", puerto, "seguridad.clave");
 
-       if (algoritmo != null && clave != null) {
-          inicializarEstrategia(algoritmo, clave);
-           System.out.println("[SeguridadRegistro] Configuración local cargada. Cifrado activo: " + algoritmo);
-       } else {
-           System.out.println("[SeguridadRegistro] No se encontró configuración local de seguridad. Modo protegido desactivado.");
-       }
+        if (algoritmo != null && clave != null) {
+            inicializarEstrategia(algoritmo, clave);
+            System.out.println("[SeguridadRegistro] Configuración local cargada. Cifrado activo: " + algoritmo);
+        } else {
+            System.out.println("[SeguridadRegistro] No se encontró configuración local de seguridad. Modo protegido desactivado.");
+        }
     }
 
     public String encriptarDNI(String dniOriginal) {
@@ -36,13 +36,13 @@ public class SeguridadRegistro {
     public void actualizarConfiguracion(String algoritmo, String clave) {
         ConfiguracionRed.guardarConfigLocal("registro", this.puerto,algoritmo,clave);
         inicializarEstrategia(algoritmo, clave);
-       
+    
     }
 
     private void inicializarEstrategia(String algoritmo, String clave) {
-      ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
-      this.encriptador = proveedor.crear(clave);
-      this.algoritmoActual = algoritmo;
-      System.out.println("[SeguridadRegistro] Estrategia de cifrado inicializada: " + algoritmo);
+        ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
+        this.encriptador = proveedor.crear(clave);
+        this.algoritmoActual = algoritmo;
+        System.out.println("[SeguridadRegistro] Estrategia de cifrado inicializada: " + algoritmo);
     }
 }

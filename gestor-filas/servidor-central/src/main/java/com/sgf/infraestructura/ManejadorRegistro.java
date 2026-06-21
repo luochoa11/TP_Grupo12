@@ -46,6 +46,7 @@ public class ManejadorRegistro extends ManejadorBase {
                     out.writeObject("ERROR_DNI_REPETIDO");
                 }
                 out.flush();
+                
             } else if("GET_CONFIG_SEGURIDAD".equals(comando)) {
                 String algoritmoActivo = servidor.getFachada().getAlgoritmoCifradoActivo();
                 String claveActiva = servidor.getFachada().getClaveSecretaActiva();

@@ -78,8 +78,12 @@ public class SincronizadorEstado {
             //------se podría agregar sincronizacion de seguridad-----------
             if (servidor != null && servidor.getFachada() != null) {
                 out.writeObject(servidor.getFachada().getFormatoPersistenciaActivo());
+                out.writeObject(servidor.getFachada().getAlgoritmoCifradoActivo());
+                out.writeObject(servidor.getFachada().getClaveSecretaActiva());
             } else {
                 out.writeObject("JSON");
+                out.writeObject("AES");
+                out.writeObject("");
             }
             out.flush();
 
@@ -148,6 +152,34 @@ public class SincronizadorEstado {
 
         } catch (Exception e) {
             System.err.println("[Sync] Error al replicar cambio de persistencia: " + e.getMessage());
+        }
+    }
+
+    /**
+ * Transmite un cambio de configuración de seguridad en caliente al secundario.
+ */
+    public void sincronizarSeguridad(String algoritmo, String clave) {
+        String[] secundario = resolverSecundario();
+        if (secundario == null) return;
+
+        String ip     = secundario[0];
+        int    puerto = Integer.parseInt(secundario[1]);
+
+        try (Socket socket = new Socket(ip, puerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+            out.writeObject("SYNC_SERVER");
+            out.flush(); 
+
+            out.writeObject("ACTUALIZAR_SEGURIDAD");
+            out.writeObject(algoritmo);
+            out.writeObject(clave);
+            out.flush();
+
+            System.out.println("[Sync] Cambio de seguridad (" + algoritmo + ") replicado al secundario.");
+
+        } catch (Exception e) {
+            System.err.println("[Sync] Error al replicar cambio de seguridad: " + e.getMessage());
         }
     }
 }

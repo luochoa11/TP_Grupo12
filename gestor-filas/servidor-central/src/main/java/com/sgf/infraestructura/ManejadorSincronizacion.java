@@ -40,9 +40,21 @@ public class ManejadorSincronizacion extends ManejadorBase {
 
                     String formatoPersistencia = (String) in.readObject();
                     servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
-                    
                     servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
+                    
+                    String algoritmoSeguridad = (String) in.readObject();
+                    String claveSeguridad = (String) in.readObject();
+                    servidor.getFachada().actualizarConfiguracionSeguridadSinReplicar(algoritmoSeguridad, claveSeguridad);
+                    
                     System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
+                    break;
+
+
+                case "ACTUALIZAR_SEGURIDAD":
+                    String nuevoAlgoritmo = (String) in.readObject();
+                    String nuevaClave = (String) in.readObject();
+                    System.out.println("[Sync] Replicación en caliente de configuración de seguridad: " + nuevoAlgoritmo);
+                    servidor.getFachada().actualizarConfiguracionSeguridadSinReplicar(nuevoAlgoritmo, nuevaClave);
                     break;
 
                 case "ACTUALIZAR_PERSISTENCIA":

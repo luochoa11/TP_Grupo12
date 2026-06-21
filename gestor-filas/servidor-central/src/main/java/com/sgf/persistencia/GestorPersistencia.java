@@ -17,7 +17,7 @@ public class GestorPersistencia {
     private final String rutaBase;
 
     public GestorPersistencia(int puerto) {
-        this.rutaBase = "servidor_" + puerto + File.separator;
+        this.rutaBase = "config" + File.separator + "servidor_" + puerto + File.separator;
         File carpetaNodo = new File(this.rutaBase);
         if(!carpetaNodo.exists()){
             carpetaNodo.mkdirs();

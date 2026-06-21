@@ -90,11 +90,13 @@ public class ManejadorOperador extends ManejadorBase {
                     int idPuesto2 = (int) in.readObject();
                     out.writeObject(servidor.copiarYEncriptar(logica.getTurnoPuesto(idPuesto2)));
                     break;
+                    
                 case "GET_CONFIG_SEGURIDAD":
                     String algotimoActivo = servidor.getFachada().getAlgoritmoCifradoActivo();
                     String claveActiva = servidor.getFachada().getClaveSecretaActiva();
                     out.writeObject(algotimoActivo);
                     out.writeObject(claveActiva);
+                    break;
             }
             out.flush();
         } catch (Exception e) {

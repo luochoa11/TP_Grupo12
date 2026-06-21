@@ -65,15 +65,16 @@ public class ConfiguracionRed {
     }
 
     // ======================== LOGICA DE CONFIGURACION LOCAL=========================
-  
+
+    private static final String CARPETA_BASE = "config" + File.separator;
 
     public static synchronized void guardarConfigLocal(String nodo, int id, String algoritmo, String clave) {
-       String rutaCarpeta = nodo+"_"+id+File.separator;
-       File carpeta = new File(rutaCarpeta);
+        String rutaCarpeta = CARPETA_BASE + nodo + "_" + id + File.separator;
+        File carpeta = new File(rutaCarpeta);
 
-         if (!carpeta.exists()) {
-              carpeta.mkdirs();
-         }
+            if (!carpeta.exists()) {
+                carpeta.mkdirs();
+        }
 
         File archivoConfig = new File(carpeta, "config.properties");
         Properties propsNodo = new Properties();
@@ -83,7 +84,7 @@ public class ConfiguracionRed {
                 propsNodo.load(input);
             } catch (IOException e) {
                 System.err.println("[ConfiguracionRed] Error al cargar configuración local: " + e.getMessage());
-            }
+            } 
         }
 
         propsNodo.setProperty("seguridad.algoritmo", algoritmo != null ? algoritmo : "AES");
@@ -95,12 +96,10 @@ public class ConfiguracionRed {
         } catch (IOException e) {
             System.err.println("[ConfiguracionRed] Error al guardar configuración local: " + e.getMessage());
         }
-
-
     }
 
     public static String getPropLocal(String nodo, int id, String clave) {
-        String rutaCarpeta = nodo+"_"+id+File.separator;
+        String rutaCarpeta = CARPETA_BASE + nodo + "_" + id + File.separator;
         File archivoConfig = new File(rutaCarpeta, "config.properties");
 
         if (!archivoConfig.exists()) {
