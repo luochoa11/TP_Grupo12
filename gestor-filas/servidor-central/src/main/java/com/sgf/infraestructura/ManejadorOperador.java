@@ -9,6 +9,10 @@ import com.sgf.disponibilidad.ActualizacionEstadoDTO;
 import com.sgf.excepciones.FilaVaciaException;
 import com.sgf.modelos.Turno;
 
+//FIXME 
+//TODO Diagramas 
+//TODO Revisar persistirEstadoActivo()
+
 /**
  * Atiende las peticiones de los Puestos de Atención de los Operadores.
  */
@@ -29,11 +33,11 @@ public class ManejadorOperador extends ManejadorBase {
                     int idPuesto = (int) in.readObject();
                     
                     try {
-                        Turno turnoPrevio = logica.getTurnoPuesto(idPuesto);
+                        Turno turnoPrevio = logica.getTurnoPuesto(idPuesto); /*Esto ya no se hace? */
                         Turno llamado;
                         synchronized(logica){ 
                             llamado = logica.llamarSiguiente(idPuesto);
-                            servidor.persistirEstadoActivo();
+                            servidor.persistirEstadoActivo(); // persiste todo siempre que llama[1]
                         }
                         
                         //PERSISTENCIA EN FRÍO: Si el operador ya tenía a alguien en atención,
@@ -62,7 +66,7 @@ public class ManejadorOperador extends ManejadorBase {
                     Turno reIntento;
                     synchronized(logica){
                         reIntento = logica.reintentarLlamado(id);
-                        servidor.persistirEstadoActivo();
+                        servidor.persistirEstadoActivo(); //persiste todo siempre que hay un nuevo turno[1]
                     }
                     
                     //PERSISTENCIA EN FRÍO: Si 'reIntento' es null pero el turno previo existía,
@@ -89,7 +93,7 @@ public class ManejadorOperador extends ManejadorBase {
                     if(turnoActivo != null){
                         synchronized(logica) {
                             logica.finalizarAtencion(idPuestoFin);
-                            servidor.persistirEstadoActivo();
+                            servidor.persistirEstadoActivo(); // persiste todo siempre que finaliza 
                         }
                         servidor.registrarTurnoFinalizado(turnoActivo);
                     }
