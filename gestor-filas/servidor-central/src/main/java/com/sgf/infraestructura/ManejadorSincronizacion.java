@@ -49,14 +49,6 @@ public class ManejadorSincronizacion extends ManejadorBase {
                     System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
                     break;
 
-                case "SINCRONIZAR_HISTORICO_DELTA":
-                    List<Turno> turnosHistoricos = (List<Turno>) in.readObject();
-                    for (Turno t : turnosHistoricos) {
-                        servidor.registrarTurnoFinalizadoSinReplicar(t);
-                    }
-                    System.out.println("[Sync] " + turnosHistoricos.size() + " turnos históricos delta aplicados.");
-                    break;
-
                 case "ACTUALIZAR_SEGURIDAD":
                     String nuevoAlgoritmo = (String) in.readObject();
                     String nuevaClave = (String) in.readObject();
@@ -110,10 +102,31 @@ public class ManejadorSincronizacion extends ManejadorBase {
                             } catch (Exception e) {
                                 System.out.println("[Sync] Error al sincronizar reintento: " + e.getMessage());
                             }
+                            break;
+                        
+                        case "FINALIZAR":
+                            try {
+                                Turno turnoParaFinalizar = logica.getTurnoPuesto(delta.getIdPuesto());
+                                if (turnoParaFinalizar != null) {
+                                    logica.finalizarAtencion(delta.getIdPuesto());
+                                    servidor.registrarTurnoFinalizadoSinReplicar(turnoParaFinalizar);
+                                }
+                            } catch (Exception e) {
+                                System.out.println("[Sync] Error al sincronizar finalización: " + e.getMessage());
+                            }
+                            break;
                     }
                     servidor.persistirEstadoActivo(); // Guardar en caliente después de cada delta para minimizar pérdida de datos
                     System.out.println("[Sync] Delta de tipo [" + delta.getTipo() + "] replicado con éxito.");
-                        break;
+                    break;
+
+                case "SINCRONIZAR_HISTORICO_DELTA":
+                    List<Turno> turnosHistoricos = (List<Turno>) in.readObject();
+                    for (Turno t : turnosHistoricos) {
+                        servidor.registrarTurnoFinalizadoSinReplicar(t);
+                    }
+                    System.out.println("[Sync] " + turnosHistoricos.size() + " turnos históricos delta aplicados.");
+                    break;
             }
             out.flush();
         } catch (Exception e) {

@@ -96,14 +96,15 @@ public class ManejadorOperador extends ManejadorBase {
                             servidor.persistirEstadoActivo(); // persiste todo siempre que finaliza 
                         }
                         servidor.registrarTurnoFinalizado(turnoActivo);
-                    }
 
+                        if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                            ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("FINALIZAR", turnoActivo, idPuestoFin);
+                            servidor.getSincronizador().sincronizarDelta(delta);
+                        }
+                    }
+                    
                     out.writeObject("OK");
                     servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
-                    
-                    if (servidor.esPrimario() && servidor.getSincronizador() != null) {
-                        servidor.sincronizarEstado();
-                    }
                     break;
                     
                 case "GET_COLA":

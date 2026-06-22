@@ -145,7 +145,10 @@ public class VentanaOperador extends JFrame {
         btnLlamar = crearBotonEstilizado("Llamar siguiente", COLOR_ACCENTO);
         btnLlamar.addActionListener(e -> {
             if (controlador != null) {
-                controlador.accionarLlamado();
+                Turno siguiente = controlador.accionarLlamado();
+                if (siguiente != null) {
+                    reiniciarTIntento();
+                }
             }
         });
 
