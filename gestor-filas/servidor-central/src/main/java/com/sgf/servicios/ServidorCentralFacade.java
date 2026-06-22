@@ -82,6 +82,20 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
     @Override
     public boolean actualizarConfiguracionSeguridad(String algoritmo, String claveSecreta) {
+        boolean exito = seguridad.actualizarSeguridad(algoritmo, claveSecreta);
+        if (exito) {
+            // Replicación en caliente al Servidor Secundario si somos primario activo
+            if (servidorCentral.esPrimario() && servidorCentral.getSincronizador() != null) {
+                servidorCentral.getSincronizador().sincronizarSeguridad(algoritmo, claveSecreta);
+            }
+        }
+        return exito;
+    }
+
+    /**
+    * Ejecuta la reconfiguración local de seguridad sin disparar otra sincronización de red.
+    */
+    public boolean actualizarConfiguracionSeguridadSinReplicar(String algoritmo, String claveSecreta) {
         System.out.println("[FACADE-SERVIDOR] Configuración de seguridad local solicitada -> Algoritmo: " + algoritmo);
         boolean exito = seguridad.actualizarSeguridad(algoritmo, claveSecreta);
         if (exito) {

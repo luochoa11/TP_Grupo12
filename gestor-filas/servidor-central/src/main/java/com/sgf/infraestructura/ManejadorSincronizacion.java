@@ -40,9 +40,28 @@ public class ManejadorSincronizacion extends ManejadorBase {
 
                     String formatoPersistencia = (String) in.readObject();
                     servidor.getFachada().cambiarFormatoPersistenciaSinReplicar(formatoPersistencia);
-                    
                     servidor.persistirEstadoActivo(); // Guardar inmediatamente para asegurar consistencia
+                    
+                    String algoritmoSeguridad = (String) in.readObject();
+                    String claveSeguridad = (String) in.readObject();
+                    servidor.getFachada().actualizarConfiguracionSeguridadSinReplicar(algoritmoSeguridad, claveSeguridad);
+                    
                     System.out.println("[Sync] Estado completo recibido y persistido localmente en servidor secundario. Cola: " + cola.size() + " turnos.");
+                    break;
+
+                case "SINCRONIZAR_HISTORICO_DELTA":
+                    List<Turno> turnosHistoricos = (List<Turno>) in.readObject();
+                    for (Turno t : turnosHistoricos) {
+                        servidor.registrarTurnoFinalizadoSinReplicar(t);
+                    }
+                    System.out.println("[Sync] " + turnosHistoricos.size() + " turnos históricos delta aplicados.");
+                    break;
+
+                case "ACTUALIZAR_SEGURIDAD":
+                    String nuevoAlgoritmo = (String) in.readObject();
+                    String nuevaClave = (String) in.readObject();
+                    System.out.println("[Sync] Replicación en caliente de configuración de seguridad: " + nuevoAlgoritmo);
+                    servidor.getFachada().actualizarConfiguracionSeguridadSinReplicar(nuevoAlgoritmo, nuevaClave);
                     break;
 
                 case "ACTUALIZAR_PERSISTENCIA":
@@ -69,7 +88,7 @@ public class ManejadorSincronizacion extends ManejadorBase {
                                 Turno turnoPrevio = logica.getTurnoPuesto(delta.getIdPuesto());
                                 logica.llamarSiguiente(delta.getIdPuesto());
                                 if (turnoPrevio != null) {
-                                    servidor.registrarTurnoFinalizado(turnoPrevio);
+                                    servidor.registrarTurnoFinalizadoSinReplicar(turnoPrevio);
                                 }
                             } catch (Exception e) {
                                 System.out.println("[Sync] Error al sincronizar llamado: Fila vacía en réplica.");
@@ -82,7 +101,7 @@ public class ManejadorSincronizacion extends ManejadorBase {
                                 Turno reIntento = logica.reintentarLlamado(delta.getIdPuesto());
                                 
                                 if (reIntento == null && turnoParaReintentar != null) {
-                                    servidor.registrarTurnoFinalizado(turnoParaReintentar);
+                                    servidor.registrarTurnoFinalizadoSinReplicar(turnoParaReintentar);
                                 }
 
                                 if (delta.getTurno() != null) {

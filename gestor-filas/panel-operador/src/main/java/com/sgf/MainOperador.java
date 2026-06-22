@@ -1,13 +1,8 @@
 package com.sgf;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import com.sgf.ConfiguracionRed;
 import com.sgf.infraestructura.ProxyOperador;
 import com.sgf.interfaces.IServicioOperador;
 import com.sgf.presentacion.ControladorOperador;

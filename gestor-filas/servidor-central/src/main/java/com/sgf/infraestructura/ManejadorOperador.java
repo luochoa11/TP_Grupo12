@@ -81,6 +81,26 @@ public class ManejadorOperador extends ManejadorBase {
                     }
                     
                     break;
+
+                case "FINALIZAR_ATENCION":
+                    int idPuestoFin = (int) in.readObject();
+                    Turno turnoActivo = logica.getTurnoPuesto(idPuestoFin);
+
+                    if(turnoActivo != null){
+                        synchronized(logica) {
+                            logica.finalizarAtencion(idPuestoFin);
+                            servidor.persistirEstadoActivo();
+                        }
+                        servidor.registrarTurnoFinalizado(turnoActivo);
+                    }
+
+                    out.writeObject("OK");
+                    servidor.notificarMonitores(logica.getUltimoLlamado(), logica.getHistorial());
+                    
+                    if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                        servidor.sincronizarEstado();
+                    }
+                    break;
                     
                 case "GET_COLA":
                     out.writeObject(servidor.copiarYEncriptarLista(logica.getCola()));
@@ -90,11 +110,13 @@ public class ManejadorOperador extends ManejadorBase {
                     int idPuesto2 = (int) in.readObject();
                     out.writeObject(servidor.copiarYEncriptar(logica.getTurnoPuesto(idPuesto2)));
                     break;
+                    
                 case "GET_CONFIG_SEGURIDAD":
                     String algotimoActivo = servidor.getFachada().getAlgoritmoCifradoActivo();
                     String claveActiva = servidor.getFachada().getClaveSecretaActiva();
                     out.writeObject(algotimoActivo);
                     out.writeObject(claveActiva);
+                    break;
             }
             out.flush();
         } catch (Exception e) {

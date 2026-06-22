@@ -14,7 +14,7 @@ public class EstrategiaCifradoXOR implements IEncriptacionStrategy {
     public String encriptar(String dato) {
         byte[] datos = dato.getBytes();
         byte[] resultado = new byte[datos.length];
-     
+    
         for(int i = 0; i < datos.length; i++) {
             resultado[i] = (byte) (datos[i] ^ clave.charAt(i % clave.length()));
         }
@@ -23,9 +23,9 @@ public class EstrategiaCifradoXOR implements IEncriptacionStrategy {
 
     @Override
     public String desencriptar(String datoEncriptado) {
-       byte[] datos = Base64.getDecoder().decode(datoEncriptado);
+        byte[] datos = Base64.getDecoder().decode(datoEncriptado);
         byte[] resultado = new byte[datos.length];
-     
+    
         for(int i = 0; i < datos.length; i++) {
             resultado[i] = (byte) (datos[i] ^ clave.charAt(i % clave.length()));
         }

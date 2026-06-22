@@ -54,31 +54,43 @@ public class ProxyAnuncio implements Runnable, IServicioAnuncio {
 
     @SuppressWarnings("unchecked")
     private void obtenerEstadoInicial() {
-        try (Socket socket = new Socket(ipServidor, puertoServidor);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+        try {
+            // Conexión 1: pedir configuración de seguridad
+            try (Socket socket = new Socket(ipServidor, puertoServidor);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
-            out.writeObject("CLIENTE_ANUNCIO");
-            out.flush();
+                out.writeObject("CLIENTE_ANUNCIO");
+                out.flush();
 
-            out.writeObject("GET_CONFIG_SEGURIDAD");
-            out.flush();
+                out.writeObject("GET_CONFIG_SEGURIDAD");
+                out.flush();
 
-            String algoritmo = (String) in.readObject();
-            String clave     = (String) in.readObject();
-            seguridad.actualizarConfiguracion(algoritmo, clave);
+                String algoritmo = (String) in.readObject();
+                String clave     = (String) in.readObject();
+                seguridad.actualizarConfiguracion(algoritmo, clave);
+            }
 
-            out.writeObject("GET_ESTADO_MONITOR");
-            out.flush();
+            // Conexión 2: pedir el estado del monitor
+            try (Socket socket = new Socket(ipServidor, puertoServidor);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
 
-            this.actual    = (Turno) in.readObject();
-            this.historial = (List<Turno>) in.readObject();
+                out.writeObject("CLIENTE_ANUNCIO");
+                out.flush();
 
-            seguridad.desencriptarTurno(this.actual);
-            seguridad.desencriptarLista(this.historial);
+                out.writeObject("GET_ESTADO_MONITOR");
+                out.flush();
 
-            controlador.actualizarDesdeServidor(actual, historial);
-            System.out.println("[ProxyAnuncio] Estado inicial cargado en pantalla.");
+                this.actual    = (Turno) in.readObject();
+                this.historial = (List<Turno>) in.readObject();
+
+                seguridad.desencriptarTurno(this.actual);
+                seguridad.desencriptarLista(this.historial);
+
+                controlador.actualizarDesdeServidor(actual, historial);
+                System.out.println("[ProxyAnuncio] Estado inicial cargado en pantalla.");
+            }
 
         } catch (Exception e) {
             System.err.println("[ProxyAnuncio] No se pudo cargar el estado inicial.");

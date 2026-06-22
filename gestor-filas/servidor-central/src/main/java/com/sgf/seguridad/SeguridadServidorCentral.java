@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.Properties;
-
-import com.sgf.ConfiguracionRed;
 
 /**
  * Gestiona la seguridad del Servidor Central.
@@ -25,7 +21,7 @@ public class SeguridadServidorCentral {
     private final String rutaArchivoConfig;
 
     public SeguridadServidorCentral(int puerto) {
-        this.rutaBase = "servidor_" + puerto+File.separator;
+        this.rutaBase = "config" + File.separator + "servidor_" + puerto + File.separator;
         this.rutaArchivoConfig = rutaBase + "config.properties";
 
         File carpetaNodo = new File(this.rutaBase);
@@ -57,7 +53,8 @@ public class SeguridadServidorCentral {
 
         inicializarEstrategia(this.algoritmoActivo, this.claveActiva);
     }
-   /**
+    
+    /**
      * Cambia la estrategia en caliente y la persiste en el properties del nodo.
      */
     public boolean actualizarSeguridad(String algoritmo, String claveSecreta) {
@@ -74,7 +71,7 @@ public class SeguridadServidorCentral {
         }
     }
 
-   private void inicializarEstrategia(String algoritmo, String clave) {
+    private void inicializarEstrategia(String algoritmo, String clave) {
         if (clave != null && !clave.isEmpty()) {
             ProveedorEstrategiaCifrado proveedor = SelectorProveedores.obtenerProveedor(algoritmo);
             this.encriptador = proveedor.crear(clave);

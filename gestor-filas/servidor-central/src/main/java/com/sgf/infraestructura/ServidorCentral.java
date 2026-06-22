@@ -36,6 +36,10 @@ public class ServidorCentral implements Runnable {
     private IServicioAdministrador fachadaServidor;
     private GestorPersistencia gestorPersistencia;
 
+    // === guardo turnos terminados pendientes de sincronización para enviarlos al srv secundario cuando vuelva a estar disponible
+    private List<Turno> historicoPendienteSync = Collections.synchronizedList(new ArrayList<>());
+
+
     public ServidorCentral(int puerto, String ip, ILogicaFila logica, boolean esPrimario,SincronizadorEstado sincronizador) {
         this.puerto = puerto;
         this.ip = ip;
@@ -167,7 +171,8 @@ public class ServidorCentral implements Runnable {
     public void promoverEstado() {
         this.esPrimario = true;
         System.out.println("[Servidor] " + this.ip + ": " + this.puerto + " Promovido a PRIMARIO.");
-        
+        historicoPendienteSync.clear(); // arranca limpio
+
         //Le pedimos la recarga de llaves simétricas a la fachada
         if (getFachada() != null && getFachada().getSeguridad() != null) {
             getFachada().getSeguridad().cargarClaveDesdeProperties();
@@ -220,20 +225,40 @@ public class ServidorCentral implements Runnable {
         }
     }
 
+    // Para uso normal del primario (marca para réplica futura)
+    public void registrarTurnoFinalizado(Turno t) {
+        registrarTurnoFinalizado(t, true);
+    }
+
+    // Para uso al aplicar deltas recibidos (NO marca para réplica)
+    public void registrarTurnoFinalizadoSinReplicar(Turno t) {
+        registrarTurnoFinalizado(t, false);
+    }
+    
     /**
      * Táctica de Disponibilidad y Robustez (Registro Histórico en Frío).
      * Registra un turno cerrado en el disco de forma segura.
      */
-    public synchronized void registrarTurnoFinalizado(Turno t) {
+    public synchronized void registrarTurnoFinalizado(Turno t, boolean marcarParaReplica) {
         if (this.gestorPersistencia != null && t != null) {
             try {
                 this.gestorPersistencia.registrarTurnoFinalizado(t);
+                if (marcarParaReplica) {
+                    historicoPendienteSync.add(t.clonar());
+                }
                 System.out.println("[Servidor-Persistencia] Auditoría fría registrada con éxito para el DNI: " + t.getDniCliente());
             } catch (Exception e) {
                 System.err.println("[Servidor-Persistencia] ADVERTENCIA: Falló el guardado en el log de auditoría fría: " + e.getMessage());
-                // El error queda registrado en consola del servidor, pero no interrumpe el flujo operativo.
             }
         }
+    }
+
+    public List<Turno> getHistoricoPendienteSync() {
+        return historicoPendienteSync;
+    }
+
+    public void limpiarHistoricoPendiente() {
+        historicoPendienteSync.clear();
     }
 
     private void cargarEstadoPrevioDelDisco() {

@@ -1,6 +1,7 @@
 package com.sgf.seguridad;
 
 import java.util.List;
+
 import com.sgf.ConfiguracionRed;
 import com.sgf.modelos.Turno;
 
@@ -14,12 +15,12 @@ public class SeguridadOperador {
     private final int idTerminal;
 
     public SeguridadOperador(int idTerminal) {
-       this.idTerminal=idTerminal;
+        this.idTerminal=idTerminal;
 
-       String algoritmo = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.algoritmo");
-       String clave = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.clave");
+        String algoritmo = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.algoritmo");
+        String clave = ConfiguracionRed.getPropLocal("operador", idTerminal, "seguridad.clave");
 
-       if (algoritmo != null && clave != null && !clave.isEmpty()) {
+        if (algoritmo != null && clave != null && !clave.isEmpty()) {
             inicializarEstrategia(algoritmo, clave);
             System.out.println("[SeguridadOperador] Inicializado desde archivo local (" + algoritmo + ") para ID " + idTerminal);
         } else {
@@ -82,6 +83,5 @@ public class SeguridadOperador {
     //     String algoritmo = ConfiguracionRed.get("seguridad.algoritmo");
     //     this.encriptador = ProveedorEstrategiaCifrado.crear(  algoritmo,     clave  );
 
-   
     // }
 }

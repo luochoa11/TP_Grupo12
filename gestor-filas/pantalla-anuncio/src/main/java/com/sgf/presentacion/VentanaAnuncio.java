@@ -32,8 +32,7 @@ public class VentanaAnuncio extends JFrame {
     // Lista para trackear todos los labels que deben parpadear en cada actualización
     private List<JLabel> labelsParaTitilar = new ArrayList<>();
 
-    // Colores basados en la identidad visual de la App
-     private final Color COLOR_FONDO_OSCURO = new Color(15, 23, 42);      // Azul oscuro fondo
+    private final Color COLOR_FONDO_OSCURO = new Color(15, 23, 42);      // Azul oscuro fondo
     private final Color COLOR_ACCENTO_CELESTE = new Color(96, 165, 250); // Celeste del operador
     private final Color COLOR_ROJO_ALERTA = new Color(220, 38, 38);      // Rojo para rellamadas
     private final Color COLOR_GRIS_HISTORIAL = new Color(241, 245, 249); // Gris muy suave tarjetas
@@ -83,7 +82,6 @@ public class VentanaAnuncio extends JFrame {
 
 
     private JPanel crearTarjeta(Turno turno, boolean esActual, boolean resaltarDni) {
-
         if(turno == null)
             return new JPanel(); 
 
@@ -118,7 +116,7 @@ public class VentanaAnuncio extends JFrame {
         valDni.setFont(fuenteValor);
         
         // Lógica de parpadeo: lo agregamos a la lista si corresponde
-        if (resaltarDni) {
+        if (esActual && resaltarDni) {
             valDni.setForeground(COLOR_ROJO_ALERTA);
             labelsParaTitilar.add(valDni);
         } else {
