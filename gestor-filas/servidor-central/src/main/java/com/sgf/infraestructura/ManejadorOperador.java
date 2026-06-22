@@ -92,11 +92,11 @@ public class ManejadorOperador extends ManejadorBase {
                             servidor.persistirEstadoActivo();
                         }
                         servidor.registrarTurnoFinalizado(turnoActivo);
-                    }
-                    
-                    if (servidor.esPrimario() && servidor.getSincronizador() != null) {
-                        ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("FINALIZAR", turnoActivo, idPuestoFin);
-                        servidor.getSincronizador().sincronizarDelta(delta);
+
+                        if (servidor.esPrimario() && servidor.getSincronizador() != null) {
+                            ActualizacionEstadoDTO delta = new ActualizacionEstadoDTO("FINALIZAR", turnoActivo, idPuestoFin);
+                            servidor.getSincronizador().sincronizarDelta(delta);
+                        }
                     }
                     
                     out.writeObject("OK");
