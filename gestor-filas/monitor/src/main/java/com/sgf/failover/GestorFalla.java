@@ -34,6 +34,9 @@ public class GestorFalla {
             enviarPromocion(secundario);
             actualizarDirectorio(secundario.getIp(), secundario.getPuerto());
         } else {
+            if(primario == null)
+                actualizarDirectorio(directorioIp, directorioPuerto);
+            else
             System.out.println("[GestorFalla] El nodo caído no es el primario. No se requiere acción inmediata.");
         }
     

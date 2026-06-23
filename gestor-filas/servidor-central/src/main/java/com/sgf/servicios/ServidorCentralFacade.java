@@ -39,7 +39,6 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             if (servidorCentral.esPrimario() && servidorCentral.getSincronizador() != null) {
                 servidorCentral.getSincronizador().sincronizarFormatoPersistencia(tipoFormato);
             }
-            gestorPersistencia.clearOlds(tipoFormato);
         }
         return exito;
     }
@@ -50,6 +49,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
     public boolean cambiarFormatoPersistenciaSinReplicar(String tipoFormato) {
         System.out.println("[FACADE-SERVIDOR] Cambio de formato local solicitado -> Formato: " + tipoFormato);
         try {
+            gestorPersistencia.clearOlds(tipoFormato);
             gestorPersistencia.establecerFormato(tipoFormato);
 
             gestorPersistencia.guardarFilaEspera(logicaFila.getCola());
@@ -61,6 +61,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             gestorPersistencia.guardarUltimoLlamado(logicaFila.getUltimoLlamado());
 
             System.out.println("[FACADE-SERVIDOR] Migración y guardado local completado.");
+            
             return true;
         } catch (Exception e) {
             System.err.println("[FACADE-SERVIDOR] Error durante la reconfiguración local: " + e.getMessage());
