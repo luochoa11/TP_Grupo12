@@ -39,6 +39,7 @@ public class ServidorCentralFacade implements IServicioAdministrador {
             if (servidorCentral.esPrimario() && servidorCentral.getSincronizador() != null) {
                 servidorCentral.getSincronizador().sincronizarFormatoPersistencia(tipoFormato);
             }
+            gestorPersistencia.clearOlds(tipoFormato);
         }
         return exito;
     }

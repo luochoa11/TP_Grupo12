@@ -21,11 +21,11 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
 
     public PersistenciaEscritorPlain(String rutaBase) {
         this.rutaBase = (rutaBase == null || rutaBase.trim().isEmpty()) ? "" : (rutaBase + File.separator);
-        this.PATH_FILA = rutaBase + "filaEspera.dat";
-        this.PATH_HISTORIAL = rutaBase + "historial.dat";
-        this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.dat";
-        this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.dat";
-        this.PATH_REINTENTOS = rutaBase + "historialReintentos.dat";
+        this.PATH_FILA = rutaBase + "filaEspera.txt";
+        this.PATH_HISTORIAL = rutaBase + "historial.txt";
+        this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.txt";
+        this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.txt";
+        this.PATH_REINTENTOS = rutaBase + "historialReintentos.txt";
 
         File dirHistorico = new File(this.rutaBase + "historico");
         if (!dirHistorico.exists()) {
@@ -67,7 +67,7 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
         
         // Rotación de Logs binarios por año y mes (ej: "auditoria_2026_06.dat")
         String mesAnio = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
-        String pathHistorico = this.rutaBase + "historico" + File.separator + "auditoria_" + mesAnio + ".dat";
+        String pathHistorico = this.rutaBase + "historico" + File.separator + "auditoria_" + mesAnio + ".txt";
         
         File archivo = new File(pathHistorico);
         boolean existe = archivo.exists() && archivo.length() > 0;
@@ -93,7 +93,7 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
     // serializacion
     private void escribirObjeto(String path, Object objeto) throws Exception {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path))) {
-            oos.writeObject(objeto);
+            oos.writeObject(objeto.toString());
         }
     }
 
