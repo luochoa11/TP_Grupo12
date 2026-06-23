@@ -74,3 +74,8 @@
 {"dniCliente":"44444444", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 02:08:24", "tiempoLlamado":"2026-06-23 02:10:27", "tiempoAtendido":"2026-06-23 02:36:19", "estado":"ATENDIDO"}
 {"dniCliente":"66666666", "idPuesto":1, "intentos":2, "tiempoCreacion":"2026-06-23 02:08:27", "tiempoLlamado":"2026-06-23 02:36:21", "tiempoAtendido":"2026-06-23 02:36:59", "estado":"ATENDIDO"}
 {"dniCliente":"77777777", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 02:08:31", "tiempoLlamado":"2026-06-23 02:37:01", "tiempoAtendido":"2026-06-23 02:37:07", "estado":"ATENDIDO"}
+{"dniCliente":"88888888", "idPuesto":1, "intentos":2, "tiempoCreacion":"2026-06-23 02:08:34", "tiempoLlamado":"2026-06-23 03:59:46", "tiempoAtendido":"2026-06-23 04:00:14", "estado":"ATENDIDO"}
+{"dniCliente":"99999999", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 02:08:38", "tiempoLlamado":"2026-06-23 04:00:34", "tiempoAtendido":"2026-06-23 04:01:27", "estado":"ATENDIDO"}
+{"dniCliente":"77555555", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 02:10:09", "tiempoLlamado":"2026-06-23 04:01:29", "tiempoAtendido":"2026-06-23 04:02:01", "estado":"ATENDIDO"}
+{"dniCliente":"99999998", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 02:10:24", "tiempoLlamado":"2026-06-23 04:02:04", "tiempoAtendido":"2026-06-23 04:04:29", "estado":"LLAMADO"}
+{"dniCliente":"21444444", "idPuesto":1, "intentos":1, "tiempoCreacion":"2026-06-23 03:58:34", "tiempoLlamado":"2026-06-23 04:04:29", "tiempoAtendido":"2026-06-23 04:16:05", "estado":"ATENDIDO"}

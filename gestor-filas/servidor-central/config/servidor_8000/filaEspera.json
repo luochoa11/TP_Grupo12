@@ -1,6 +1,0 @@
-[
-  {"dniCliente":"88888888", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-23 02:08:34", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"},
-  {"dniCliente":"99999999", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-23 02:08:38", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"},
-  {"dniCliente":"77555555", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-23 02:10:09", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"},
-  {"dniCliente":"99999998", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-23 02:10:24", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"}
-]
