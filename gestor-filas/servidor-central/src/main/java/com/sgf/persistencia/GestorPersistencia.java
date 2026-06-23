@@ -141,7 +141,7 @@ public class GestorPersistencia {
                     File fichero = new File(this.rutaBase + base + "." + ext);
                     if (fichero.exists()) {
                         boolean eliminado = fichero.delete();
-                        System.out.println("[GestorPersistencia] Eliminando " + fichero.getPath() + ": " + (eliminado ? "OK" : "FALLO"));
+                        System.out.println("[GestorPersistencia] Eliminando puerto" +rutaBase+ fichero.getPath() + ": " + (eliminado ? "OK" : "FALLO"));
                     }
                 }
             }

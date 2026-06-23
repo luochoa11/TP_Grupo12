@@ -44,9 +44,6 @@ REM =====================================
 start "Registro 1" cmd /k "cd /d %ROOT%terminal-registro && java -cp target\classes;..\common\target\classes com.sgf.MainRegistro 1"
 timeout /t 1 /nobreak > nul
 
-start "Registro 2" cmd /k "cd /d %ROOT%terminal-registro && java -cp target\classes;..\common\target\classes com.sgf.MainRegistro 2"
-timeout /t 1 /nobreak > nul
-
 REM =====================================
 REM Pantalla Anuncio
 REM =====================================
