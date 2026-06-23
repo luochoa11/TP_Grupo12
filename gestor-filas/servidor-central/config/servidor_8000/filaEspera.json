@@ -1,2 +1,4 @@
 [
+  {"dniCliente":"11111111", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-22 20:35:53", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"},
+  {"dniCliente":"22222222", "idPuesto":-1, "intentos":0, "tiempoCreacion":"2026-06-22 21:04:47", "tiempoLlamado":"", "tiempoAtendido":"", "estado":"ESPERA"}
 ]
