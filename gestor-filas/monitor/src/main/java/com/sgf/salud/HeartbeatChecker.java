@@ -37,7 +37,6 @@ public class HeartbeatChecker implements Runnable {
         if (estado.isEsPrimario()) {
             this.primario = estado;
         } else {
-            // CORRECCIÓN: Agregado null-check sobre 'this.primario' para evitar NullPointerException en el arranque
             if (this.primario == null || !esMismoNodo(estado, this.primario)) {
                 this.secundario = estado;
                 this.secundario.setEsPrimario(false);
@@ -72,23 +71,33 @@ public class HeartbeatChecker implements Runnable {
                             if (nodoCaido != null && primario != null && esMismoNodo(nodoCaido, primario)) {
                                 if (secundario != null) {
                                     System.out.println("[HeartbeatChecker] Iniciando conmutación de fallo (Failover)...");
-                                    gestorFalla.procesarFalla(nodoCaido, primario, secundario);
-
-                                    // Intercambio seguro de roles lógicos localmente para que el monitor siga operando sano
-                                    NodoEstadoDTO temp = primario;
-                                    primario = secundario;
-                                    primario.setEsPrimario(true);
-                                    secundario = temp;
-                                    secundario.setEsPrimario(false);
+                                    
+                                    // Verificamos si la promoción fue realmente exitosa
+                                    boolean exito = gestorFalla.procesarFalla(nodoCaido, primario, secundario);
+                                    
+                                    if (exito) {
+                                        NodoEstadoDTO temp = primario;
+                                        primario = secundario;
+                                        primario.setEsPrimario(true);
+                                        secundario = temp;
+                                        secundario.setEsPrimario(false);
+                                    } else {
+                                        System.err.println("[HeartbeatChecker] Ambos servidores muertos (Blackout). Limpiando Directorio...");
+                                        gestorFalla.limpiarPrimarioEnDirectorio();
+                                        gestorFalla.limpiarSecundarioEnDirectorio(secundario);
+                                        primario = null;
+                                        secundario = null;
+                                    }
                                 } else {
-                                    System.err.println("[HeartbeatChecker] El servidor primario cayó y no hay secundario registrado.");
+                                    System.err.println("[HeartbeatChecker] Primario caído y sin secundario. Limpiando Directorio...");
+                                    gestorFalla.limpiarPrimarioEnDirectorio();
                                     primario = null;
-                                    gestorFalla.procesarFalla(nodoCaido, primario, secundario);
                                 }
                             }
 
                             if (nodoCaido != null && secundario != null && esMismoNodo(nodoCaido, secundario)) {
                                 System.out.println("[HeartbeatChecker] Secundario caído. Limpiando referencia...");
+                                gestorFalla.limpiarSecundarioEnDirectorio(nodoCaido); 
                                 secundario = null;
                             }
 

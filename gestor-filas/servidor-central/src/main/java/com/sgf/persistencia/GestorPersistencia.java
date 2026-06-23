@@ -33,7 +33,7 @@ public class GestorPersistencia {
      * Prioridad de carga: DAT (binario) -> XML -> JSON.
      */
     public final String detectarFormatoExistente(){
-        if (new File(this.rutaBase + "filaEspera.dat").exists()) {
+        if (new File(this.rutaBase + "filaEspera.txt").exists()) {
             return "TXT";
         }
         if (new File(this.rutaBase + "filaEspera.xml").exists()) {
@@ -68,6 +68,32 @@ public class GestorPersistencia {
 
     public synchronized String getFormatoActivo() {
         return this.formatoActivo;
+    }
+
+    /**
+     * Limpia los archivos físicos obsoletos tras una migración exitosa.
+     */
+    public synchronized void clearOlds(String tipoFormato) {
+        if (tipoFormato == null) {
+            return;
+        }
+        String tipo = tipoFormato.toUpperCase();
+        String[] bases = new String[] { "filaEspera", "historial", "historialReintentos", "turnosActuales", "ultimoLlamado" };
+        String[] formatos = new String[] { "JSON", "XML", "TXT" };
+
+        for (String base : bases) {
+            for (String f : formatos) {
+                if (!f.equals(tipo)) {
+                    String ext = f.toLowerCase();
+                    File fichero = new File(this.rutaBase + base + "." + ext);
+                    if (fichero.exists()) {
+                        boolean eliminado = fichero.delete();
+                        System.out.println("[GestorPersistencia] Eliminando " + fichero.getPath() + ": " + (eliminado ? "OK" : "FALLO"));
+                    }
+                }
+            }
+        }
+        
     }
 
     

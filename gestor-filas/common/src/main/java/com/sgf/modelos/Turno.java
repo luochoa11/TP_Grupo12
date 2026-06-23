@@ -122,4 +122,17 @@ public class Turno implements Serializable {
         copia.setTiempoAtendido(this.tiempoAtendido);
         return copia;
     }
+
+    @Override
+    public String toString() {
+        return "Turno{" +
+                "dniCliente='" + dniCliente + '\'' +
+                ", idPuesto=" + idPuesto +
+                ", intentos=" + intentos +
+                ", estado='" + estado + '\'' +
+                ", tiempoCreacion=" + tiempoCreacion +
+                ", tiempoLlamado=" + tiempoLlamado +
+                ", tiempoAtendido=" + tiempoAtendido +
+                '}'+'\n';
+    }
 }

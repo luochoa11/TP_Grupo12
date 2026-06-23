@@ -18,11 +18,11 @@ public class PersistenciaLectorPlain implements IPersistenciaLector{
     private final String PATH_REINTENTOS;
 
     public PersistenciaLectorPlain(String rutaBase) {
-        this.PATH_FILA = rutaBase + "filaEspera.dat";
-        this.PATH_HISTORIAL = rutaBase + "historial.dat";
-        this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.dat";
-        this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.dat";
-        this.PATH_REINTENTOS = rutaBase + "historialReintentos.dat";
+        this.PATH_FILA = rutaBase + "filaEspera.txt";
+        this.PATH_HISTORIAL = rutaBase + "historial.txt";
+        this.PATH_TURNOS_ACTUALES = rutaBase + "turnosActuales.txt";
+        this.PATH_ULTIMO_LLAMADO = rutaBase + "ultimoLlamado.txt";
+        this.PATH_REINTENTOS = rutaBase + "historialReintentos.txt";
     }
 
     @Override
@@ -54,7 +54,7 @@ public class PersistenciaLectorPlain implements IPersistenciaLector{
     @Override
     public List<Turno> recuperarHistorialReintentos() throws Exception {
         return (List<Turno>) leerObjeto(PATH_REINTENTOS);
-     }
+    }
 
     // deserializacion
     private Object leerObjeto(String path) throws Exception {

@@ -69,7 +69,9 @@ public class ServidorCentral implements Runnable {
     @Override
     public void run() {
         try(ServerSocket server = new ServerSocket(puerto)){
-            System.out.println("Servidor Central iniciado. Escuchando en el puerto " + puerto);
+            System.out.println("\n=======================================================");
+            System.out.println(" Servidor Central iniciado. Escuchando en el puerto " + puerto);
+            System.out.println("=======================================================\n");
             
             while (true) {
                 Socket socketCliente = server.accept();

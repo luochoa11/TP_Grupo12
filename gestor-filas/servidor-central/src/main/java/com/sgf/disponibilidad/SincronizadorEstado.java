@@ -77,8 +77,6 @@ public class SincronizadorEstado {
             out.writeObject(logica.getUltimoLlamado());
             out.writeObject(logica.getHistorialReintentos());
             
-            // ENVIAR CONFIGURACIÓN ACTIVA DE LA SESIÓN (Persistencia)
-            //------se podría agregar sincronizacion de seguridad-----------
             if (servidor != null && servidor.getFachada() != null) {
                 out.writeObject(servidor.getFachada().getFormatoPersistenciaActivo());
                 out.writeObject(servidor.getFachada().getAlgoritmoCifradoActivo());
@@ -134,7 +132,6 @@ public class SincronizadorEstado {
      * Transmite un cambio de formato de persistencia en caliente al secundario.
     */
     public void sincronizarFormatoPersistencia(String nuevoFormato) { 
-        //----de la misma manera se podría para seguridad, agregando case en manejadorAdmin----
         String[] secundario = resolverSecundario();
         if (secundario == null) return;
 
@@ -142,8 +139,9 @@ public class SincronizadorEstado {
         int    puerto = Integer.parseInt(secundario[1]);
 
         try (Socket socket = new Socket(ip, puerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) { 
+            
             out.writeObject("SYNC_SERVER");
             out.flush(); 
 
@@ -198,7 +196,8 @@ public class SincronizadorEstado {
         int    puerto = Integer.parseInt(secundario[1]);
 
         try (Socket socket = new Socket(ip, puerto);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
             out.writeObject("SYNC_SERVER");
             out.flush(); 

@@ -20,28 +20,30 @@ public class GestorFalla {
         this.directorioIp     = directorioIp;
         this.directorioPuerto = directorioPuerto;
     }
-    // Cuando recibe el aviso de falla:
-    //  -Llama al IServicioControl del Servidor Secundario.
-    //  -Informa al Directorio el cambio de IP.
-    
-    public void procesarFalla(NodoEstadoDTO nodoFalla, NodoEstadoDTO primario, NodoEstadoDTO secundario) {
-        // Lógica para procesar la falla
-    
+
+    public boolean procesarFalla(NodoEstadoDTO nodoFalla, NodoEstadoDTO primario, NodoEstadoDTO secundario) {
         System.out.println("[Monitor] Procesando falla del nodo: " + nodoFalla.getIp() + ":" + nodoFalla.getPuerto());
+        
         if(primario!=null && nodoFalla.getIp().equals(primario.getIp()) && nodoFalla.getPuerto() == primario.getPuerto()){
             System.out.println("[GestorFalla] El nodo caído es el primario. Promoviendo secundario a primario...");
             
-            enviarPromocion(secundario);
-            actualizarDirectorio(secundario.getIp(), secundario.getPuerto());
+            // Verificación estricta: Solo actualizamos el directorio si la promoción fue exitosa
+            boolean promovido = enviarPromocion(secundario);
+            
+            if (promovido) {
+                actualizarDirectorio(secundario.getIp(), secundario.getPuerto());
+                return true;
+            } else {
+                System.err.println("[GestorFalla] ALERTA: El secundario también está inalcanzable. Falla Catastrófica (Blackout).");
+                return false;
+            }
         } else {
-            if(primario == null)
-                actualizarDirectorio(directorioIp, directorioPuerto);
-            else
-            System.out.println("[GestorFalla] El nodo caído no es el primario. No se requiere acción inmediata.");
+            System.out.println("[GestorFalla] El nodo caído no es el primario. No se requiere promoción.");
+            return false;
         }
-    
     }
-    private void enviarPromocion(NodoEstadoDTO secundario){
+
+    private boolean enviarPromocion(NodoEstadoDTO secundario){
         try{
             Socket socket = new Socket(secundario.getIp(), secundario.getPuerto());
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -53,13 +55,14 @@ public class GestorFalla {
             out.writeObject("PROMOVER");
             out.flush();
 
-            String respuesta = (String) in.readObject(); //bloquea
+            String respuesta = (String) in.readObject(); 
             System.out.println("[GestorFalla] Promoción confirmada: " + respuesta);
             socket.close();
+            return true; // Promoción real exitosa
         } catch(Exception e){
-            System.err.println("Error al enviar promoción: " + e.getMessage());
+            System.err.println("[GestorFalla] Error al enviar promoción (Nodo Muerto): " + e.getMessage());
+            return false; // Promoción fallida
         }
-
     }
 
     private void actualizarDirectorio(String nuevaIp, int nuevoPuerto) {
@@ -79,5 +82,37 @@ public class GestorFalla {
             System.err.println("[GestorFalla] Error al actualizar Directorio: " + e.getMessage());
         }
     }
+
+    public void limpiarPrimarioEnDirectorio() {
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("LIMPIAR_PRIMARIO");
+            out.flush();
+            in.readObject();
+            System.out.println("[GestorFalla] Primario eliminado del directorio (Limpieza Blackout).");
+
+        } catch (Exception e) {
+            System.err.println("[GestorFalla] Error al limpiar primario: " + e.getMessage());
+        }
+    }
+
+    public void limpiarSecundarioEnDirectorio(NodoEstadoDTO secundario) {
+        try (Socket socket = new Socket(directorioIp, directorioPuerto);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream  in  = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject("LIMPIAR_SECUNDARIO");
+            out.flush();
+
+            in.readObject(); // "OK"
+            System.out.println("[GestorFalla] Secundario eliminado del directorio.");
+
+        } catch (Exception e) {
+            System.err.println("[GestorFalla] Error al limpiar secundario en directorio: " + e.getMessage());
+        }
+    }
 }
+
 

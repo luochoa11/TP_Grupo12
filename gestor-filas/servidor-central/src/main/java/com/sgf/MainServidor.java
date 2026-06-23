@@ -41,8 +41,6 @@ public class MainServidor {
             esPrimario = "Primario".equalsIgnoreCase(rol);
         }
 
-      
-
         // 3. Arrancar servidor con la config recibida
         ILogicaFila logica = LogicaFila.getInstance();
         SincronizadorEstado sincronizador = new SincronizadorEstado(logica, directorioIp, directorioPuerto);

@@ -45,9 +45,20 @@ public class ManejadorDirectorio implements Runnable {
                     int    puertoReg=(int)    in.readObject();
                     out.writeObject(gestorRutas.registrar(ipReg, puertoReg));
                     break;
+                    
                 case "GET_RUTA_SECUNDARIA":
                     out.writeObject(gestorRutas.getIPSecundario());
                     out.writeObject(gestorRutas.getPuertoSecundario());
+                    break;
+
+                case "LIMPIAR_SECUNDARIO":
+                    gestorRutas.limpiarSecundario();
+                    out.writeObject("OK");
+                    break;
+
+                case "LIMPIAR_PRIMARIO":
+                    gestorRutas.limpiarPrimario();
+                    out.writeObject("OK");
                     break;
 
                 default:
