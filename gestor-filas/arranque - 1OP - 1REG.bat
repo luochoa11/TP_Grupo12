@@ -35,8 +35,6 @@ REM =====================================
 start "Operador 1" cmd /k "cd /d %ROOT%panel-operador && java -cp target\classes;..\common\target\classes com.sgf.MainOperador 1"
 timeout /t 1 /nobreak > nul
 
-start "Operador 2" cmd /k "cd /d %ROOT%panel-operador && java -cp target\classes;..\common\target\classes com.sgf.MainOperador 2"
-timeout /t 1 /nobreak > nul
 
 REM =====================================
 REM Registros
@@ -44,8 +42,6 @@ REM =====================================
 start "Registro 1" cmd /k "cd /d %ROOT%terminal-registro && java -cp target\classes;..\common\target\classes com.sgf.MainRegistro 1"
 timeout /t 1 /nobreak > nul
 
-start "Registro 2" cmd /k "cd /d %ROOT%terminal-registro && java -cp target\classes;..\common\target\classes com.sgf.MainRegistro 2"
-timeout /t 1 /nobreak > nul
 
 REM =====================================
 REM Pantalla Anuncio

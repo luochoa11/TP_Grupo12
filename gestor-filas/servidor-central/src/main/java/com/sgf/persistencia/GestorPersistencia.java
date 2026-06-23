@@ -15,6 +15,7 @@ public class GestorPersistencia {
     private IFactoryPersistencia factoryActiva; 
     private String formatoActivo;
     private final String rutaBase;
+    private IPersistenciaEscritor escritorAuditoriaFria;
 
     public GestorPersistencia(int puerto) {
         this.rutaBase = "config" + File.separator + "servidor_" + puerto + File.separator;
@@ -22,6 +23,9 @@ public class GestorPersistencia {
         if(!carpetaNodo.exists()){
             carpetaNodo.mkdirs();
         }
+
+        // Esto evita que se mezclen formatos XML y JSON en el mismo archivo Append-Only.
+        this.escritorAuditoriaFria = new FactoryJSON(this.rutaBase).crearEscritor();
         String formatoDetectado = detectarFormatoExistente();
         System.out.println("[GestorPersistencia] Formato detectado en disco al iniciar en: " + this.rutaBase + ": "+ formatoDetectado);
         establecerFormato(formatoDetectado);
@@ -30,10 +34,10 @@ public class GestorPersistencia {
     /**
      * Táctica de Disponibilidad: Resincronización de estado.
      * Busca los archivos de datos en el directorio aislado de este nodo.
-     * Prioridad de carga: DAT (binario) -> XML -> JSON.
+     * Prioridad de carga: TXT -> XML -> JSON.
      */
     public final String detectarFormatoExistente(){
-        if (new File(this.rutaBase + "filaEspera.dat").exists()) {
+        if (new File(this.rutaBase + "filaEspera.txt").exists()) {
             return "TXT";
         }
         if (new File(this.rutaBase + "filaEspera.xml").exists()) {
@@ -63,11 +67,37 @@ public class GestorPersistencia {
                 this.formatoActivo = "JSON"; 
                 break;
         }
-        System.out.println("[GestorPersistencia] Fabrica configurada con éxito: " + this.formatoActivo);
+        System.out.println("[GestorPersistencia] Fabrica de persistencia activa: " + this.formatoActivo);
     }
 
     public synchronized String getFormatoActivo() {
         return this.formatoActivo;
+    }
+
+    /**
+     * Limpia los archivos físicos obsoletos tras una migración exitosa.
+     */
+    public synchronized void clearOlds(String tipoFormato) {
+        if (tipoFormato == null) {
+            return;
+        }
+        String tipo = tipoFormato.toUpperCase();
+        String[] bases = new String[] { "filaEspera", "historial", "historialReintentos", "turnosActuales", "ultimoLlamado" };
+        String[] formatos = new String[] { "JSON", "XML", "TXT" };
+
+        for (String base : bases) {
+            for (String f : formatos) {
+                if (!f.equals(tipo)) {
+                    String ext = f.toLowerCase();
+                    File fichero = new File(this.rutaBase + base + "." + ext);
+                    if (fichero.exists()) {
+                        boolean eliminado = fichero.delete();
+                        System.out.println("[GestorPersistencia] Eliminando " + fichero.getPath() + ": " + (eliminado ? "OK" : "FALLO"));
+                    }
+                }
+            }
+        }
+        
     }
 
     
@@ -121,7 +151,8 @@ public class GestorPersistencia {
 
     public synchronized void registrarTurnoFinalizado(Turno turno) throws Exception {
         if (turno != null) {
-            factoryActiva.crearEscritor().registrarTurnoFinalizado(turno);
+            // para proteger la integridad del archivo de log.
+            escritorAuditoriaFria.registrarTurnoFinalizado(turno);
         }
     }
 }

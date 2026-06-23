@@ -2,20 +2,16 @@ package com.sgf.infraestructura;
 
 import com.sgf.interfaces.IServicioDirectorio;
 
-
 /**
  * Implementación del Servicio de Directorio.
  * Realiza la lógica de guardado de IPs 
- * <<Solo guarda, funciona como libreta de direcciones donde quiera que esté>>
  */
 
 public class GestorRutas implements IServicioDirectorio{
-
     private String ipPrimario;
     private int puertoPrimario;
     private String ipSecundario;
     private int puertoSecundario;
-
 
     //Los servidores se registran
     public GestorRutas() {
@@ -49,15 +45,16 @@ public class GestorRutas implements IServicioDirectorio{
         return puertoPrimario;
     }
 
-// @Override
     public synchronized void actualizarPrimario(String ip, int puerto) {
-        this.ipPrimario      = this.ipSecundario;
-        this.puertoPrimario  = this.puertoSecundario;
-        this.ipSecundario    = null; // lo dejamos null, el server tiene que registrarse de nuevo
-        this.puertoSecundario = -1;
-
-        System.out.println("[Directorio] Swap realizado. Nuevo primario -> " 
-            + this.ipPrimario + ":" + this.puertoPrimario);
+        this.ipPrimario      = ip;
+        this.puertoPrimario  = puerto;
+        
+        // Si la IP que subió a primario era nuestra IP secundaria actual, vaciamos el secundario
+        if (this.ipSecundario != null && this.ipSecundario.equals(ip) && this.puertoSecundario == puerto) {
+            this.ipSecundario    = null; 
+            this.puertoSecundario = -1;
+        }
+        System.out.println("[Directorio] Swap realizado. Nuevo primario -> "+ this.ipPrimario + ":" + this.puertoPrimario);
     }
 
     @Override
@@ -65,5 +62,17 @@ public class GestorRutas implements IServicioDirectorio{
 
     @Override
     public int getPuertoSecundario() { return puertoSecundario; }
+
+    public synchronized void limpiarSecundario() {
+        System.out.println("[Directorio] Secundario eliminado -> " + ipSecundario + ":" + puertoSecundario);
+        this.ipSecundario     = null;
+        this.puertoSecundario = -1;
+    }
+
+    public synchronized void limpiarPrimario() {
+        System.out.println("[Directorio] Primario eliminado (Blackout) -> " + ipPrimario + ":" + puertoPrimario);
+        this.ipPrimario = null;
+        this.puertoPrimario = -1;
+    }
 
 }

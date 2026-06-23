@@ -56,9 +56,10 @@ public class ServidorCentralFacade implements IServicioAdministrador {
 
             ArrayList<Turno> turnosActivosPlano = new ArrayList<>(logicaFila.getTurnosActivos().values());
             gestorPersistencia.guardarTurnosActuales(turnosActivosPlano);
-            
+            gestorPersistencia.clearOlds(tipoFormato);
             gestorPersistencia.guardarUltimoLlamado(logicaFila.getUltimoLlamado());
 
+            gestorPersistencia.clearOlds(tipoFormato);
             System.out.println("[FACADE-SERVIDOR] Migración y guardado local completado.");
             return true;
         } catch (Exception e) {
