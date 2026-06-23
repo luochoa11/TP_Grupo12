@@ -65,7 +65,7 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
     public synchronized void registrarTurnoFinalizado(Turno turno) throws Exception {
         if (turno == null) return;
         
-        // Rotación de Logs binarios por año y mes (ej: "auditoria_2026_06.dat")
+        // Rotación de Logs binarios por año y mes (ej: "auditoria_2026_06.txt")
         String mesAnio = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
         String pathHistorico = this.rutaBase + "historico" + File.separator + "auditoria_" + mesAnio + ".txt";
         
@@ -93,7 +93,7 @@ public class PersistenciaEscritorPlain implements IPersistenciaEscritor {
     // serializacion
     private void escribirObjeto(String path, Object objeto) throws Exception {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path))) {
-            oos.writeObject(objeto);
+            oos.writeObject(objeto.toString());
         }
     }
 
