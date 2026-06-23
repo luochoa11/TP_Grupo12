@@ -83,6 +83,7 @@ public class HeartbeatChecker implements Runnable {
                                 } else {
                                     System.err.println("[HeartbeatChecker] El servidor primario cayó y no hay secundario registrado.");
                                     primario = null;
+                                    gestorFalla.procesarFalla(nodoCaido, primario, secundario);
                                 }
                             }
 
